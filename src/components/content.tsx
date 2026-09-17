@@ -1,37 +1,150 @@
-import type { ChatMessage, ItineraryStop, ProfileInfoRow, ProfileMenuItem, RestaurantPick } from '../types';
+import { useState } from 'react';
+import type {
+  ChatMessage,
+  ItineraryStop,
+  PossibleOption,
+  ProfileInfoRow,
+  ProfileMenuItem,
+  RestaurantPick,
+  StayOption,
+} from '../types';
+import { formatINR } from '../utils/format';
+
+/** Image with a clean inline fallback — never a broken-image icon, never a fake photo. */
+export function SafeImage({
+  src,
+  alt,
+  className,
+}: {
+  src?: string;
+  alt: string;
+  className?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) {
+    return (
+      <div
+        role="img"
+        aria-label={alt}
+        className={`${className ?? ''} flex items-center justify-center bg-tourflow-surfaceMuted text-xl text-tourflow-textMuted`}
+      >
+        <span aria-hidden="true">✦</span>
+      </div>
+    );
+  }
+  return (
+    <img
+      src={src}
+      alt={alt}
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(true)}
+      className={className}
+    />
+  );
+}
 
 export function TimelineStopCard({ stop }: { stop: ItineraryStop }) {
+  const timeRange = [stop.time, stop.endTime].filter(Boolean).join(' – ');
   return (
     <li className="relative pl-10">
       <span
         aria-hidden="true"
         className="absolute left-4 top-4 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-tourflow-primary"
       />
-      <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{stop.time}</p>
-        <h4 className="mt-0.5 text-sm font-bold text-tourflow-dark">{stop.title}</h4>
-        <p className="mt-1 text-xs text-tourflow-textMuted">{stop.description}</p>
-        {stop.imageUrl ? (
-          <img src={stop.imageUrl} alt={stop.imageAlt ?? stop.title} loading="lazy" className="mt-2 h-36 w-full rounded-xl object-cover" />
-        ) : null}
-        <div className="mt-2 flex flex-wrap items-center gap-1.5">
-          {stop.badge ? (
-            <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-[11px] font-bold text-white">{stop.badge}</span>
+      <article className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
+        <SafeImage src={stop.imageUrl} alt={stop.imageAlt ?? stop.title} className="h-36 w-full object-cover" />
+        <div className="p-3">
+          {timeRange ? (
+            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{timeRange}</p>
           ) : null}
-          {stop.tags.map((tag) => (
-            <span
-              key={tag}
-              className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold text-tourflow-dark"
-            >
-              {tag}
-            </span>
-          ))}
-          {stop.costLabel ? (
-            <span className="ml-auto text-[11px] font-bold text-tourflow-sage">{stop.costLabel}</span>
-          ) : null}
+          <h4 className="mt-0.5 text-sm font-bold text-tourflow-dark">{stop.title}</h4>
+          {stop.location ? <p className="mt-0.5 text-[11px] text-tourflow-textMuted">📍 {stop.location}</p> : null}
+          {stop.description ? <p className="mt-1 text-xs text-tourflow-textMuted">{stop.description}</p> : null}
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {stop.badge ? (
+              <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-[11px] font-bold text-white">{stop.badge}</span>
+            ) : null}
+            {stop.tags.map((tag) => (
+              <span
+                key={tag}
+                className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold text-tourflow-dark"
+              >
+                {tag}
+              </span>
+            ))}
+            {stop.costLabel ? (
+              <span className="ml-auto text-[11px] font-bold text-tourflow-sage">{stop.costLabel}</span>
+            ) : null}
+          </div>
         </div>
       </article>
     </li>
+  );
+}
+
+/** Real catalog stay. No booking/deep-link exists in backend data, so none is shown. */
+export function StayCard({ stay }: { stay: StayOption }) {
+  return (
+    <article className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card">
+      <div className="relative">
+        <SafeImage src={stay.heroImage} alt={`${stay.name} photo`} className="h-32 w-full object-cover" />
+        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white">
+          {stay.badge.replace(/_/g, ' ')} · ★ {stay.rating}
+        </span>
+      </div>
+      <div className="p-3">
+        <h4 className="text-sm font-bold text-tourflow-dark">{stay.name}</h4>
+        <p className="text-[11px] text-tourflow-textMuted">{stay.location}</p>
+        <p className="mt-1 text-xs text-tourflow-textMuted">{stay.roomType}</p>
+        {stay.amenities.length > 0 ? (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {stay.amenities.slice(0, 4).map((amenity) => (
+              <span
+                key={amenity}
+                className="rounded-full bg-tourflow-sageLight px-2 py-0.5 text-[11px] font-semibold text-tourflow-sage"
+              >
+                {amenity}
+              </span>
+            ))}
+          </div>
+        ) : null}
+        <p className="mt-2 text-xs italic text-tourflow-textMuted">{stay.whyItMatches}</p>
+        <div className="mt-2 flex items-baseline justify-between">
+          <span className="text-sm font-extrabold text-tourflow-dark">{formatINR(stay.totalPrice)}</span>
+          <span className="text-[11px] text-tourflow-textMuted">
+            {formatINR(stay.pricePerNight)} / night · {stay.nights} night(s)
+          </span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+/** Real catalog activity alternative. Display only — no booking actions in this phase. */
+export function OptionCard({ option }: { option: PossibleOption }) {
+  return (
+    <article className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
+      <div className="relative">
+        <SafeImage src={option.imageUrl} alt={`${option.title} photo`} className="h-28 w-full object-cover" />
+        <span className="absolute right-2 top-2 rounded-md bg-black/60 px-2 py-0.5 text-[10px] font-semibold text-white backdrop-blur-md">
+          {option.duration}
+        </span>
+      </div>
+      <div className="p-3">
+        <h4 className="truncate text-sm font-bold text-tourflow-dark">{option.title}</h4>
+        <p className="mt-0.5 truncate text-[11px] text-tourflow-textMuted">📍 {option.location}</p>
+        {option.description ? (
+          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-tourflow-textMuted">{option.description}</p>
+        ) : null}
+        <div className="mt-2 flex items-center justify-between gap-2">
+          <span className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold capitalize">
+            {option.walkingIntensity} walk
+          </span>
+          <span className="text-xs font-extrabold text-tourflow-dark">{formatINR(option.cost)}</span>
+        </div>
+      </div>
+    </article>
   );
 }
 

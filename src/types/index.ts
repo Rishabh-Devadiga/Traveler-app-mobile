@@ -72,6 +72,44 @@ export interface ItineraryStop {
   imageAlt?: string;
   featured?: boolean;
   badge?: string;
+  /** Real backend fields, preserved for display (and the future map phase). */
+  endTime?: string;
+  latitude?: number;
+  longitude?: number;
+  sourceUrl?: string;
+  location?: string;
+}
+
+/** Real catalog accommodation, mapped 1:1 from the backend AccommodationOption. */
+export interface StayOption {
+  id: string;
+  name: string;
+  rating: number;
+  category: string;
+  location: string;
+  roomType: string;
+  pricePerNight: number;
+  totalPrice: number;
+  nights: number;
+  amenities: string[];
+  whyItMatches: string;
+  heroImage?: string;
+  images: string[];
+  badge: string;
+}
+
+/** Real catalog activity alternative from GET /api/possible-options. */
+export interface PossibleOption {
+  id: string;
+  title: string;
+  category: string;
+  location: string;
+  duration: string;
+  cost: number;
+  description: string;
+  imageUrl?: string;
+  tags: string[];
+  walkingIntensity: string;
 }
 
 export interface ItineraryDay {
@@ -142,4 +180,53 @@ export interface OnboardingSlide {
   location: string;
   imageUrl: string;
   imageAlt: string;
+}
+
+/** Deterministic parse result for a natural-language trip prompt. Unknown fields stay undefined. */
+export interface ParsedTripFields {
+  destination?: string;
+  durationDays?: number;
+  travelers?: number;
+  travelerLabel?: string;
+  budgetAmount?: number;
+  budgetLabel?: string;
+  style?: string;
+}
+
+/**
+ * Shared frontend-only trip draft (Phase 2 — no backend).
+ * Single source of truth for the Plan → Checklist → Loading → Itinerary flow.
+ */
+export interface TripDraft {
+  prompt: string;
+  destination?: string;
+  durationDays?: number;
+  travelers?: number;
+  travelerLabel?: string;
+  budgetAmount?: number;
+  budgetLabel?: string;
+  style?: string;
+  /** Trip start date as `YYYY-MM-DD` (optional, set via the Checklist date picker). */
+  startDate?: string;
+  /** Trip end date as `YYYY-MM-DD` (optional, set via the Checklist date picker). */
+  endDate?: string;
+  /** Prompt text the derived fields were parsed from (edits preserved while this matches). */
+  parsedForPrompt?: string;
+  /** Deterministically generated mock itinerary (null until Loading completes). */
+  itinerary: ItineraryDay[] | null;
+  /** Signature of the inputs the stored itinerary was generated from (stale-check). */
+  itinerarySignature?: string;
+  /** Backend trip id when the itinerary came from the TourFlow API (Phase 3B). */
+  tripId?: string;
+  /** Where the stored itinerary came from — real API or mock fallback. */
+  itinerarySource?: 'api' | 'mock';
+  /** Backend-computed trip total (`total_cost`) when the itinerary came from the API. */
+  totalCost?: number;
+  /**
+   * Full backend trip payload (`_trip_dict`) when the itinerary came from the
+   * API — stays, alternatives, costs. Null in mock mode. This IS the backend
+   * model, not a second itinerary model. Typed loosely here to avoid a
+   * type-only import cycle with the api layer; see `ApiTripWithItinerary`.
+   */
+  apiTrip?: unknown;
 }

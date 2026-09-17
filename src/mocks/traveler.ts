@@ -619,3 +619,70 @@ export const onboardingCopy = {
   trustNote: 'Zero-booking fees • 100% Tailored Itineraries',
   quickTags: ['Himalayas', 'Coorg Retreat', 'Kerala'],
 };
+
+/**
+ * Destination vocabulary for the deterministic prompt parser (Phase 2).
+ * Labels are display names; patterns match common spellings in user prompts.
+ */
+export const knownDestinations: Array<{ label: string; pattern: RegExp }> = [
+  { label: 'Kashmir', pattern: /\bkashmir\b|\bsrinagar\b|\bgulmarg\b|\bpahalgam\b|\bdal lake\b/i },
+  { label: 'Goa', pattern: /\bgoa\b/i },
+  { label: 'Udaipur', pattern: /\budaipur\b/i },
+  { label: 'Manali', pattern: /\bmanali\b/i },
+  { label: 'Kerala', pattern: /\bkerala\b|\bkochi\b|\bmunnar\b|\balleppey\b|\bkovalam\b/i },
+  { label: 'Jaipur', pattern: /\bjaipur\b|\bamber\b/i },
+  { label: 'Jaisalmer', pattern: /\bjaisalmer\b/i },
+  { label: 'Ladakh', pattern: /\bladakh\b|\bleh\b/i },
+  { label: 'Coorg', pattern: /\bcoorg\b|\bkodagu\b/i },
+  { label: 'Pondicherry', pattern: /\bpondicherry\b|\bpuducherry\b|\bpondi\b/i },
+  { label: 'Rishikesh', pattern: /\brishikesh\b/i },
+  { label: 'Varanasi', pattern: /\bvaranasi\b|\bbanaras\b/i },
+  { label: 'Agra', pattern: /\bagra\b/i },
+  { label: 'Delhi', pattern: /\bdelhi\b/i },
+  { label: 'Mumbai', pattern: /\bmumbai\b|\bbombay\b/i },
+  { label: 'Darjeeling', pattern: /\bdarjeeling\b/i },
+  { label: 'Shimla', pattern: /\bshimla\b/i },
+  { label: 'Ooty', pattern: /\booty\b|\budhagamandalam\b/i },
+  { label: 'Hampi', pattern: /\bhampi\b/i },
+  { label: 'Mysore', pattern: /\bmysore\b|\bmysuru\b/i },
+  { label: 'Andaman Islands', pattern: /\bandaman\b|\bhavelock\b/i },
+  { label: 'Uttarakhand', pattern: /\buttarakhand\b|\bnainital\b|\bmussoorie\b/i },
+  { label: 'Thailand', pattern: /\bthailand\b|\bbangkok\b|\bphuket\b|\bkrabi\b/i },
+  { label: 'Bali', pattern: /\bbali\b/i },
+  { label: 'Dubai', pattern: /\bdubai\b/i },
+  { label: 'Paris', pattern: /\bparis\b/i },
+  { label: 'Kyoto', pattern: /\bkyoto\b/i },
+];
+
+/** Simulated planning steps for the Loading screen (frontend timing only). */
+export const planningSteps = [
+  { id: 'p1', label: 'Understanding your trip' },
+  { id: 'p2', label: 'Building your preferences' },
+  { id: 'p3', label: 'Finding experiences' },
+  { id: 'p4', label: 'Planning your days' },
+  { id: 'p5', label: 'Preparing your itinerary' },
+];
+
+export const loadingMockNote = {
+  trivia: 'Mock preview — real local tips, prices and availability arrive with trip generation.',
+  weather: 'Mock estimates only — live weather and prices arrive with the backend.',
+};
+
+const NEUTRAL_PREVIEW_IMAGE = {
+  imageUrl:
+    'https://images.unsplash.com/photo-1488646953014-85cb44e25828?auto=format&fit=crop&w=600&q=60',
+  imageAlt: 'Traveler planning a mock getaway',
+};
+
+/** Destination-aware mock preview images for Loading (centralized, no per-page hardcoding). */
+export function loadingPreviewImages(destination?: string): Array<{ imageUrl: string; imageAlt: string }> {
+  if (!destination) return [NEUTRAL_PREVIEW_IMAGE, NEUTRAL_PREVIEW_IMAGE];
+  const match = curatedDestinations.find((d) =>
+    d.name.toLowerCase().includes(destination.toLowerCase()),
+  );
+  if (!match) return [NEUTRAL_PREVIEW_IMAGE, NEUTRAL_PREVIEW_IMAGE];
+  return [
+    { imageUrl: match.imageUrl, imageAlt: match.imageAlt },
+    NEUTRAL_PREVIEW_IMAGE,
+  ];
+}
