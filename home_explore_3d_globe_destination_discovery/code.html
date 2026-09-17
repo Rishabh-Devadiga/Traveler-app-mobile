@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#f0fdf1;color:#131e17;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-bright":"#f0fdf1","on-tertiary-container":"#243810","primary-fixed":"#ffdbd0","on-primary-container":"#611900","primary":"#ad3300","surface-container-low":"#eaf7ec","secondary-fixed-dim":"#b2d095","error-container":"#ffdad6","error":"#ba1a1a","inverse-surface":"#28332c","on-surface-variant":"#59413a","on-tertiary":"#ffffff","on-primary-fixed":"#390b00","background":"#f0fdf1","surface-dim":"#d0ddd2","on-error":"#ffffff","surface-container-lowest":"#ffffff","tertiary-fixed":"#d0ebb2","surface-variant":"#d9e6db","on-secondary-fixed-variant":"#354d20","secondary-fixed":"#ceecaf","on-secondary-container":"#516a39","on-surface":"#131e17","inverse-primary":"#ffb59e","primary-fixed-dim":"#ffb59e","primary-container":"#ff6d3b","tertiary":"#4e6538","on-primary-fixed-variant":"#842500","surface":"#f0fdf1","inverse-on-surface":"#e7f4e9","outline":"#8d7168","secondary-container":"#cbe9ac","on-secondary":"#ffffff","on-primary":"#ffffff","surface-container":"#e4f1e6","on-tertiary-fixed":"#0d2000","tertiary-container":"#89a370","outline-variant":"#e1bfb5","on-tertiary-fixed-variant":"#374d23","secondary":"#4c6635","surface-container-highest":"#d9e6db","on-background":"#131e17","surface-tint":"#ad3300","tertiary-fixed-dim":"#b4cf98","surface-container-high":"#dfebe0","on-error-container":"#93000a","on-secondary-fixed":"#0d2000"},"borderRadius":{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","margin-mobile":"1.25rem","gutter-mobile":"0.75rem","margin":"1.5rem","space-sm":"0.5rem","space-xl":"2rem","space-md":"1rem","space-lg":"1.5rem","gutter":"1rem"},"fontFamily":{"display-hero-mobile":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"display-hero":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},"fontSize":{"display-hero-mobile":["30px",{"lineHeight":"38px","letterSpacing":"-0.02em","fontWeight":"800"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-lg":["26px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"21px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"700"}],"display-hero":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"800"}],"headline-sm":["17px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}]}}}};</script><style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head><body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 inset-x-0 z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_12px_rgba(30,41,34,0.04)]"><div class="h-16 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-[0_2px_8px_rgba(173,51,0,0.2)]"><span class="material-symbols-outlined text-[20px]">explore</span></div><h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Home Explore</h1></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="w-11 h-11 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span></button><a class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-[0_2px_6px_rgba(173,51,0,0.25)] hover:scale-105 active:scale-95 transition-transform" data-path="user-profile" href="#"><span class="material-symbols-outlined text-[18px]">person</span></a></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface px-margin-mobile"><div class="flex flex-col w-full gap-space-lg pb-6">
+<!-- 1. HERO SECTION - 3D GLOBE PREVIEW CARD -->
+<section class="relative -mx-margin-mobile px-margin-mobile pt-1 pb-2 overflow-hidden flex flex-col items-center">
+<div class="absolute -top-12 left-1/2 -translate-x-1/2 w-72 h-72 bg-gradient-to-tr from-secondary-container/40 via-primary-fixed/30 to-tertiary-fixed/30 rounded-full blur-3xl pointer-events-none -z-10"></div>
+<div class="relative w-full rounded-2xl overflow-hidden bg-gradient-to-b from-surface-container-low/80 via-surface-container-lowest/95 to-surface-container-low/90 p-3 shadow-[0_14px_40px_rgba(30,41,34,0.09)] border border-white/80 backdrop-blur-md group cursor-pointer active:scale-[0.99] transition-transform" id="globe-preview-card">
+<!-- 3D Globe View Container -->
+<div class="relative w-full h-[220px] rounded-xl overflow-hidden bg-gradient-to-b from-[#0e272a] via-[#143e42] to-[#0c2225] flex items-center justify-center shadow-inner">
+<!-- 3D Three.js Scene integration -->
+<!-- STITCH_THREEJS_START:ANIMATION_19 class="absolute inset-0 w-full h-full bg-transparent" -->
+<div class="absolute inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_19" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_19');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Interactive 3D Earth Globe with canvas procedural texture, atmosphere glow, and markers
+(function() {
+  const container = document.getElementById('threejs-globe-canvas') || document.getElementById('globe-container') || document.body;
+  const width = container.clientWidth || 360;
+  const height = container.clientHeight || 240;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.z = 2.7;
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
+
+  // Generate Canvas Earth Texture (Stylized WanderAI Green/Ocean Earth)
+  const texCanvas = document.createElement('canvas');
+  texCanvas.width = 1024;
+  texCanvas.height = 512;
+  const ctx = texCanvas.getContext('2d');
+
+  // Deep serene ocean gradient
+  const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
+  oceanGrad.addColorStop(0, '#10393b');
+  oceanGrad.addColorStop(0.5, '#184e52');
+  oceanGrad.addColorStop(1, '#0e3133');
+  ctx.fillStyle = oceanGrad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Soft latitude/longitude grid lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  for (let lat = 40; lat < 512; lat += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, lat);
+    ctx.lineTo(1024, lat);
+    ctx.stroke();
+  }
+  for (let lon = 50; lon < 1024; lon += 80) {
+    ctx.beginPath();
+    ctx.moveTo(lon, 0);
+    ctx.lineTo(lon, 512);
+    ctx.stroke();
+  }
+
+  // Draw land masses in warm natural WanderAI olive/emerald green tones
+  ctx.fillStyle = '#4ade80';
+  ctx.shadowColor = 'rgba(74, 222, 128, 0.3)';
+  ctx.shadowBlur = 4;
+
+  function drawContinent(points) {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i][0], points[i][1]);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // India & South Asia
+  ctx.fillStyle = '#86efac';
+  drawContinent([
+    [690, 180], [730, 185], [745, 230], [715, 285], [700, 260], [680, 220], [675, 195]
+  ]);
+  // Eurasia
+  ctx.fillStyle = '#34d399';
+  drawContinent([
+    [520, 120], [600, 100], [700, 110], [820, 140], [860, 200], [780, 220], [720, 170], [640, 160], [560, 170], [510, 150]
+  ]);
+  // Africa
+  ctx.fillStyle = '#6ee7b7';
+  drawContinent([
+    [510, 180], [580, 190], [610, 250], [570, 340], [530, 360], [490, 280], [480, 210]
+  ]);
+  // Southeast Asia / Japan
+  drawContinent([
+    [780, 230], [830, 250], [820, 290], [770, 280]
+  ]);
+  // Americas preview
+  drawContinent([
+    [220, 120], [320, 130], [280, 220], [240, 220], [200, 160]
+  ]);
+  drawContinent([
+    [270, 240], [340, 280], [320, 390], [280, 420], [260, 320]
+  ]);
+
+  const earthTexture = new THREE.CanvasTexture(texCanvas);
+
+  // Earth Sphere
+  const globeGeo = new THREE.SphereGeometry(1, 48, 48);
+  const globeMat = new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    shininess: 18,
+    specular: new THREE.Color(0x38bdf8),
+    emissive: new THREE.Color(0x062024),
+  });
+  const globeMesh = new THREE.Mesh(globeGeo, globeMat);
+  scene.add(globeMesh);
+
+  // Atmosphere Outer Glow
+  const glowGeo = new THREE.SphereGeometry(1.04, 32, 32);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.18,
+    side: THREE.BackSide
+  });
+  const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glowMesh);
+
+  // Subtle clouds halo
+  const cloudGeo = new THREE.SphereGeometry(1.015, 32, 32);
+  const cloudMat = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.14
+  });
+  const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+  scene.add(cloudMesh);
+
+  // Add Glowing Destination Markers (e.g. India / Udaipur, Alps, Tokyo, Bali)
+  function latLonToVector3(lat, lon, radius) {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lon + 180) * (Math.PI / 180);
+    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+    const z = (radius * Math.sin(phi) * Math.sin(theta));
+    const y = (radius * Math.cos(phi));
+    return new THREE.Vector3(x, y, z);
+  }
+
+  const markersGroup = new THREE.Group();
+  const destinations = [
+    { name: 'India', lat: 24.58, lon: 73.71, color: 0xff6b35, pulse: true }, // Udaipur / Rajasthan
+    { name: 'Japan', lat: 35.67, lon: 139.65, color: 0x38bdf8, pulse: false },
+    { name: 'Europe', lat: 46.8, lon: 9.8, color: 0x34d399, pulse: false },
+    { name: 'Bali', lat: -8.4, lon: 115.18, color: 0xfbbf24, pulse: false }
+  ];
+
+  destinations.forEach(d => {
+    const pos = latLonToVector3(d.lat, d.lon, 1.02);
+    const dotGeo = new THREE.SphereGeometry(0.045, 16, 16);
+    const dotMat = new THREE.MeshBasicMaterial({ color: d.color });
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.copy(pos);
+
+    // Pulse ring for primary selected
+    const ringGeo = new THREE.RingGeometry(0.05, 0.08, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: d.color, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(pos);
+    ring.lookAt(new THREE.Vector3(0, 0, 0));
+    ring.scale.set(1.2, 1.2, 1.2);
+
+    markersGroup.add(dot);
+    markersGroup.add(ring);
+  });
+  globeMesh.add(markersGroup);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambientLight);
+
+  const sunLight = new THREE.DirectionalLight(0xfffaed, 1.4);
+  sunLight.position.set(3, 2, 4);
+  scene.add(sunLight);
+
+  // Initial tilt toward India
+  globeMesh.rotation.x = 0.35;
+  globeMesh.rotation.y = -1.2;
+
+  // Interaction / Drag rotation
+  let isDragging = false;
+  let prevMouseX = 0;
+  let prevMouseY = 0;
+
+  container.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - prevMouseX;
+    const deltaY = e.clientY - prevMouseY;
+    globeMesh.rotation.y += deltaX * 0.008;
+    globeMesh.rotation.x += deltaY * 0.008;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  });
+
+  window.addEventListener('pointerup', () => { isDragging = false; });
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!isDragging) {
+      globeMesh.rotation.y += 0.0025; // Gentle auto-rotation
+      cloudMesh.rotation.y += 0.0032;
+    }
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const w = container.clientWidth || 360;
+    const h = container.clientHeight || 240;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_19 -->
+<!-- Radial atmospheric glow overlay -->
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_45%,rgba(14,39,42,0.65)_100%)] pointer-events-none"></div>
+<!-- Header Pill -->
+<div class="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/20 text-white shadow-sm flex items-center gap-1.5 pointer-events-none">
+<span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+<span class="font-label-sm text-label-sm font-semibold tracking-wide">Live 3D Globe • Interactive</span>
+</div>
+<!-- Top Right CTA Badge -->
+<button class="globe-open-btn absolute top-3 right-3 px-2.5 py-1 rounded-full bg-primary-container text-on-primary font-label-sm text-label-sm shadow-[0_4px_12px_rgba(255,109,59,0.4)] flex items-center gap-1 hover:scale-105 active:scale-95 transition-transform border border-white/30" type="button">
+<span class="material-symbols-outlined text-[15px]">public</span>
+<span>Explore 3D ↗</span>
+</button>
+<!-- Center coordinate crosshair accent -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none opacity-25">
+<div class="w-28 h-28 rounded-full border border-dashed border-teal-300"></div>
+</div>
+<!-- Floating Bottom Guide Bar -->
+<div class="absolute bottom-2.5 inset-x-2.5 bg-surface-container-lowest/95 backdrop-blur-md rounded-xl p-2.5 shadow-[0_8px_24px_rgba(30,41,34,0.16)] border border-white/90 flex items-center justify-between gap-2">
+<div class="flex items-center gap-2.5 min-w-0">
+<div class="relative shrink-0">
+<div class="w-9 h-9 rounded-full bg-gradient-to-tr from-primary to-primary-container flex items-center justify-center text-on-primary shadow-[0_0_12px_rgba(255,109,59,0.5)]">
+<span class="material-symbols-outlined text-[19px]">travel_explore</span>
+</div>
+<span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-500 rounded-full border-2 border-surface-container-lowest"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-1">
+<span class="font-label-sm text-[10px] uppercase tracking-wider text-primary font-extrabold">WANDERAI GLOBE GUIDE</span>
+</div>
+<p class="font-body-sm text-[12px] text-on-surface leading-tight truncate">Tap to explore countries &amp; secret getaways in 3D</p>
+</div>
+</div>
+<button class="globe-open-btn shrink-0 px-3 py-1.5 rounded-full bg-primary text-on-primary font-label-sm text-label-sm shadow-[0_2px_8px_rgba(173,51,0,0.3)] hover:scale-105 active:scale-95 transition-all flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[14px]">explore</span>
+<span>Open</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Greeting Header -->
+<section class="flex flex-col pt-1">
+<div class="flex items-center gap-1.5 text-tertiary">
+<span class="material-symbols-outlined text-[18px]">waving_hand</span>
+<span class="font-label-md text-label-md tracking-wide uppercase">Hello, Aarav</span>
+</div>
+<h2 class="font-display-hero-mobile text-display-hero-mobile text-on-surface mt-1 leading-tight">
+      Where do you<br/><span class="text-primary">want to wander?</span>
+</h2>
+</section>
+<!-- AI Search Capsule -->
+<section class="relative flex items-center">
+<div class="w-full bg-surface-container-lowest rounded-full shadow-[0_6px_24px_rgba(30,41,34,0.06)] pl-space-md pr-1.5 py-1.5 flex items-center gap-space-sm group focus-within:shadow-[0_8px_30px_rgba(173,51,0,0.12)] transition-all">
+<span class="material-symbols-outlined text-outline text-[22px] group-focus-within:text-primary transition-colors">travel_explore</span>
+<input class="w-full bg-transparent border-none outline-none font-body-md text-body-md text-on-surface placeholder:text-outline/70 truncate" id="destination-search-input" placeholder="Ask AI e.g. '4 days in Udaipur under ₹35k'..." type="text"/>
+<button aria-label="Ask WanderAI" class="w-11 h-11 shrink-0 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-[0_4px_14px_rgba(255,109,59,0.35)] hover:scale-105 active:scale-95 transition-transform" id="voice-sparkle-btn">
+<span class="material-symbols-outlined text-[20px]">auto_awesome</span>
+</button>
+</div>
+</section>
+<!-- Horizontal Filter Chips -->
+<section class="relative -mx-margin-mobile px-margin-mobile overflow-x-auto no-scrollbar flex items-center gap-space-sm" id="category-filter-lane">
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-primary text-on-primary font-label-md text-label-md shadow-sm transition-all" data-filter="all">
+      All
+    </button>
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-all" data-filter="popular">
+      Popular
+    </button>
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-all" data-filter="heritage">
+      Heritage
+    </button>
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-all" data-filter="beach">
+      Beach &amp; Sun
+    </button>
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-all" data-filter="mountain">
+      Mountain Escape
+    </button>
+<button class="filter-pill shrink-0 px-space-md py-2 rounded-full bg-surface-container-high text-on-surface font-label-md text-label-md hover:bg-surface-variant transition-all" data-filter="foodie">
+      Foodie
+    </button>
+</section>
+<!-- Featured AI Recommendations Horizontal Carousel -->
+<section class="flex flex-col gap-space-sm"><div class="flex items-center justify-between"><div class="flex items-center gap-1.5"><span class="material-symbols-outlined text-primary-container text-[20px]">star</span><h3 class="font-headline-sm text-headline-sm text-on-surface">Curated For You</h3></div><button class="globe-open-btn font-label-md text-label-md text-primary hover:underline font-semibold flex items-center gap-1" type="button"><span>View 3D map</span><span class="material-symbols-outlined text-[16px]">public</span></button></div><div class="relative -mx-margin-mobile px-margin-mobile overflow-x-auto flex gap-space-md no-scrollbar snap-x snap-mandatory pt-1 pb-3"><article class="snap-start shrink-0 w-[274px] rounded-2xl bg-surface-container-lowest p-2.5 flex flex-col shadow-[0_10px_28px_rgba(30,41,34,0.07)] hover:shadow-[0_14px_36px_rgba(30,41,34,0.12)] border border-white/80 transition-all hover:-translate-y-0.5"><div class="relative w-full h-[180px] rounded-xl overflow-hidden shadow-inner"><img class="w-full h-full object-cover" data-alt="Udaipur Lake Palace" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA0iict0Nk-9-NNcRlTUwe4qB9b2g7ndHh-kueLmE-ICk92LJYjXTDvolns-KNXKOGgNFe6Zri98Eo5TDLS4A_Hnt5EjeimSO84evZd5bv6ftJrPNgDbpNIwuGnZMluP5JrtixVPIHBso76FSj9MK43fFvpS7ecJVmg6bFjvKzMN3mEMqkKp2YFryFNXTR48maeCcPGdeMXnMHY3_4YxXT0mY38INb3LVyd8fhbNfvnlj7awt5_hg9mqQ"/><span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm shadow-sm flex items-center gap-1 border border-white/60"><span class="material-symbols-outlined text-[13px] text-primary-container" style="font-variation-settings: 'FILL' 1;">star</span>4.9 <span class="text-on-surface-variant font-normal">(1.2k)</span></span><button aria-label="Save Udaipur" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface flex items-center justify-center hover:scale-110 active:scale-95 transition-transform border border-white/60"><span class="material-symbols-outlined text-[18px]">favorite</span></button><div class="absolute bottom-2.5 left-2.5"><span class="px-2.5 py-0.5 rounded-full bg-primary/90 backdrop-blur-md text-on-primary font-label-sm text-label-sm font-medium shadow-sm">Royal Palaces &amp; Sunset Lakes</span></div></div><div class="p-space-xs pt-space-sm flex flex-col gap-1"><div class="flex items-baseline justify-between"><h4 class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">Udaipur</h4><span class="font-label-lg text-label-lg text-primary font-bold">₹28K<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/person</span></span></div><p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">The City of Lakes • Rajasthan</p><div class="flex items-center gap-1.5 mt-2 pt-2 border-t-0 bg-surface-container-low/70 rounded-full px-space-sm py-1"><span class="material-symbols-outlined text-[15px] text-tertiary">pace</span><span class="font-label-sm text-label-sm text-on-secondary-container font-medium">Ideal: 4 Days, 3 Nights</span></div></div></article><article class="snap-start shrink-0 w-[274px] rounded-2xl bg-surface-container-lowest p-2.5 flex flex-col shadow-[0_10px_28px_rgba(30,41,34,0.07)] hover:shadow-[0_14px_36px_rgba(30,41,34,0.12)] border border-white/80 transition-all hover:-translate-y-0.5"><div class="relative w-full h-[180px] rounded-xl overflow-hidden shadow-inner"><img class="w-full h-full object-cover" data-alt="South Goa Beach" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXq5q1GjxWq1LPrWGCYebdn4l4WqLrrkejhojClX_v_c5ou8VzNaC5zSWnBwqB3pXQTP32Xj3Ghd2T--tSa4uAIskFBFJn62OwGjFZxbYZRxGX0fLae0UkpF42JfjIQJ94RFcTW0w2cr1twAegiecptsflC8YiJ1DzLS6ivTO1GZ_3gaH2Y4AhdKqkiE5hlIdeR4h2R3rtirnp0ifYVY-OgdI0y6FjJPbvQrKbyzpYUXOVeq4-olrpDw"/><span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm shadow-sm flex items-center gap-1 border border-white/60"><span class="material-symbols-outlined text-[13px] text-primary-container" style="font-variation-settings: 'FILL' 1;">star</span>4.8 <span class="text-on-surface-variant font-normal">(890)</span></span><button aria-label="Save South Goa" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface flex items-center justify-center hover:scale-110 active:scale-95 transition-transform border border-white/60"><span class="material-symbols-outlined text-[18px]">favorite</span></button><div class="absolute bottom-2.5 left-2.5"><span class="px-2.5 py-0.5 rounded-full bg-secondary/90 backdrop-blur-md text-on-secondary font-label-sm text-label-sm font-medium shadow-sm">Sun &amp; Spice Coastal Trail</span></div></div><div class="p-space-xs pt-space-sm flex flex-col gap-1"><div class="flex items-baseline justify-between"><h4 class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">South Goa</h4><span class="font-label-lg text-label-lg text-primary font-bold">₹22K<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/person</span></span></div><p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Serene Beaches &amp; Heritage Villas</p><div class="flex items-center gap-1.5 mt-2 pt-2 border-t-0 bg-surface-container-low/70 rounded-full px-space-sm py-1"><span class="material-symbols-outlined text-[15px] text-tertiary">beach_access</span><span class="font-label-sm text-label-sm text-on-secondary-container font-medium">Ideal: 5 Days, 4 Nights</span></div></div></article><article class="snap-start shrink-0 w-[274px] rounded-2xl bg-surface-container-lowest p-2.5 flex flex-col shadow-[0_10px_28px_rgba(30,41,34,0.07)] hover:shadow-[0_14px_36px_rgba(30,41,34,0.12)] border border-white/80 transition-all hover:-translate-y-0.5"><div class="relative w-full h-[180px] rounded-xl overflow-hidden shadow-inner"><img class="w-full h-full object-cover" data-alt="Old Manali Village" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBHbKobfoPn-sZCmTDwM7lFl8zMJpxMffl1Q75XxFf273TCF78RYZewoEr3vDVWeqg7jyndX6TahqsUZOFaKNWlAr7z7wVHEZ-sbzIQj1F-YDZBINy54K2-G9I-OArLQw7-BE0VCWAeXAzZ8ZVjCSFzbyogyukdTg6On4dRlYNCn0JxGl1FKEK8tnBA94yTEWrq01h0iMTabJcZZ02u6cVR42kXE-HIS5xnirp6Wj9A0qo0Pa90c_cmHA"/><span class="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface font-label-sm text-label-sm shadow-sm flex items-center gap-1 border border-white/60"><span class="material-symbols-outlined text-[13px] text-primary-container" style="font-variation-settings: 'FILL' 1;">star</span>4.7 <span class="text-on-surface-variant font-normal">(640)</span></span><button aria-label="Save Old Manali" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-surface-container-lowest/90 backdrop-blur-md text-on-surface flex items-center justify-center hover:scale-110 active:scale-95 transition-transform border border-white/60"><span class="material-symbols-outlined text-[18px]">favorite</span></button><div class="absolute bottom-2.5 left-2.5"><span class="px-2.5 py-0.5 rounded-full bg-tertiary/90 backdrop-blur-md text-on-tertiary font-label-sm text-label-sm font-medium shadow-sm">Alpine Pine &amp; Mountain Passes</span></div></div><div class="p-space-xs pt-space-sm flex flex-col gap-1"><div class="flex items-baseline justify-between"><h4 class="font-headline-sm text-headline-sm text-on-surface tracking-tight font-bold">Old Manali</h4><span class="font-label-lg text-label-lg text-primary font-bold">₹18K<span class="font-body-sm text-body-sm text-on-surface-variant font-normal">/person</span></span></div><p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">Himalayan Cafes &amp; Pines</p><div class="flex items-center gap-1.5 mt-2 pt-2 border-t-0 bg-surface-container-low/70 rounded-full px-space-sm py-1"><span class="material-symbols-outlined text-[15px] text-tertiary">landscape</span><span class="font-label-sm text-label-sm text-on-secondary-container font-medium">Ideal: 6 Days, 5 Nights</span></div></div></article></div></section>
+<!-- Categories Section -->
+<section class="flex flex-col gap-space-sm">
+<div class="flex items-center justify-between">
+<h3 class="font-headline-sm text-headline-sm text-on-surface">Explore Categories</h3>
+<button class="font-label-md text-label-md text-primary hover:underline">See All</button>
+</div>
+<div class="grid grid-cols-5 gap-2 text-center">
+<!-- Category 1 -->
+<a class="flex flex-col items-center gap-1.5 group" href="#">
+<div class="w-14 h-14 rounded-full bg-secondary-container/60 flex items-center justify-center p-1 group-hover:scale-105 active:scale-95 transition-transform shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">fort</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface line-clamp-2 leading-tight">Heritage Palaces</span>
+</a>
+<!-- Category 2 -->
+<a class="flex flex-col items-center gap-1.5 group" href="#">
+<div class="w-14 h-14 rounded-full bg-tertiary-fixed/60 flex items-center justify-center p-1 group-hover:scale-105 active:scale-95 transition-transform shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[24px]">filter_hdr</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface line-clamp-2 leading-tight">Misty Hills</span>
+</a>
+<!-- Category 3 -->
+<a class="flex flex-col items-center gap-1.5 group" href="#">
+<div class="w-14 h-14 rounded-full bg-primary-fixed/60 flex items-center justify-center p-1 group-hover:scale-105 active:scale-95 transition-transform shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-primary-container">
+<span class="material-symbols-outlined text-[24px]">wb_sunny</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface line-clamp-2 leading-tight">Sun &amp; Sand</span>
+</a>
+<!-- Category 4 -->
+<a class="flex flex-col items-center gap-1.5 group" href="#">
+<div class="w-14 h-14 rounded-full bg-secondary-fixed/60 flex items-center justify-center p-1 group-hover:scale-105 active:scale-95 transition-transform shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-secondary">
+<span class="material-symbols-outlined text-[24px]">temple_hindu</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface line-clamp-2 leading-tight">Ancient Temples</span>
+</a>
+<!-- Category 5 -->
+<a class="flex flex-col items-center gap-1.5 group" href="#">
+<div class="w-14 h-14 rounded-full bg-tertiary-container/40 flex items-center justify-center p-1 group-hover:scale-105 active:scale-95 transition-transform shadow-sm">
+<div class="w-full h-full rounded-full bg-surface-container-lowest flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-[24px]">pets</span>
+</div>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface line-clamp-2 leading-tight">Wildlife Safaris</span>
+</a>
+</div>
+</section>
+<!-- Quick AI Itinerary Builder Pill Banner -->
+<section class="rounded-lg bg-surface-container-low p-space-md shadow-[0_4px_16px_rgba(30,41,34,0.04)] relative overflow-hidden flex flex-col gap-3">
+<!-- Decorative organic background shape -->
+<div class="absolute -right-8 -bottom-8 w-32 h-32 rounded-full bg-secondary-container/40 blur-2xl pointer-events-none"></div>
+<div class="flex items-start justify-between relative z-10">
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-full bg-primary-container text-on-primary flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+</div>
+<div>
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-on-secondary-container">Smart Copilot</span>
+<h4 class="font-headline-sm text-headline-sm text-on-surface leading-snug">Instant 3-Day Plan in 10s</h4>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-surface-container-highest text-on-surface font-label-sm text-label-sm">Free</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant relative z-10">
+      Tell WanderAI your budget, vibe, and companion. We'll stitch stays, transfers, and secret spots instantly.
+    </p>
+<!-- Quick Prompt Pills Trigger -->
+<div class="flex items-center justify-between pt-1 relative z-10">
+<button class="inline-flex items-center gap-2 px-space-md py-2 rounded-full bg-primary-container text-on-primary font-label-md text-label-md shadow-[0_2px_8px_rgba(255,109,59,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-transform" id="trigger-quick-prompt">
+<span class="material-symbols-outlined text-[16px]">auto_awesome</span>
+<span>Try prompt: "Weekend in Coorg"</span>
+<span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+</button>
+</div>
+</section>
+</div>
+</main>
+<!-- 2. FULL-SCREEN GLOBE EXPLORER OVERLAY (Interactive Prototype Mode) -->
+<div class="fixed inset-0 z-[100] bg-[#0c2225] text-white flex flex-col transition-all duration-300 transform translate-y-full opacity-0 pointer-events-none" id="globe-explorer-modal">
+<!-- Top Navigation & Search -->
+<div class="pt-safe px-margin-mobile pb-3 bg-gradient-to-b from-[#08181a]/90 via-[#0c2225]/85 to-transparent backdrop-blur-md flex flex-col gap-2 shrink-0 z-20">
+<div class="flex items-center justify-between h-12">
+<button class="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/90 transition-all text-label-md" id="close-globe-btn">
+<span class="material-symbols-outlined text-[18px]">arrow_back</span>
+<span>Back to Home</span>
+</button>
+<div class="flex items-center gap-1.5">
+<div class="w-6 h-6 rounded-full bg-primary-container flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[15px]">travel_explore</span>
+</div>
+<span class="font-headline-sm text-[16px] text-white font-bold tracking-tight">Globe Explorer</span>
+</div>
+<button class="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/90 hover:bg-white/20">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</button>
+</div>
+<!-- Search Capsule -->
+<div class="relative w-full bg-white/10 rounded-full px-3.5 py-2 flex items-center gap-2 border border-white/15 focus-within:border-primary-container">
+<span class="material-symbols-outlined text-teal-300 text-[18px]">search</span>
+<input class="w-full bg-transparent text-[13px] text-white placeholder:text-white/50 outline-none" placeholder="Search country, region or coordinates..." type="text" value="India (South Asia)"/>
+<span class="text-[11px] px-2 py-0.5 rounded-full bg-teal-500/30 text-teal-200 border border-teal-400/30 font-mono">20.59°N</span>
+</div>
+</div>
+<!-- Central Interactive 3D Earth Globe Viewport -->
+<div class="relative flex-1 w-full overflow-hidden flex items-center justify-center min-h-[260px]">
+<!-- Three.js scene container -->
+<!-- STITCH_THREEJS_START:ANIMATION_19 class="absolute inset-0 w-full h-full bg-transparent" -->
+<div class="absolute inset-0 w-full h-full bg-transparent" style="display:block;">
+<script src="https://ajax.googleapis.com/ajax/libs/threejs/r125/three.min.js"></script>
+<div id="threejs-container-ANIMATION_19" style="width:100%;height:100%"></div>
+<script>
+(function() {
+  const container = document.getElementById('threejs-container-ANIMATION_19');
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  // Interactive 3D Earth Globe with canvas procedural texture, atmosphere glow, and markers
+(function() {
+  const container = document.getElementById('threejs-globe-canvas') || document.getElementById('globe-container') || document.body;
+  const width = container.clientWidth || 360;
+  const height = container.clientHeight || 240;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+  camera.position.z = 2.7;
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setSize(width, height);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  container.appendChild(renderer.domElement);
+
+  // Generate Canvas Earth Texture (Stylized WanderAI Green/Ocean Earth)
+  const texCanvas = document.createElement('canvas');
+  texCanvas.width = 1024;
+  texCanvas.height = 512;
+  const ctx = texCanvas.getContext('2d');
+
+  // Deep serene ocean gradient
+  const oceanGrad = ctx.createLinearGradient(0, 0, 0, 512);
+  oceanGrad.addColorStop(0, '#10393b');
+  oceanGrad.addColorStop(0.5, '#184e52');
+  oceanGrad.addColorStop(1, '#0e3133');
+  ctx.fillStyle = oceanGrad;
+  ctx.fillRect(0, 0, 1024, 512);
+
+  // Soft latitude/longitude grid lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+  ctx.lineWidth = 1;
+  for (let lat = 40; lat < 512; lat += 50) {
+    ctx.beginPath();
+    ctx.moveTo(0, lat);
+    ctx.lineTo(1024, lat);
+    ctx.stroke();
+  }
+  for (let lon = 50; lon < 1024; lon += 80) {
+    ctx.beginPath();
+    ctx.moveTo(lon, 0);
+    ctx.lineTo(lon, 512);
+    ctx.stroke();
+  }
+
+  // Draw land masses in warm natural WanderAI olive/emerald green tones
+  ctx.fillStyle = '#4ade80';
+  ctx.shadowColor = 'rgba(74, 222, 128, 0.3)';
+  ctx.shadowBlur = 4;
+
+  function drawContinent(points) {
+    ctx.beginPath();
+    ctx.moveTo(points[0][0], points[0][1]);
+    for (let i = 1; i < points.length; i++) {
+      ctx.lineTo(points[i][0], points[i][1]);
+    }
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // India & South Asia
+  ctx.fillStyle = '#86efac';
+  drawContinent([
+    [690, 180], [730, 185], [745, 230], [715, 285], [700, 260], [680, 220], [675, 195]
+  ]);
+  // Eurasia
+  ctx.fillStyle = '#34d399';
+  drawContinent([
+    [520, 120], [600, 100], [700, 110], [820, 140], [860, 200], [780, 220], [720, 170], [640, 160], [560, 170], [510, 150]
+  ]);
+  // Africa
+  ctx.fillStyle = '#6ee7b7';
+  drawContinent([
+    [510, 180], [580, 190], [610, 250], [570, 340], [530, 360], [490, 280], [480, 210]
+  ]);
+  // Southeast Asia / Japan
+  drawContinent([
+    [780, 230], [830, 250], [820, 290], [770, 280]
+  ]);
+  // Americas preview
+  drawContinent([
+    [220, 120], [320, 130], [280, 220], [240, 220], [200, 160]
+  ]);
+  drawContinent([
+    [270, 240], [340, 280], [320, 390], [280, 420], [260, 320]
+  ]);
+
+  const earthTexture = new THREE.CanvasTexture(texCanvas);
+
+  // Earth Sphere
+  const globeGeo = new THREE.SphereGeometry(1, 48, 48);
+  const globeMat = new THREE.MeshPhongMaterial({
+    map: earthTexture,
+    shininess: 18,
+    specular: new THREE.Color(0x38bdf8),
+    emissive: new THREE.Color(0x062024),
+  });
+  const globeMesh = new THREE.Mesh(globeGeo, globeMat);
+  scene.add(globeMesh);
+
+  // Atmosphere Outer Glow
+  const glowGeo = new THREE.SphereGeometry(1.04, 32, 32);
+  const glowMat = new THREE.MeshBasicMaterial({
+    color: 0x38bdf8,
+    transparent: true,
+    opacity: 0.18,
+    side: THREE.BackSide
+  });
+  const glowMesh = new THREE.Mesh(glowGeo, glowMat);
+  scene.add(glowMesh);
+
+  // Subtle clouds halo
+  const cloudGeo = new THREE.SphereGeometry(1.015, 32, 32);
+  const cloudMat = new THREE.MeshLambertMaterial({
+    color: 0xffffff,
+    transparent: true,
+    opacity: 0.14
+  });
+  const cloudMesh = new THREE.Mesh(cloudGeo, cloudMat);
+  scene.add(cloudMesh);
+
+  // Add Glowing Destination Markers (e.g. India / Udaipur, Alps, Tokyo, Bali)
+  function latLonToVector3(lat, lon, radius) {
+    const phi = (90 - lat) * (Math.PI / 180);
+    const theta = (lon + 180) * (Math.PI / 180);
+    const x = -(radius * Math.sin(phi) * Math.cos(theta));
+    const z = (radius * Math.sin(phi) * Math.sin(theta));
+    const y = (radius * Math.cos(phi));
+    return new THREE.Vector3(x, y, z);
+  }
+
+  const markersGroup = new THREE.Group();
+  const destinations = [
+    { name: 'India', lat: 24.58, lon: 73.71, color: 0xff6b35, pulse: true }, // Udaipur / Rajasthan
+    { name: 'Japan', lat: 35.67, lon: 139.65, color: 0x38bdf8, pulse: false },
+    { name: 'Europe', lat: 46.8, lon: 9.8, color: 0x34d399, pulse: false },
+    { name: 'Bali', lat: -8.4, lon: 115.18, color: 0xfbbf24, pulse: false }
+  ];
+
+  destinations.forEach(d => {
+    const pos = latLonToVector3(d.lat, d.lon, 1.02);
+    const dotGeo = new THREE.SphereGeometry(0.045, 16, 16);
+    const dotMat = new THREE.MeshBasicMaterial({ color: d.color });
+    const dot = new THREE.Mesh(dotGeo, dotMat);
+    dot.position.copy(pos);
+
+    // Pulse ring for primary selected
+    const ringGeo = new THREE.RingGeometry(0.05, 0.08, 24);
+    const ringMat = new THREE.MeshBasicMaterial({ color: d.color, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(pos);
+    ring.lookAt(new THREE.Vector3(0, 0, 0));
+    ring.scale.set(1.2, 1.2, 1.2);
+
+    markersGroup.add(dot);
+    markersGroup.add(ring);
+  });
+  globeMesh.add(markersGroup);
+
+  // Lighting
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
+  scene.add(ambientLight);
+
+  const sunLight = new THREE.DirectionalLight(0xfffaed, 1.4);
+  sunLight.position.set(3, 2, 4);
+  scene.add(sunLight);
+
+  // Initial tilt toward India
+  globeMesh.rotation.x = 0.35;
+  globeMesh.rotation.y = -1.2;
+
+  // Interaction / Drag rotation
+  let isDragging = false;
+  let prevMouseX = 0;
+  let prevMouseY = 0;
+
+  container.addEventListener('pointerdown', (e) => {
+    isDragging = true;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  });
+
+  window.addEventListener('pointermove', (e) => {
+    if (!isDragging) return;
+    const deltaX = e.clientX - prevMouseX;
+    const deltaY = e.clientY - prevMouseY;
+    globeMesh.rotation.y += deltaX * 0.008;
+    globeMesh.rotation.x += deltaY * 0.008;
+    prevMouseX = e.clientX;
+    prevMouseY = e.clientY;
+  });
+
+  window.addEventListener('pointerup', () => { isDragging = false; });
+
+  // Animation loop
+  function animate() {
+    requestAnimationFrame(animate);
+    if (!isDragging) {
+      globeMesh.rotation.y += 0.0025; // Gentle auto-rotation
+      cloudMesh.rotation.y += 0.0032;
+    }
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const w = container.clientWidth || 360;
+    const h = container.clientHeight || 240;
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w, h);
+  });
+})();
+
+})();
+</script>
+</div>
+<!-- STITCH_THREEJS_END:ANIMATION_19 -->
+<!-- Atmospheric subtle vignette -->
+<div class="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_40%,rgba(12,34,37,0.7)_100%)] pointer-events-none"></div>
+<!-- Latitude / Longitude Crosshair Overlay -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="relative w-64 h-64 rounded-full border border-teal-400/20 flex items-center justify-center">
+<div class="w-full h-[1px] bg-teal-400/15 absolute"></div>
+<div class="h-full w-[1px] bg-teal-400/15 absolute"></div>
+<div class="w-48 h-48 rounded-full border border-dashed border-teal-300/20"></div>
+</div>
+</div>
+<!-- Glowing Country Pins On Overlay (Visual Markers) -->
+<!-- India Beacon (Active Selected) -->
+<div class="absolute top-[46%] left-[53%] -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-auto cursor-pointer group">
+<div class="relative flex items-center justify-center">
+<span class="absolute w-8 h-8 rounded-full bg-primary-container/40 animate-ping"></span>
+<span class="w-3.5 h-3.5 rounded-full bg-primary-container border-2 border-white shadow-[0_0_12px_#ff6d3b]"></span>
+</div>
+<div class="mt-1 px-2 py-0.5 rounded-md bg-[#08181a]/90 border border-primary-container/60 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1 shadow-lg">
+<span>🇮🇳 India</span>
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+</div>
+</div>
+<!-- Japan Beacon -->
+<div class="absolute top-[38%] right-[16%] flex flex-col items-center pointer-events-auto cursor-pointer opacity-80 hover:opacity-100">
+<span class="w-2.5 h-2.5 rounded-full bg-sky-400 border border-white/80 shadow-[0_0_8px_#38bdf8]"></span>
+<span class="text-[9px] text-white/80 mt-0.5 bg-black/50 px-1 rounded">Japan</span>
+</div>
+<!-- Italy Beacon -->
+<div class="absolute top-[32%] left-[24%] flex flex-col items-center pointer-events-auto cursor-pointer opacity-80 hover:opacity-100">
+<span class="w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white/80 shadow-[0_0_8px_#34d399]"></span>
+<span class="text-[9px] text-white/80 mt-0.5 bg-black/50 px-1 rounded">Italy</span>
+</div>
+<!-- Indonesia Beacon -->
+<div class="absolute bottom-[28%] right-[22%] flex flex-col items-center pointer-events-auto cursor-pointer opacity-80 hover:opacity-100">
+<span class="w-2.5 h-2.5 rounded-full bg-amber-400 border border-white/80 shadow-[0_0_8px_#fbbf24]"></span>
+<span class="text-[9px] text-white/80 mt-0.5 bg-black/50 px-1 rounded">Indonesia</span>
+</div>
+<!-- HUD Controls (Zoom + / -, Center, Recenter) -->
+<div class="absolute bottom-3 right-4 flex flex-col gap-2 z-10">
+<button class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-black/80 active:scale-95 text-sm font-bold shadow-md">
+        +
+      </button>
+<button class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-black/80 active:scale-95 text-sm font-bold shadow-md">
+        -
+      </button>
+<button class="w-8 h-8 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-white flex items-center justify-center hover:bg-black/80 active:scale-95 shadow-md">
+<span class="material-symbols-outlined text-[16px]">my_location</span>
+</button>
+</div>
+<div class="absolute top-3 left-4 px-2 py-1 rounded-md bg-black/40 backdrop-blur-sm border border-white/10 text-[10px] text-teal-200 font-mono flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[12px] text-emerald-400">sync</span>
+<span>Drag to Rotate • Pinch to Zoom</span>
+</div>
+</div>
+<!-- Realistic Geographic Data Panel for Selected Region (India) -->
+<div class="w-full bg-[#10292c] border-t border-teal-500/20 rounded-t-3xl p-4 flex flex-col gap-3 max-h-[46vh] overflow-y-auto z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+<!-- Drag handle -->
+<div class="w-10 h-1 rounded-full bg-white/20 self-center -mt-1"></div>
+<!-- Country Banner -->
+<div class="flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2">
+<h3 class="text-[18px] font-bold text-white tracking-tight">🇮🇳 India</h3>
+<span class="px-2 py-0.5 rounded-full bg-teal-400/20 text-teal-300 text-[10px] font-medium border border-teal-400/30">South Asia</span>
+</div>
+<p class="text-[11px] text-white/60 font-mono mt-0.5">Lat 20.5937° N, Lon 78.9629° E • 3.287M km²</p>
+</div>
+<div class="px-2.5 py-1 rounded-full bg-primary/20 border border-primary-container/40 text-primary-container text-[11px] font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">verified</span>
+<span>Active Focus</span>
+</div>
+</div>
+<!-- Quick vibe badges -->
+<div class="flex items-center gap-1.5 flex-wrap">
+<span class="px-2.5 py-1 rounded-full bg-white/10 text-white/90 text-[11px] font-medium border border-white/10 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-amber-300">fort</span> Heritage Palaces
+      </span>
+<span class="px-2.5 py-1 rounded-full bg-white/10 text-white/90 text-[11px] font-medium border border-white/10 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-emerald-300">filter_hdr</span> Misty Hills
+      </span>
+<span class="px-2.5 py-1 rounded-full bg-white/10 text-white/90 text-[11px] font-medium border border-white/10 flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px] text-orange-300">temple_hindu</span> Spiritual Ghats
+      </span>
+</div>
+<!-- Explore Verified Destinations Horizontal Lane -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="text-[11px] uppercase tracking-wider text-teal-300 font-bold">Explore Verified Destinations</span>
+<span class="text-[10px] text-white/50">5 Featured</span>
+</div>
+<div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1">
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-primary text-white font-semibold text-[12px] border border-primary-container shadow-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">star</span>
+<span>Udaipur</span>
+</button>
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 font-medium text-[12px] border border-white/10">
+          Goa
+        </button>
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 font-medium text-[12px] border border-white/10">
+          Manali
+        </button>
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 font-medium text-[12px] border border-white/10">
+          Rajasthan
+        </button>
+<button class="shrink-0 px-3 py-1.5 rounded-full bg-white/10 text-white/80 hover:bg-white/20 font-medium text-[12px] border border-white/10">
+          Kerala
+        </button>
+</div>
+</div>
+<!-- Active Selection Destination Mini-Card -->
+<div class="rounded-2xl bg-surface-container-lowest p-3 text-on-surface flex flex-col gap-2.5 shadow-md">
+<div class="flex items-start justify-between gap-2">
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<h4 class="font-headline-sm text-[16px] text-on-surface font-bold">Udaipur, Rajasthan</h4>
+<span class="px-1.5 py-0.5 rounded bg-primary-fixed text-on-primary-fixed text-[10px] font-bold">Top Pick</span>
+</div>
+<p class="text-[12px] text-on-surface-variant line-clamp-1 mt-0.5">The City of Lakes &amp; sunset boat havelis</p>
+</div>
+<div class="text-right shrink-0">
+<div class="text-primary font-bold text-[15px]">₹28K<span class="text-[11px] text-on-surface-variant font-normal">/person</span></div>
+<div class="text-[10px] text-tertiary font-semibold">Ideal: 4 Days</div>
+</div>
+</div>
+<div class="flex items-center justify-between gap-2 pt-1 border-t border-surface-container-high">
+<div class="flex items-center gap-1 text-[11px] text-on-surface-variant">
+<span class="material-symbols-outlined text-[14px] text-primary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-semibold text-on-surface">4.9</span> (1.2k WanderAI Reviews)
+        </div>
+<a class="px-3.5 py-1.5 rounded-full bg-primary text-on-primary font-label-md text-[12px] font-bold shadow-[0_2px_8px_rgba(173,51,0,0.3)] hover:scale-105 active:scale-95 transition-transform flex items-center gap-1" data-path="ai-trip-planner" href="#">
+<span>Plan Udaipur Journey</span>
+<span class="material-symbols-outlined text-[15px]">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Geographic architecture note badge -->
+<div class="flex items-center justify-center gap-1 text-[10px] text-teal-300/70 pb-safe">
+<span class="material-symbols-outlined text-[12px]">verified</span>
+<span>Verified Geographic Data • Dynamic WanderAI Trip Engine</span>
+</div>
+</div>
+</div>
+<script>
+  // Filter pills micro-interaction
+  document.querySelectorAll('.filter-pill').forEach(button => {
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.filter-pill').forEach(btn => {
+        btn.classList.remove('bg-primary', 'text-on-primary', 'shadow-sm');
+        btn.classList.add('bg-surface-container-high', 'text-on-surface');
+      });
+      button.classList.remove('bg-surface-container-high', 'text-on-surface');
+      button.classList.add('bg-primary', 'text-on-primary', 'shadow-sm');
+    });
+  });
+
+  // Favorite button toggle micro-interaction
+  document.querySelectorAll('article button[aria-label^="Save"]').forEach(favBtn => {
+    favBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const icon = favBtn.querySelector('.material-symbols-outlined');
+      const isFilled = icon.style.fontVariationSettings.includes("'FILL' 1");
+      if (isFilled) {
+        icon.style.fontVariationSettings = "'FILL' 0";
+        icon.classList.remove('text-primary');
+      } else {
+        icon.style.fontVariationSettings = "'FILL' 1";
+        icon.classList.add('text-primary');
+      }
+    });
+  });
+
+  // Quick Prompt Injector into Search
+  const promptBtn = document.getElementById('trigger-quick-prompt');
+  const searchInput = document.getElementById('destination-search-input');
+  if (promptBtn && searchInput) {
+    promptBtn.addEventListener('click', () => {
+      searchInput.value = "3 days in Coorg with coffee plantation stay under ₹20k";
+      searchInput.focus();
+    });
+  }
+
+  // Globe Explorer Modal Open & Close logic
+  const globeModal = document.getElementById('globe-explorer-modal');
+  const globePreviewCard = document.getElementById('globe-preview-card');
+  const closeGlobeBtn = document.getElementById('close-globe-btn');
+  const globeOpenButtons = document.querySelectorAll('.globe-open-btn');
+
+  function openGlobeModal() {
+    if (!globeModal) return;
+    globeModal.classList.remove('translate-y-full', 'opacity-0', 'pointer-events-none');
+    globeModal.classList.add('translate-y-0', 'opacity-100');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeGlobeModal() {
+    if (!globeModal) return;
+    globeModal.classList.add('translate-y-full', 'opacity-0', 'pointer-events-none');
+    globeModal.classList.remove('translate-y-0', 'opacity-100');
+    document.body.style.overflow = '';
+  }
+
+  if (globePreviewCard) {
+    globePreviewCard.addEventListener('click', (e) => {
+      // open only if not tapping direct links
+      openGlobeModal();
+    });
+  }
+
+  globeOpenButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openGlobeModal();
+    });
+  });
+
+  if (closeGlobeBtn) {
+    closeGlobeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeGlobeModal();
+    });
+  }
+</script>
+<div class="fixed bottom-0 inset-x-0 z-50 pointer-events-none pb-safe"><nav class="pointer-events-auto mx-margin-mobile mb-3 bg-surface-container-lowest/90 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(30,41,34,0.08)] px-space-xs py-space-xs flex items-center justify-around" data-active-classes="bg-secondary-container text-on-secondary-container font-label-md"><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full transition-all duration-200 bg-secondary-container text-on-secondary-container font-label-md" data-path="home-explore" href="#"><span class="material-symbols-outlined text-[22px]">explore</span><span class="font-label-sm text-label-sm mt-0.5">Home</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="ai-trip-planner" href="#"><span class="material-symbols-outlined text-[22px]">auto_awesome</span><span class="font-label-sm text-label-sm mt-0.5">Plan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="saved-itineraries" href="#"><span class="material-symbols-outlined text-[22px]">calendar_month</span><span class="font-label-sm text-label-sm mt-0.5">Trips</span></a><a class="relative flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="ai-travel-guide" href="#"><span class="relative"><span class="material-symbols-outlined text-[22px]">chat_bubble</span><span class="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-surface-container-lowest shadow-[0_0_8px_rgba(255,109,59,0.8)] animate-pulse"></span></span><span class="font-label-sm text-label-sm mt-0.5">AI Guide</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="user-profile" href="#"><span class="material-symbols-outlined text-[22px]">account_circle</span><span class="font-label-sm text-label-sm mt-0.5">Profile</span></a></nav></div></body></html>

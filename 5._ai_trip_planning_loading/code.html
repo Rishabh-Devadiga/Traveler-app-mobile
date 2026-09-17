@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#f0fdf1;color:#131e17;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-bright":"#f0fdf1","on-tertiary-container":"#243810","primary-fixed":"#ffdbd0","on-primary-container":"#611900","primary":"#ad3300","surface-container-low":"#eaf7ec","secondary-fixed-dim":"#b2d095","error-container":"#ffdad6","error":"#ba1a1a","inverse-surface":"#28332c","on-surface-variant":"#59413a","on-tertiary":"#ffffff","on-primary-fixed":"#390b00","background":"#f0fdf1","surface-dim":"#d0ddd2","on-error":"#ffffff","surface-container-lowest":"#ffffff","tertiary-fixed":"#d0ebb2","surface-variant":"#d9e6db","on-secondary-fixed-variant":"#354d20","secondary-fixed":"#ceecaf","on-secondary-container":"#516a39","on-surface":"#131e17","inverse-primary":"#ffb59e","primary-fixed-dim":"#ffb59e","primary-container":"#ff6d3b","tertiary":"#4e6538","on-primary-fixed-variant":"#842500","surface":"#f0fdf1","inverse-on-surface":"#e7f4e9","outline":"#8d7168","secondary-container":"#cbe9ac","on-secondary":"#ffffff","on-primary":"#ffffff","surface-container":"#e4f1e6","on-tertiary-fixed":"#0d2000","tertiary-container":"#89a370","outline-variant":"#e1bfb5","on-tertiary-fixed-variant":"#374d23","secondary":"#4c6635","surface-container-highest":"#d9e6db","on-background":"#131e17","surface-tint":"#ad3300","tertiary-fixed-dim":"#b4cf98","surface-container-high":"#dfebe0","on-error-container":"#93000a","on-secondary-fixed":"#0d2000"},"borderRadius":{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","margin-mobile":"1.25rem","gutter-mobile":"0.75rem","margin":"1.5rem","space-sm":"0.5rem","space-xl":"2rem","space-md":"1rem","space-lg":"1.5rem","gutter":"1rem"},"fontFamily":{"display-hero-mobile":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"display-hero":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},"fontSize":{"display-hero-mobile":["30px",{"lineHeight":"38px","letterSpacing":"-0.02em","fontWeight":"800"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-lg":["26px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"21px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"700"}],"display-hero":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"800"}],"headline-sm":["17px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}]}}}};</script></head><body class="bg-surface font-body-md text-on-surface min-h-screen flex flex-col antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><header class="fixed top-0 inset-x-0 z-50 pt-safe bg-surface/85 backdrop-blur-xl shadow-[0_1px_12px_rgba(30,41,34,0.04)]"><div class="h-16 px-margin-mobile flex items-center justify-between"><div class="flex items-center gap-space-sm"><div class="w-9 h-9 rounded-full bg-primary-container flex items-center justify-center text-on-primary shadow-[0_2px_8px_rgba(173,51,0,0.2)]"><span class="material-symbols-outlined text-[20px]">explore</span></div><h1 class="font-headline-md text-headline-md text-on-surface tracking-tight">Ai Trip Planner</h1></div><div class="flex items-center gap-space-sm"><button aria-label="Notifications" class="w-11 h-11 rounded-full flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors"><span class="material-symbols-outlined text-[22px]">notifications</span></button><a class="w-9 h-9 rounded-full bg-primary flex items-center justify-center text-on-primary shadow-[0_2px_6px_rgba(173,51,0,0.25)] hover:scale-105 active:scale-95 transition-transform" data-path="user-profile" href="#"><span class="material-symbols-outlined text-[18px]">person</span></a></div></div></header><main class="flex-1 flex flex-col relative w-full pt-16 pb-28 bg-surface px-margin-mobile"><div class="flex flex-col w-full gap-space-md">
+<!-- Interactive Header Status Bar -->
+<div class="flex items-center justify-between bg-surface-container-low px-space-md py-space-sm rounded-full shadow-sm">
+<div class="flex items-center gap-space-sm min-w-0">
+<div class="w-8 h-8 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-[18px] animate-spin">cyclone</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Live Generation</span>
+<span class="font-headline-sm text-headline-sm text-on-surface truncate">Crafting Udaipur Getaway...</span>
+</div>
+</div>
+<button aria-label="Cancel curation" class="w-9 h-9 rounded-full bg-surface-container-lowest text-on-surface-variant hover:text-error flex items-center justify-center shadow-sm active:scale-95 transition-all" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Central AI Pulse & Destination Highlight Card -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-lg p-space-lg shadow-sm flex flex-col items-center text-center">
+<!-- Atmospheric Ambient Glow Rings -->
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-primary-fixed/35 rounded-full blur-2xl pointer-events-none"></div>
+<div class="absolute -bottom-16 -left-12 w-52 h-52 bg-secondary-container/40 rounded-full blur-3xl pointer-events-none"></div>
+<!-- Multi-ring Concentric Pulse Orb -->
+<div class="relative my-space-sm flex items-center justify-center w-28 h-28">
+<div class="absolute inset-0 rounded-full bg-secondary-container/50 animate-ping opacity-60"></div>
+<div class="absolute inset-2 rounded-full bg-tertiary-fixed/40 animate-pulse"></div>
+<div class="absolute inset-4 rounded-full bg-gradient-to-br from-primary-fixed to-secondary-container opacity-80"></div>
+<!-- Center Core -->
+<div class="relative z-10 w-16 h-16 rounded-full bg-primary-container text-on-primary shadow-md flex items-center justify-center transform hover:rotate-12 transition-transform duration-300">
+<span class="material-symbols-outlined text-[32px]">auto_awesome</span>
+</div>
+<!-- Floating Micro Badges around Core -->
+
+</div>
+<!-- Title & Organic Subtext -->
+<h2 class="font-headline-md text-headline-md text-on-surface mt-space-xs">
+      WanderAI is curating your personalized escape...
+    </h2>
+<!-- Destination Capsule Token -->
+<div class="mt-space-sm inline-flex items-center gap-1.5 bg-surface-container-low px-space-md py-1.5 rounded-full text-on-secondary-container font-label-md text-label-md shadow-sm">
+<span class="material-symbols-outlined text-[16px] text-primary">location_on</span>
+<span class="">Udaipur, Rajasthan</span>
+<span class="text-outline-variant">•</span>
+<span class="">4 Days</span>
+<span class="text-outline-variant">•</span>
+<span class="">2 Travelers</span>
+</div>
+<!-- Live Step Progress Tracker -->
+<div class="w-full mt-space-lg flex flex-col gap-space-xs text-left"><!-- Step 1: Done -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-surface-container-low/70 transition-all">
+  <div class="w-7 h-7 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px]">check</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-surface truncate">Understanding preferences &amp; constraints</p>
+    <p class="font-body-sm text-body-sm text-secondary">2 travelers • 4 days • Relaxed tempo &amp; heritage focus</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-secondary">tune</span>
+</div>
+<!-- Step 2: Done -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-surface-container-low/70 transition-all">
+  <div class="w-7 h-7 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px]">check</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-surface truncate">Researching destination &amp; seasonal conditions</p>
+    <p class="font-body-sm text-body-sm text-secondary">Udaipur in Oct: 28°C sunny, optimal sunset 6:15 PM</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-secondary">sunny</span>
+</div>
+<!-- Step 3: Done -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-surface-container-low/70 transition-all">
+  <div class="w-7 h-7 rounded-full bg-secondary text-on-secondary flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px]">check</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-surface truncate">Finding verified authentic experiences</p>
+    <p class="font-body-sm text-body-sm text-secondary">Filtered 42 cultural sites &amp; local lake cafes</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-secondary">explore</span>
+</div>
+<!-- Step 4: In Progress (Active) -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-primary-fixed/40 transition-all">
+  <div class="w-7 h-7 rounded-full bg-primary-container text-on-primary flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-primary-container font-semibold truncate">Finding verified boutique stays</p>
+    <p class="font-body-sm text-body-sm text-on-primary-fixed-variant">Checking availability at 3 lakefront havelis</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-primary animate-bounce">hotel</span>
+</div>
+<!-- Step 5: Pending -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-surface-container-lowest opacity-60">
+  <div class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px]">schedule</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-surface-variant truncate">Building day-by-day narrative itinerary</p>
+    <p class="font-body-sm text-body-sm text-on-surface-variant">Balancing energy curves, rest stops &amp; golden hours</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-on-surface-variant">auto_stories</span>
+</div>
+<!-- Step 6: Pending -->
+<div class="flex items-center gap-space-sm p-space-sm rounded-DEFAULT bg-surface-container-lowest opacity-60">
+  <div class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center shrink-0">
+    <span class="material-symbols-outlined text-[16px]">schedule</span>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-label-md text-label-md text-on-surface-variant truncate">Optimizing travel routes &amp; budget</p>
+    <p class="font-body-sm text-body-sm text-on-surface-variant">Minimizing transfer times between ghats and palaces</p>
+  </div>
+  <span class="material-symbols-outlined text-[18px] text-on-surface-variant">route</span>
+</div></div>
+</div>
+<!-- Visual Snippet Preview Carousel / Highlights -->
+<div class="flex flex-col gap-space-xs">
+<div class="flex items-center justify-between px-space-xs">
+<span class="font-headline-sm text-headline-sm text-on-surface">Previewing candidates</span>
+<span class="font-label-sm text-label-sm text-primary">Matching vibes</span>
+</div>
+<div class="grid grid-cols-2 gap-space-sm">
+<!-- Destination Snippet 1 -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-DEFAULT shadow-sm flex flex-col">
+<div class="h-28 w-full bg-cover bg-center" data-alt="Golden hour view of the majestic City Palace of Udaipur reflecting peacefully across the calm ripples of Lake Pichola with traditional stone pavilions and distant Aravali hills in warm botanical tones." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB5w7MpR_hOo0WUZsXLdNfLarZdHBFO0yJ9IJqufP8OwWCWga1IaGZf8g1QGyh609wokzOq3b85kBJrtBpQG1DhEQRJW1FPkLUmuRwEfDz60ncAGsLrKf6Ikko6ReXIP_SjKskpT-UUd6XcmkW6reI4CdefgH-iTIsEvYr1TcaP3Qz3bl8i7d5bIdq2dK4sBkct5jV0u3Wt7L-33s4vZlbryj8EN2ldnvRykeyU-NPbTda71rnDBfCGkA')">
+<div class="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-label-sm text-on-surface flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px] text-primary" style="font-variation-settings: 'FILL' 1;">star</span> 4.9
+          </div>
+</div>
+<div class="p-space-sm flex flex-col">
+<span class="font-label-md text-label-md text-on-surface truncate">City Palace &amp; Ghats</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Heritage Walk • Day 1</span>
+</div>
+</div>
+<!-- Destination Snippet 2 -->
+<div class="relative overflow-hidden bg-surface-container-lowest rounded-DEFAULT shadow-sm flex flex-col">
+<div class="h-28 w-full bg-cover bg-center" data-alt="Charming rooftop lakeside restaurant in Udaipur with vibrant colorful cushions, brass lantern lighting, white stone jharokha arches, and panoramic views of Lake Palace under a soft pastel twilight sky." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAcALFDkGK8gGeTwHZt0AMBoXUq3c9YHg_ubgRd5i1JzcKeq2iFfSqKtoliheo8WjFAE5On1JeCk0vSfgccoRX17KRTncX6kvlOdZKZ8VBcFzmJDg3wDvhmK0Ohb0z5ThA4Mr4jrlZMb4OojVtS6enT03ypHZz6yJG5ZOxoEu5YOZmEar3aDVhW2y_WJducwvjXV_Nek6LOT32rl8RIfLH8knvOawjT_PdiqbDKQk9Fkdv7lEmF6vsmgg')">
+<div class="absolute top-2 left-2 bg-surface-container-lowest/90 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-label-sm text-on-surface flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[12px] text-primary" style="font-variation-settings: 'FILL' 1;">local_cafe</span> Cafe
+          </div>
+</div>
+<div class="p-space-sm flex flex-col">
+<span class="font-label-md text-label-md text-on-surface truncate">Ambrai Sunset Dine</span>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Rooftop Gem • Day 2</span>
+</div>
+</div>
+</div>
+</div>
+<!-- "Did you know?" Floating Delight Card -->
+<div class="relative bg-secondary-container/45 rounded-lg p-space-md shadow-sm overflow-hidden flex items-start gap-space-sm">
+<div class="w-10 h-10 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center shrink-0 shadow-sm mt-0.5">
+<span class="material-symbols-outlined text-[22px]">auto_stories</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm uppercase tracking-wider text-secondary">Did you know?</span>
+<span class="inline-block w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary font-medium">Udaipur Trivia</span>
+</div>
+<p class="font-body-md text-body-md text-on-secondary-container mt-1 leading-snug">
+        The City Palace took nearly 400 years to build, with contributions from 22 generations of the Mewar royal family.
+      </p>
+</div>
+</div>
+<!-- Bottom Interactive Status Pill & Navigation Trigger -->
+<div class="bg-surface-container-lowest rounded-full p-space-xs shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-2 pl-space-md min-w-0">
+<span class="relative flex h-2.5 w-2.5 shrink-0">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-primary-container"></span>
+</span>
+<span class="font-label-md text-label-md text-on-surface-variant truncate" id="timer-text">Polishing final schedule details...</span>
+</div>
+<button class="bg-surface-container-high hover:bg-surface-variant text-on-surface font-label-md text-label-md px-space-md py-2.5 rounded-full active:scale-95 transition-transform flex items-center gap-1" type="button">
+<span class="material-symbols-outlined text-[16px]">tune</span>
+<span class="">Edit Specs</span>
+</button>
+</div>
+</div>
+<script>
+  // Playful countdown micro-interaction
+  let remaining = 3;
+  const timerEl = document.getElementById('timer-text');
+  if (timerEl) {
+    const interval = setInterval(() => {
+      remaining -= 1;
+      if (remaining > 0) {
+        timerEl.innerHTML = `Estimated time: <strong class="text-on-surface">${remaining} seconds</strong> remaining`;
+      } else {
+        timerEl.innerHTML = `Polishing final schedule details...`;
+        clearInterval(interval);
+      }
+    }, 1200);
+  }
+</script></main><div class="fixed bottom-0 inset-x-0 z-50 pointer-events-none pb-safe"><nav class="pointer-events-auto mx-margin-mobile mb-3 bg-surface-container-lowest/90 backdrop-blur-xl rounded-full shadow-[0_8px_32px_rgba(30,41,34,0.08)] px-space-xs py-space-xs flex items-center justify-around" data-active-classes="bg-secondary-container text-on-secondary-container font-label-md"><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="home-explore" href="#"><span class="material-symbols-outlined text-[22px]">explore</span><span class="font-label-sm text-label-sm mt-0.5">Home</span></a><a aria-current="page" class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full transition-all duration-200 bg-secondary-container text-on-secondary-container font-label-md" data-path="ai-trip-planner" href="#"><span class="material-symbols-outlined text-[22px]">auto_awesome</span><span class="font-label-sm text-label-sm mt-0.5">Plan</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="saved-itineraries" href="#"><span class="material-symbols-outlined text-[22px]">calendar_month</span><span class="font-label-sm text-label-sm mt-0.5">Trips</span></a><a class="relative flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="ai-travel-guide" href="#"><span class="relative"><span class="material-symbols-outlined text-[22px]">chat_bubble</span><span class="absolute -top-0.5 -right-1 w-2.5 h-2.5 rounded-full bg-primary-container ring-2 ring-surface-container-lowest shadow-[0_0_8px_rgba(255,109,59,0.8)] animate-pulse"></span></span><span class="font-label-sm text-label-sm mt-0.5">AI Guide</span></a><a class="flex flex-col items-center justify-center min-w-[56px] min-h-[48px] px-space-sm py-1 rounded-full text-on-surface-variant hover:text-on-surface transition-all duration-200" data-path="user-profile" href="#"><span class="material-symbols-outlined text-[22px]">account_circle</span><span class="font-label-sm text-label-sm mt-0.5">Profile</span></a></nav></div>
+
+</body></html>

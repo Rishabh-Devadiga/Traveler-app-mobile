@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{width:100%;margin:0;padding:0;background-color:#0f1712;color:#ffffff;}body{overscroll-behavior:none;-webkit-tap-highlight-color:transparent;}.pb-safe{padding-bottom:env(safe-area-inset-bottom,0px);}.pt-safe{padding-top:env(safe-area-inset-top,0px);}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}
+/* Relaxed gentle background crossfade styles */
+.carousel-slide {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 1.8s ease-in-out;
+  will-change: opacity;
+  transform: translateZ(0);
+}
+.carousel-slide.active {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .carousel-slide {
+    transition: none !important;
+  }
+  .carousel-slide:not(:first-child) {
+    display: none !important;
+  }
+  .carousel-slide:first-child {
+    opacity: 1 !important;
+  }
+}
+</style><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{"colors":{"surface-bright":"#f0fdf1","on-tertiary-container":"#243810","primary-fixed":"#ffdbd0","on-primary-container":"#611900","primary":"#ff7a45","surface-container-low":"#eaf7ec","secondary-fixed-dim":"#b2d095","error-container":"#ffdad6","error":"#ba1a1a","inverse-surface":"#28332c","on-surface-variant":"#e2ebe3","on-tertiary":"#ffffff","on-primary-fixed":"#390b00","background":"#0f1712","surface-dim":"#d0ddd2","on-error":"#ffffff","surface-container-lowest":"#ffffff","tertiary-fixed":"#d0ebb2","surface-variant":"#d9e6db","on-secondary-fixed-variant":"#354d20","secondary-fixed":"#ceecaf","on-secondary-container":"#516a39","on-surface":"#ffffff","inverse-primary":"#ffb59e","primary-fixed-dim":"#ffb59e","primary-container":"#ff6d3b","tertiary":"#89a370","on-primary-fixed-variant":"#842500","surface":"#0f1712","inverse-on-surface":"#e7f4e9","outline":"#8d7168","secondary-container":"#cbe9ac","on-secondary":"#ffffff","on-primary":"#ffffff","surface-container":"#e4f1e6","on-tertiary-fixed":"#0d2000","tertiary-container":"#89a370","outline-variant":"#e1bfb5","on-tertiary-fixed-variant":"#374d23","secondary":"#4c6635","surface-container-highest":"#d9e6db","on-background":"#ffffff","surface-tint":"#ad3300","tertiary-fixed-dim":"#b4cf98","surface-container-high":"#dfebe0","on-error-container":"#93000a","on-secondary-fixed":"#0d2000"},"borderRadius":{"DEFAULT":"1rem","lg":"2rem","xl":"3rem","full":"9999px"},"spacing":{"space-xs":"0.25rem","margin-mobile":"1.25rem","gutter-mobile":"0.75rem","margin":"1.5rem","space-sm":"0.5rem","space-xl":"2rem","space-md":"1rem","space-lg":"1.5rem","gutter":"1rem"},"fontFamily":{"display-hero-mobile":["Plus Jakarta Sans"],"body-lg":["Plus Jakarta Sans"],"headline-lg":["Plus Jakarta Sans"],"label-sm":["Plus Jakarta Sans"],"body-md":["Plus Jakarta Sans"],"label-md":["Plus Jakarta Sans"],"body-sm":["Plus Jakarta Sans"],"label-lg":["Plus Jakarta Sans"],"display-hero":["Plus Jakarta Sans"],"headline-sm":["Plus Jakarta Sans"],"headline-md":["Plus Jakarta Sans"]},"fontSize":{"display-hero-mobile":["30px",{"lineHeight":"38px","letterSpacing":"-0.02em","fontWeight":"800"}],"body-lg":["16px",{"lineHeight":"24px","fontWeight":"400"}],"headline-lg":["26px",{"lineHeight":"34px","letterSpacing":"-0.02em","fontWeight":"700"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.02em","fontWeight":"600"}],"body-md":["14px",{"lineHeight":"21px","fontWeight":"400"}],"label-md":["12px",{"lineHeight":"16px","fontWeight":"600"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"label-lg":["14px",{"lineHeight":"18px","letterSpacing":"0.01em","fontWeight":"700"}],"display-hero":["40px",{"lineHeight":"48px","letterSpacing":"-0.03em","fontWeight":"800"}],"headline-sm":["17px",{"lineHeight":"24px","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"700"}]}}}};</script></head><body class="bg-background font-body-md text-on-surface min-h-screen flex flex-col pt-safe pb-safe antialiased selection:bg-primary-fixed selection:text-on-primary-fixed"><main class="flex-1 flex flex-col relative w-full bg-background px-margin-mobile"><div class="flex flex-col w-full relative">
+<!-- Interactive Canvas Frame -->
+<div class="relative w-full rounded-lg overflow-hidden shadow-2xl bg-black flex flex-col justify-between" style="min-height: 720px;">
+<!-- Dynamic Rotating Cinematic Destination Background Carousel -->
+<div aria-hidden="true" class="absolute inset-0 w-full h-full overflow-hidden pointer-events-none select-none z-0" id="carousel-container">
+<!-- Preloaded Indian Travel Illustration Slides for GPU Crossfade -->
+<img alt="Manali, Himachal Pradesh scenic alpine valley" class="carousel-slide active" id="slide-0" src="https://lh3.googleusercontent.com/aida/AEtjO1XdTR1nvoQgBDjp7iTDNAts-wYeUXkCV4iLTUtrhtQP6e9ct-BFWAfvIJOFoR-8_Rq8Lkb2QQUWHWU5_7SujfJlnb1h1OwtQHnYpJgb1Brjld73Q4ET7X5LNo3Kw9ZgF-pQe58keIx3VJYlY11i-hX1Zc1fRt_FKtIdHZrvlA3qoHI6bIyaHnZwMihTHOJk8iXAWvNgckW0nJtrMtcLWNLDaTUf5PGgzlMXlzwL1oCJJbxi17bUE3dSwlCf"/>
+<img alt="Goa golden beach sunset" class="carousel-slide" id="slide-1" src="https://lh3.googleusercontent.com/aida/AEtjO1WaeW_I1y1C-ZKK4FBbD3GGKXPjduqG4wcKuGYwBvialDlNdrGZPHrz-o_D9amrN0OSXdf8MjRIc28tkPCUG3R3ME_0IgLZBFUNf8YHppoI6Ed9kKkaccrM0bI8xQSrvoQHRYAc5K8g-pBuh1drNhdK8hegtBoMLLJ8t03to8SPMbAyXAX1xrJB157_K2lAE6f-26h2RRtEc-fzo8OOyUBv2ETxD85ptCJFprzhC53IYpDlIR5_kRwer7r3"/>
+<img alt="Kerala serene backwaters with houseboat" class="carousel-slide" id="slide-2" src="https://lh3.googleusercontent.com/aida/AEtjO1VCt04eEUcTRRkygDbiaFUKtY_y03Lz2aDCgaq3PEQLETN6gIpLeRqxqZLnJSR1IFOwJhl6DAossBhDnbe4QcnNbERf_xUjQ3VhnikE7p47Gmcpm0QUFIiflP-6AxHSWtrFAG6q63Kf5C0-K7UsUl4XV4h7V91mHBc7s9TWbUaARf_u6g9sWedZMXhIbVAwmyXHFjAeFELt-aahmpw4YOWjyJs6xETcOgGmL4aeVS_LxmM6Nv8tf3vuwVg"/>
+<img alt="Rajasthan Jaisalmer golden desert dunes" class="carousel-slide" id="slide-3" src="https://lh3.googleusercontent.com/aida/AEtjO1X7KY99ikTDZncmxbaf7vBqXi4jFgbdo03U_HYTgizp_MpRYHJOF8hJmnFiNFHeU9TD81TFR04bC-a44GnjBVbwnnhU_ObS95gONXXeA5LD4X1OnqaLhwfmYEWyfIEK_GAoyd0BqXXFIpQd6DCU_-8dpm8QE64BpuZxDBFw_5is4JyeNvi3YH4NQ_OOU1Fu3Q1NBeq-rcvBx6h8o67YG-39TcDot3fTiU2nKKr118ebDKCWgMKhVgLWVXM"/>
+<img alt="Kashmir Dal Lake with shikara boats" class="carousel-slide" id="slide-4" src="https://lh3.googleusercontent.com/aida/AEtjO1U-2MANh3fni8IGajUUWhgBt2IjIUG8nfpYI9vQ9KiId9L-azPW5MjT1c3AJmjmn-JNS72tKn_p87gM7VT7LeKal7Bv7B3BSI0FKxcHIwlPm30WDS8gOxn7N4Q2LvUAYzEd1Vnkqp-0eMERWEFB_1zdCaArh8fNE-ba7GVde8tuWOkiHql5w5w7v8rWhrN7wXFdxoevtU73RNXDuoTs-VFtuvmH81s5EUFKDTUZpbPpfOGNCXvHPTENmxlS"/>
+<img alt="Ladakh high altitude monastery" class="carousel-slide" id="slide-5" src="https://lh3.googleusercontent.com/aida/AEtjO1XqJNdso62zeAdSUp7LcpkiuVA89lnG7lMSbZP1py9zVkjdenMu7EPelP0EuOAQ6R11GPkz69oYdDIZcFx69Zbrmuh9u4g5egz3_WKrjqqtLlvEls7aBAkLqKMm2nv3VoU10ztn5jjhXch3TtjqutBTBPd8U1rwDp6YYPsu2vY_m8cQV_ylwWhTxnMsL2gbkjYHq_WczubdYPLexVIX59khuiiUBDcSAYWuM-2fAlZc9-LwtERLjwskVVv7"/>
+<img alt="Uttarakhand lush mountain river valley" class="carousel-slide" id="slide-6" src="https://lh3.googleusercontent.com/aida/AEtjO1WjPa_K2K4c6hCUXnl8W5Htg2VSSnKav8Fji5jfQ7WwigbqIEAZcghsiPTLYhM3fgyUW_7gry_u5AQMPKQuqALjxXEWhM9OTQt1AyCEOzc7tERE71TE_BapMq0XuH6lbRF7CVpkGINzY1RKI2pjLk0_2316mHKo6nHCckpbbCRq12FkTsdTRzmHersbAh7bjmbl_5QseD8ILfG25THs6tSHbZRuuijc3n3_9OVxdJNteuTZRsTF9VDyq1E"/>
+<img alt="Andaman Islands tropical beach paradise" class="carousel-slide" id="slide-7" src="https://lh3.googleusercontent.com/aida/AEtjO1XgmQDnNIlgoh1AomE3_iCTub23tndhDYfAUT7K1acmWX-6OVOyJZFe-ll_af7V6a8dsRi8SvN12KF5pga2MAoAcQE3-Czn-wmqeDbsjucqwZDGuVIU3sFLr8Tt0NUj2mwOQJv9GMNsEjwy0XF4pPWCGIBDkm5KU9iBj_hBcZK9OYVWXF6FjdeKCTok2h1fv8z8SeKZeHHak6Lamnw0e51eaLn7DpFq4F6H3BOOxMuXYlEui5eCnD2IWkdu"/>
+<!-- Multi-layer Glassmorphic Scrim: Ensures Pristine Contrast & Readability for Foreground Text -->
+<div class="absolute inset-0 bg-gradient-to-b from-black/60 via-black/35 to-black/85 z-10 backdrop-blur-[0.5px]"></div>
+<div class="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-black/90 via-black/60 to-transparent z-10"></div>
+</div>
+<!-- Floating Top Header: Floating Pebble AI Badge & Language Indicator -->
+<div class="relative z-20 pt-space-lg px-space-md flex items-center justify-between">
+<div class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-sm text-white">
+<span class="material-symbols-outlined text-primary text-[17px]" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label-sm text-label-sm uppercase tracking-wider font-semibold text-white/90">WANDERAI V2.4</span>
+</div>
+<!-- Dynamic Destination Indicator & Navigation Icon -->
+<div class="flex items-center gap-2">
+<div class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/15 text-white/90 text-xs font-medium transition-all duration-500" id="destination-pill">
+<span class="material-symbols-outlined text-[13px] text-primary">pin_drop</span>
+<span id="destination-text">Himachal Pradesh</span>
+</div>
+<div class="w-9 h-9 rounded-full bg-white/15 backdrop-blur-md border border-white/20 shadow-sm flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[18px]">travel_explore</span>
+</div>
+</div>
+</div>
+<!-- Centered Friendly Narrative Hero Content -->
+<div class="relative z-20 px-space-md text-center flex flex-col items-center mt-6">
+<!-- Sparkle Pill Badge with Active Destination Sub-indicator -->
+<div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 border border-white/25 text-white shadow-sm backdrop-blur-md mb-space-sm">
+<span class="material-symbols-outlined text-[14px] text-primary" style="font-variation-settings: 'FILL' 1;">spark</span>
+<span class="font-label-md text-label-md font-bold uppercase tracking-wide">MEET YOUR AI COMPANION</span>
+</div>
+<!-- Main Playful Display Heading -->
+<h1 class="font-display-hero-mobile text-display-hero-mobile text-white font-extrabold tracking-tight mt-1 max-w-xs drop-shadow-md">
+        WELCOME TO <span class="text-primary tracking-normal">WANDERAI</span>
+</h1>
+<!-- Atmospheric Inspiring Subtitle -->
+<p class="font-body-md text-body-md text-white/85 max-w-[270px] mt-space-xs font-medium leading-relaxed drop-shadow-sm">
+        Effortlessly plan hyper-personalized escapes across majestic peaks, serene coastlines, and hidden villages.
+</p>
+<!-- Destination Carousel Pips Indicator -->
+<div aria-label="Destination indicator" class="flex items-center justify-center gap-1.5 mt-3 py-1 px-2.5 rounded-full bg-black/35 backdrop-blur-md border border-white/10" id="carousel-pips">
+<button aria-label="Slide 1: Manali, HP" class="w-2 h-2 rounded-full bg-white transition-all duration-300 ring-2 ring-white/30 scale-110" data-index="0" type="button"></button>
+<button aria-label="Slide 2: Goa Beach" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="1" type="button"></button>
+<button aria-label="Slide 3: Kerala Backwaters" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="2" type="button"></button>
+<button aria-label="Slide 4: Jaisalmer, Rajasthan" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="3" type="button"></button>
+<button aria-label="Slide 5: Kashmir Valley" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="4" type="button"></button>
+<button aria-label="Slide 6: Ladakh" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="5" type="button"></button>
+<button aria-label="Slide 7: Uttarakhand" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="6" type="button"></button>
+<button aria-label="Slide 8: Andaman Islands" class="w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300" data-index="7" type="button"></button>
+<span class="text-[11px] font-semibold text-white/90 ml-1.5 tracking-tight transition-opacity duration-300" id="active-destination-name">Manali, HP</span>
+</div>
+<!-- Quick Interactive Travel Pill Tags -->
+<div class="flex items-center justify-center gap-2 mt-3.5 flex-wrap max-w-xs">
+<button class="group px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 shadow-xs flex items-center gap-1 hover:bg-white/30 transition-transform active:scale-95 text-white" type="button">
+<span class="material-symbols-outlined text-primary text-[14px]">landscape</span>
+<span class="font-label-sm text-label-sm">Himalayas</span>
+</button>
+<button class="group px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 shadow-xs flex items-center gap-1 hover:bg-white/30 transition-transform active:scale-95 text-white" type="button">
+<span class="material-symbols-outlined text-secondary-fixed text-[14px]">nature</span>
+<span class="font-label-sm text-label-sm">Coorg Retreat</span>
+</button>
+<button class="group px-3 py-1 rounded-full bg-white/20 backdrop-blur-md border border-white/20 shadow-xs flex items-center gap-1 hover:bg-white/30 transition-transform active:scale-95 text-white" type="button">
+<span class="material-symbols-outlined text-tertiary-fixed text-[14px]">water</span>
+<span class="font-label-sm text-label-sm">Kerala</span>
+</button>
+</div>
+</div>
+<!-- Bottom Action Area with High-Contrast Warm Pill Button -->
+<div class="relative z-30 pb-space-lg px-space-md flex flex-col items-center gap-3.5 mt-auto">
+<!-- Primary Vibrant Warm Sunburst Pill Button -->
+<button class="w-full py-4 px-6 rounded-full bg-primary-container text-white shadow-lg shadow-primary-container/40 flex items-center justify-center gap-2.5 transition-all duration-200 active:scale-[0.98] hover:opacity-95" id="start-journey-btn" type="button">
+<span class="font-label-lg text-label-lg uppercase tracking-wide font-bold">Start Your Journey</span>
+<span class="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:translate-x-1">arrow_forward</span>
+</button>
+<!-- Secondary Sign-In Link & Exploration Mode -->
+<div class="flex items-center justify-between w-full px-2">
+<button class="font-label-md text-label-md text-white/90 hover:text-white transition-colors drop-shadow-xs" type="button">
+          Browse Guest Mode
+        </button>
+<button class="flex items-center gap-1 font-label-md text-label-md text-white/90 hover:text-white font-semibold transition-colors drop-shadow-xs" type="button">
+<span>Sign In</span>
+<span class="material-symbols-outlined text-[15px]">chevron_right</span>
+</button>
+</div>
+<!-- Trust & Safe Journey Micro-Copy -->
+<div class="flex items-center gap-2 pt-1 opacity-90">
+<span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-white/80">Zero-booking fees • 100% Tailored Itineraries</span>
+</div>
+</div>
+</div>
+</div>
+<script>
+  // Dynamic Rotating Background Carousel System
+  (function initBackgroundCarousel() {
+    const destinations = [
+      { name: 'Manali, HP', location: 'Himachal Pradesh' },
+      { name: 'Goa Beach', location: 'Goa, India' },
+      { name: 'Kerala Backwaters', location: 'Kerala, India' },
+      { name: 'Jaisalmer, Rajasthan', location: 'Thar Desert' },
+      { name: 'Kashmir Valley', location: 'Srinagar, Kashmir' },
+      { name: 'Ladakh', location: 'Leh Ladakh' },
+      { name: 'Uttarakhand', location: 'Garhwal, Himalayas' },
+      { name: 'Andaman Islands', location: 'Havelock Island' }
+    ];
+
+    const slides = [
+      document.getElementById('slide-0'),
+      document.getElementById('slide-1'),
+      document.getElementById('slide-2'),
+      document.getElementById('slide-3'),
+      document.getElementById('slide-4'),
+      document.getElementById('slide-5'),
+      document.getElementById('slide-6'),
+      document.getElementById('slide-7')
+    ];
+
+    const pipsContainer = document.getElementById('carousel-pips');
+    const pips = pipsContainer ? pipsContainer.querySelectorAll('button') : [];
+    const destinationLabel = document.getElementById('active-destination-name');
+    const destinationHeaderPill = document.getElementById('destination-text');
+
+    let currentIndex = 0;
+    let timer = null;
+    const DISPLAY_DURATION = 7000; // 7 seconds visibility
+
+    // Check user reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function setSlide(index) {
+      if (!slides[index]) return;
+
+      // Update Slides opacity via class
+      slides.forEach((slide, i) => {
+        if (!slide) return;
+        if (i === index) {
+          slide.classList.add('active');
+        } else {
+          slide.classList.remove('active');
+        }
+      });
+
+      // Update Pagination Dots / Pips
+      pips.forEach((pip, i) => {
+        if (i === index) {
+          pip.className = 'w-2 h-2 rounded-full bg-white transition-all duration-300 ring-2 ring-white/40 scale-110';
+        } else {
+          pip.className = 'w-2 h-2 rounded-full bg-white/40 hover:bg-white/70 transition-all duration-300';
+        }
+      });
+
+      // Update Destination Name Badge
+      if (destinationLabel && destinations[index]) {
+        destinationLabel.style.opacity = '0';
+        setTimeout(() => {
+          destinationLabel.textContent = destinations[index].name;
+          destinationLabel.style.opacity = '1';
+        }, 300);
+      }
+
+      if (destinationHeaderPill && destinations[index]) {
+        destinationHeaderPill.textContent = destinations[index].location;
+      }
+
+      currentIndex = index;
+    }
+
+    function nextSlide() {
+      const next = (currentIndex + 1) % slides.length;
+      setSlide(next);
+    }
+
+    if (!prefersReducedMotion) {
+      timer = setInterval(nextSlide, DISPLAY_DURATION);
+
+      // Allow clicking indicators directly
+      pips.forEach((pip, idx) => {
+        pip.addEventListener('click', () => {
+          clearInterval(timer);
+          setSlide(idx);
+          timer = setInterval(nextSlide, DISPLAY_DURATION);
+        });
+      });
+    }
+
+    // Micro-interaction: tactile feedback on start button
+    const startBtn = document.getElementById('start-journey-btn');
+    if (startBtn) {
+      startBtn.addEventListener('click', () => {
+        startBtn.classList.add('scale-95');
+        setTimeout(() => {
+          startBtn.classList.remove('scale-95');
+        }, 150);
+      });
+    }
+  })();
+</script></main></body></html>
