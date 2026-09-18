@@ -23,7 +23,7 @@ export class ApiError extends Error {
 function readBaseUrl(): string | undefined {
   // Optional chaining: `import.meta.env` is injected by Vite, but the guard
   // keeps SSR/tests outside Vite from throwing on access.
-  const raw = import.meta.env?.VITE_TOURFLOW_API_URL;
+  const raw = import.meta.env?.VITE_TOURFLOW_API_URL || import.meta.env?.VITE_API_URL;
   if (typeof raw !== 'string') return undefined;
   const trimmed = raw.trim().replace(/\/+$/, '');
   return trimmed ? trimmed : undefined;

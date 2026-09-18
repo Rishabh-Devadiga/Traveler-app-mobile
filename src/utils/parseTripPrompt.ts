@@ -1,6 +1,7 @@
 import type { ParsedTripFields } from '../types';
 import { formatINR } from './format';
 import { knownDestinations } from '../mocks/traveler';
+import { DESTINATIONS } from '../data/destinations';
 
 const DAY_RE = /(\d+)\s*(?:-|–|to)?\s*(day|days|night|nights)\b/i;
 const TRAVELERS_OF_RE = /(?:family|group)\s+of\s+(\d+)\b/i;
@@ -35,6 +36,28 @@ function detectDestination(prompt: string): string | undefined {
     const match = entry.pattern.exec(prompt);
     if (match && (best === undefined || match.index < best.index)) {
       best = { index: match.index, label: entry.label };
+    }
+  }
+  for (const d of DESTINATIONS) {
+    const canonical =
+      d.id === 'taj-mahal' || d.city === 'Agra'
+        ? 'Agra'
+        : d.id === 'mysuru-palace' || d.city === 'Mysuru'
+        ? 'Mysuru'
+        : d.name.includes('(')
+        ? d.name.split('(')[0].trim()
+        : d.name;
+    const reCanonical = new RegExp(`\\b${canonical.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+    const match = reCanonical.exec(prompt);
+    if (match && (best === undefined || match.index < best.index)) {
+      best = { index: match.index, label: canonical };
+    }
+    if (d.city && d.city !== canonical && !['Panaji', 'Pangong Tso'].includes(d.city)) {
+      const reCity = new RegExp(`\\b${d.city.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`, 'i');
+      const matchCity = reCity.exec(prompt);
+      if (matchCity && (best === undefined || matchCity.index < best.index)) {
+        best = { index: matchCity.index, label: canonical };
+      }
     }
   }
   return best?.label;

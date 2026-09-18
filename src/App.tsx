@@ -8,6 +8,7 @@ import AiLoading from './pages/AiLoading';
 import Itinerary from './pages/Itinerary';
 import AiGuide from './pages/AiGuide';
 import Profile from './pages/Profile';
+import GlobePage from './pages/GlobePage';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="/onboarding" element={<Onboarding />} />
       <Route element={<Layout />}>
         <Route path="/home-explore" element={<HomeExplore />} />
+        <Route path="/globe" element={<GlobePage />} />
         <Route path="/plan" element={<PlanJourney />} />
         <Route path="/checklist" element={<TripChecklist />} />
         <Route path="/loading" element={<AiLoading />} />

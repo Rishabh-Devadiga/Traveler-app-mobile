@@ -200,6 +200,8 @@ export interface ParsedTripFields {
 export interface TripDraft {
   prompt: string;
   destination?: string;
+  /** Whether the destination was pre-filled from 3D Globe selection or manually entered. */
+  destinationSource?: 'globe' | 'manual';
   durationDays?: number;
   travelers?: number;
   travelerLabel?: string;

@@ -19,6 +19,7 @@ export default function BottomNav() {
           <NavLink
             key={tab.to}
             to={tab.to}
+            state={tab.to === '/plan' ? { reset: true, source: 'manual' } : undefined}
             className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-[11px] font-semibold transition-colors ${
                 isActive ? 'text-tourflow-primary' : 'text-tourflow-textMuted hover:text-tourflow-dark'

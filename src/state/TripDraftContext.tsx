@@ -31,11 +31,21 @@ function countCaptured(draft: TripDraft): number {
 export function TripDraftProvider({ children }: { children: ReactNode }) {
   const [draft, setDraft] = useState<TripDraft>(EMPTY_DRAFT);
 
-  const startTrip = useCallback((prompt: string) => {
+  const startTrip = useCallback((prompt: string, initialFields?: Partial<TripDraft>) => {
     const trimmed = prompt.trim();
     setDraft((prev) => {
-      if (trimmed === prev.prompt) return prev; // resume — preserve edits
-      return { prompt: trimmed, itinerary: null }; // new trip — reset derived state
+      if (
+        trimmed === prev.prompt &&
+        (!initialFields ||
+          Object.entries(initialFields).every(([k, v]) => prev[k as keyof TripDraft] === v))
+      ) {
+        return prev; // resume — preserve edits
+      }
+      return {
+        prompt: trimmed,
+        itinerary: null,
+        ...initialFields,
+      }; // new trip — initialize with clean initial state
     });
   }, []);
 
@@ -47,9 +57,15 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
     setDraft((prev) => {
       if (!prev.prompt.trim() || prev.parsedForPrompt === prev.prompt) return prev;
       const parsed = parseTripPrompt(prev.prompt);
+      const destination = parsed.destination ?? prev.destination;
+      const destinationSource =
+        parsed.destination && parsed.destination !== prev.destination
+          ? 'manual'
+          : prev.destinationSource;
       return {
         ...prev,
-        destination: prev.destination ?? parsed.destination,
+        destination,
+        destinationSource,
         durationDays: prev.durationDays ?? parsed.durationDays,
         travelers: prev.travelers ?? parsed.travelers,
         travelerLabel: prev.travelerLabel ?? parsed.travelerLabel,

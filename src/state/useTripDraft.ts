@@ -7,8 +7,8 @@ export interface TripDraftContextValue {
   draft: TripDraft;
   /** Parsed view of the current prompt (unknown fields stay undefined). */
   parsed: ParsedTripFields;
-  /** Start (or resume) a trip. A changed prompt resets derived fields + itinerary. */
-  startTrip: (prompt: string) => void;
+  /** Start (or resume) a trip. A changed prompt resets derived fields + itinerary unless initialFields are specified. */
+  startTrip: (prompt: string, initialFields?: Partial<TripDraft>) => void;
   /** Merge checklist edits into the draft (preserved across navigation). */
   updateDraft: (patch: Partial<TripDraft>) => void;
   /** Fill unset fields from the prompt parser (runs once per prompt). */
