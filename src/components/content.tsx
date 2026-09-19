@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import type {
   ChatMessage,
   ItineraryStop,
@@ -44,16 +45,50 @@ export function SafeImage({
   );
 }
 
-export function TimelineStopCard({ stop }: { stop: ItineraryStop }) {
+const STOP_TYPE_ICONS: Record<string, string> = {
+  Stay: '🏨',
+  Activity: '🎯',
+  Transport: '🚌',
+  Meal: '🍽️',
+  Leisure: '🌿',
+  Note: '📝',
+};
+
+export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer?: ReactNode }) {
   const timeRange = [stop.time, stop.endTime].filter(Boolean).join(' – ');
+  const typeLabel = stop.tags[0] ?? 'Stop';
+  // Leisure placeholders (free days the backend guarantees per 1..duration)
+  // render as relaxed free-time cards, never as empty days.
+  const isLeisure = typeLabel === 'Leisure';
   return (
     <li className="relative pl-10">
       <span
         aria-hidden="true"
         className="absolute left-4 top-4 h-2.5 w-2.5 -translate-x-1/2 rounded-full bg-tourflow-primary"
       />
-      <article className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
-        <SafeImage src={stop.imageUrl} alt={stop.imageAlt ?? stop.title} className="h-36 w-full object-cover" />
+      <article
+        className={`overflow-hidden rounded-2xl border shadow-soft ${
+          isLeisure ? 'border-tourflow-sageBorder bg-tourflow-sageLight/50' : 'border-tourflow-cardBorder bg-white'
+        }`}
+      >
+        {stop.imageUrl ? (
+          <SafeImage src={stop.imageUrl} alt={stop.imageAlt ?? stop.title} className="h-36 w-full object-cover" />
+        ) : (
+          <div
+            role="img"
+            aria-label={`${typeLabel} stop`}
+            className={`flex h-16 w-full items-center justify-center gap-2 ${
+              isLeisure ? 'bg-tourflow-sageLight text-tourflow-sage' : 'bg-tourflow-surfaceMuted text-tourflow-textMuted'
+            }`}
+          >
+            <span aria-hidden="true" className="text-xl">
+              {STOP_TYPE_ICONS[typeLabel] ?? '📍'}
+            </span>
+            <span className="text-[11px] font-bold uppercase tracking-wide">
+              {isLeisure ? 'Free time' : typeLabel}
+            </span>
+          </div>
+        )}
         <div className="p-3">
           {timeRange ? (
             <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{timeRange}</p>
@@ -77,6 +112,7 @@ export function TimelineStopCard({ stop }: { stop: ItineraryStop }) {
               <span className="ml-auto text-[11px] font-bold text-tourflow-sage">{stop.costLabel}</span>
             ) : null}
           </div>
+          {footer ? <div className="mt-2 flex flex-wrap gap-2">{footer}</div> : null}
         </div>
       </article>
     </li>

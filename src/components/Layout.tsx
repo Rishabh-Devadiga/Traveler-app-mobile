@@ -3,6 +3,9 @@ import Header from './Header';
 import BottomNav from './BottomNav';
 import { travelerUser } from '../mocks/traveler';
 import { useUserProfile } from '../state/useUserProfile';
+import { useTripDraft } from '../state/useTripDraft';
+import { asApiTrip } from '../api/trips';
+import { tripDateRangeLabel } from '../utils/dates';
 
 const titles: Record<string, { title: string; subtitle?: string; wide?: boolean; back?: boolean; flush?: boolean }> = {
   '/home-explore': { title: 'Home Explore', subtitle: 'Intelligent travel companion' },
@@ -29,12 +32,23 @@ export default function Layout() {
   const navigate = useNavigate();
   const meta = titles[pathname] ?? { title: 'TourFlow' };
   const { profile } = useUserProfile();
+  const { draft } = useTripDraft();
+
+  // The itinerary header names the trip's real destination (never a stale
+  // hardcoded one) plus the selected date range when set.
+  let subtitle = meta.subtitle;
+  if (pathname === '/itinerary') {
+    const liveName = asApiTrip(draft.apiTrip)?.destination?.name;
+    const destination = liveName ?? draft.destination ?? 'Your trip';
+    const range = draft.startDate && draft.endDate ? tripDateRangeLabel(draft.startDate, draft.endDate) : '';
+    subtitle = range ? `${destination} · ${range}` : destination;
+  }
 
   return (
     <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">
       <Header
         title={meta.title}
-        subtitle={meta.subtitle}
+        subtitle={subtitle}
         avatarUrl={profile.avatarDataUrl ?? travelerUser.avatarUrl}
         showBack={meta.back}
         onBack={() => navigate(-1)}

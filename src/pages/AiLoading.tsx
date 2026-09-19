@@ -6,6 +6,7 @@ import { useTripDraft } from '../state/useTripDraft';
 import { tripDateRangeLabel } from '../utils/dates';
 import { isApiConfigured } from '../api/client';
 import { ApiError } from '../api/client';
+import { clearTravelerToken } from '../api/auth';
 
 const STEP_INTERVAL_MS = 900;
 
@@ -87,6 +88,12 @@ export default function AiLoading() {
         if (cancelled) return;
         window.clearInterval(stepTimer);
         inflightRef.current = null;
+        if (error instanceof ApiError && error.status === 401) {
+          // Session died mid-creation — same handling as the Guide.
+          clearTravelerToken();
+          navigate('/login', { replace: true, state: { from: '/home-explore' } });
+          return;
+        }
         setApiStatus(error instanceof ApiError ? error.status : null);
         setApiError(friendlyErrorMessage(error));
       },

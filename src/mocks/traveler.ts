@@ -1,8 +1,6 @@
 import type {
-  BookingItem,
   BudgetSummary,
   Category,
-  ChatMessage,
   ChecklistItem,
   Destination,
   InspirationTrip,
@@ -12,9 +10,7 @@ import type {
   OnboardingSlide,
   ProfileInfoRow,
   ProfileMenuItem,
-  RestaurantPick,
   TravelerUser,
-  TripPlanItem,
 } from '../types';
 import avatarLocal from '../assets/avatar.png';
 
@@ -390,109 +386,6 @@ export const itineraryDays: ItineraryDay[] = [
 ];
 
 export const copilotSuggestions = ['Make it cheaper', 'More adventure', 'Less walking'];
-
-export const aiGuide = {
-  contextPill: 'Manali · Day 3/7',
-  headerTitle: 'Your AI Travel Guide',
-  headerSubtitle: 'TourFlow AI is ready · Live Concierge',
-  dayLabel: 'Today · Day 3',
-  stopsLeft: '1 Stop Left (05:30 PM)',
-  inputPlaceholder: 'Ask your travel guide anything...',
-  tripTitle: 'Manali Alpine Escape',
-  tripProgress: 'Day 3 of 7 · 43%',
-  budgetUsed: '₹28,500',
-  budgetTotal: '₹35,000',
-  budgetPercent: 81,
-};
-
-export const aiGuideMessages: ChatMessage[] = [
-  {
-    id: 'm1',
-    role: 'ai',
-    text: "Hi Aarav! I'm your TourFlow Guide. I know you're heading across Manali for 7 days with Priya. How can I help today?",
-  },
-  { id: 'm2', role: 'user', text: 'What should I do tomorrow?' },
-  {
-    id: 'm3',
-    role: 'ai',
-    text: "Tomorrow you've planned Solang Valley in the morning (09:00 AM) and Old Manali in the evening. Expect 16°C and clear skies — perfect for the ropeway.",
-  },
-];
-
-export const aiGuideSuggestions = [
-  "What's next?",
-  'Find restaurants nearby',
-  "How much have I spent?",
-  'Show my bookings',
-  'What should I pack?',
-  'Find something to do tonight',
-];
-
-export const restaurantPicks: RestaurantPick[] = [
-  {
-    id: 'cafe-1947',
-    name: 'Café 1947',
-    area: 'Riverside · Manaslu',
-    priceForTwo: '₹850 for 2',
-    rating: '4.8',
-    reviews: '(840+)',
-    matchLabel: 'Veg match',
-    imageUrl:
-      'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=600&q=60',
-    imageAlt: 'Riverside cafe',
-  },
-  {
-    id: 'lazy-dog',
-    name: 'The Lazy Dog Lounge',
-    area: 'Old Manali · Cabin stay',
-    priceForTwo: '₹950 for 2',
-    rating: '4.7',
-    reviews: '(620+)',
-    matchLabel: 'Veg match',
-    imageUrl:
-      'https://images.unsplash.com/photo-1445116572660-236099ec97a0?auto=format&fit=crop&w=600&q=60',
-    imageAlt: 'Cozy mountain cabin cafe',
-  },
-];
-
-export const todayPlan: TripPlanItem[] = [
-  {
-    id: 't1',
-    time: '09:30 AM',
-    title: 'Hadimba Temple Walk',
-    subtitle: 'Cedar forest loop · easy pace',
-    done: true,
-  },
-  {
-    id: 't2',
-    time: '01:00 PM',
-    title: "Trout Lunch at Johnson's",
-    subtitle: '₹1,180 billed · lakeside table',
-    done: true,
-  },
-  {
-    id: 't3',
-    time: '05:30 PM',
-    title: 'Old Manali Sunset Bazaar',
-    subtitle: '1 stop left · cab 10 mins away',
-    current: true,
-  },
-];
-
-export const bookingItems: BookingItem[] = [
-  {
-    id: 'b1',
-    label: 'Hotel: Apple Country Resort',
-    detail: 'Check-out Oct 21 · #TF-9428',
-    status: 'Confirmed',
-  },
-  {
-    id: 'b2',
-    label: 'Rohtang Permit',
-    detail: 'Pre-book permit · ₹550',
-    status: 'Action needed',
-  },
-];
 
 export const profileInfoRows: ProfileInfoRow[] = [
   { id: 'name', label: 'Name', value: 'Aarav Patel' },
