@@ -211,7 +211,7 @@ export function RestaurantCard({ pick, onAdd }: { pick: RestaurantPick; onAdd: (
   );
 }
 
-export function ProfileInfoCard({ rows }: { rows: ProfileInfoRow[] }) {
+export function ProfileInfoCard({ rows, onEdit }: { rows: ProfileInfoRow[]; onEdit?: (id: string) => void }) {
   return (
     <section className="rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft" aria-label="Personal information">
       {rows.map((row, index) => (
@@ -225,7 +225,12 @@ export function ProfileInfoCard({ rows }: { rows: ProfileInfoRow[] }) {
               {row.value} {row.verified ? <span className="text-xs text-tourflow-sage">· Verified</span> : null}
             </p>
           </div>
-          <button type="button" aria-label={`Edit ${row.label}`} className="text-xs font-bold text-tourflow-primary">
+          <button
+            type="button"
+            aria-label={`Edit ${row.label}`}
+            onClick={onEdit ? () => onEdit(row.id) : undefined}
+            className="text-xs font-bold text-tourflow-primary"
+          >
             Edit
           </button>
         </div>
@@ -234,7 +239,7 @@ export function ProfileInfoCard({ rows }: { rows: ProfileInfoRow[] }) {
   );
 }
 
-export function ProfileMenuCard({ title, items }: { title: string; items: ProfileMenuItem[] }) {
+export function ProfileMenuCard({ title, items, onSelect }: { title: string; items: ProfileMenuItem[]; onSelect?: (id: string) => void }) {
   return (
     <section aria-label={title} className="rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
       <h3 className="border-b border-tourflow-cardBorder px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
@@ -244,6 +249,7 @@ export function ProfileMenuCard({ title, items }: { title: string; items: Profil
         <button
           key={item.id}
           type="button"
+          onClick={onSelect ? () => onSelect(item.id) : undefined}
           className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-tourflow-bg"
         >
           <span>
