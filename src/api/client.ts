@@ -8,6 +8,8 @@
  * - FastAPI error bodies (`{"detail": ...}`) are surfaced via `ApiError`.
  */
 
+import { getTravelerToken } from './auth';
+
 export class ApiError extends Error {
   readonly status: number;
   readonly detail: unknown;
@@ -48,6 +50,11 @@ interface RequestOptions {
   method: 'GET' | 'POST' | 'PUT';
   body?: unknown;
   timeoutMs?: number;
+  /**
+   * Attach `Authorization: Bearer <traveler-JWT>` when a traveler session
+   * exists. Guide routes require it; the open trip routes omit it.
+   */
+  auth?: boolean;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -65,9 +72,14 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), options.timeoutMs ?? DEFAULT_TIMEOUT_MS);
   try {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (options.auth) {
+      const token = getTravelerToken();
+      if (token) headers.Authorization = `Bearer ${token}`;
+    }
     const response = await fetch(`${baseUrl}${path}`, {
       method: options.method,
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: controller.signal,
     });
@@ -91,10 +103,21 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
   }
 }
 
+export interface AuthRequestOptions {
+  timeoutMs?: number;
+}
+
 export const apiClient = {
   get: <T>(path: string, timeoutMs?: number) => request<T>(path, { method: 'GET', timeoutMs }),
   post: <T>(path: string, body: unknown, timeoutMs?: number) =>
     request<T>(path, { method: 'POST', body, timeoutMs }),
   put: <T>(path: string, body: unknown, timeoutMs?: number) =>
     request<T>(path, { method: 'PUT', body, timeoutMs }),
+  /** Authenticated variants — send the traveler JWT when one is stored. */
+  authGet: <T>(path: string, options?: AuthRequestOptions) =>
+    request<T>(path, { method: 'GET', auth: true, timeoutMs: options?.timeoutMs }),
+  authPost: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
+    request<T>(path, { method: 'POST', body, auth: true, timeoutMs: options?.timeoutMs }),
+  authPut: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
+    request<T>(path, { method: 'PUT', body, auth: true, timeoutMs: options?.timeoutMs }),
 };

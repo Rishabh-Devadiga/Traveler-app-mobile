@@ -8,6 +8,10 @@ import {
   apiItineraryToDays,
   createTrip,
   tripDraftToCreateRequest,
+  writeActiveTripId,
+  clearActiveTripId,
+  readActiveTripId,
+  unmarkTripConfirmed,
 } from '../api/trips';
 import type { ResolvedItinerary } from '../api/trips';
 import { parseTripPrompt } from '../utils/parseTripPrompt';
@@ -132,8 +136,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       );
     }
     const days = apiItineraryToDays(trip.itinerary);
-    const signature = itineraryInputSignature({
-      prompt: input.prompt,
+    const signature = itineraryInputSignature({      prompt: input.prompt,
       destination: input.destination,
       durationDays: input.durationDays,
       travelers: input.travelers,
@@ -153,10 +156,14 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       totalCost: trip.total_cost,
       apiTrip: trip,
     }));
+    writeActiveTripId(trip.id);
     return { days, source: 'api', tripId: trip.id };
   }, []);
 
   const resetTrip = useCallback(() => {
+    const previousId = readActiveTripId();
+    if (previousId) unmarkTripConfirmed(previousId);
+    clearActiveTripId();
     setDraft(EMPTY_DRAFT);
   }, []);
 
