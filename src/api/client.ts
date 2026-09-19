@@ -13,12 +13,15 @@ import { getTravelerToken } from './auth';
 export class ApiError extends Error {
   readonly status: number;
   readonly detail: unknown;
+  /** Full parsed response body (siblings of `detail`, e.g. guide 404 `active_trip`, are kept here). */
+  readonly raw: unknown;
 
-  constructor(status: number, detail: unknown, message?: string) {
+  constructor(status: number, detail: unknown, message?: string, raw: unknown = detail) {
     super(message ?? `TourFlow API request failed (status ${status})`);
     this.name = 'ApiError';
     this.status = status;
     this.detail = detail;
+    this.raw = raw;
   }
 }
 
@@ -89,7 +92,7 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
         data && typeof data === 'object' && 'detail' in data
           ? (data as { detail: unknown }).detail
           : data;
-      throw new ApiError(response.status, detail, errorMessage(response.status, detail));
+      throw new ApiError(response.status, detail, errorMessage(response.status, detail), data);
     }
     return data as T;
   } catch (error) {

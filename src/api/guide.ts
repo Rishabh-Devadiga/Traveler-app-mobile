@@ -102,6 +102,22 @@ export interface GuideChatRequest {
 }
 
 /**
+ * A 404 body carries `{ detail, active_trip: {trip_id,…}|null,
+ * has_active_trip }`. Extract the backend-suggested trip id (full UUID)
+ * when present — the page auto-adopts it once instead of stranding the user.
+ */
+export function guideActiveTripId(error: unknown): string | null {
+  if (!(error instanceof ApiError)) return null;
+  // `active_trip` rides alongside `detail` in the 404 body — the client keeps
+  // the full body on `raw` (and `detail` itself when it is an object).
+  for (const source of [error.raw, error.detail]) {
+    const id = (source as { active_trip?: { trip_id?: unknown } | null } | null)?.active_trip?.trip_id;
+    if (typeof id === 'string' && id.trim()) return id;
+  }
+  return null;
+}
+
+/**
  * POST /api/guide/chat (alias POST /api/chat) — send a chat message.
  * Blank messages are rejected client-side by the Guide page; a backend 422
  * is surfaced as `ApiError` for inline display. The alias is attempted only
