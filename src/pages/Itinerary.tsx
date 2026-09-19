@@ -22,13 +22,14 @@ import {
   markTripConfirmed,
   optimizeTrip,
   readActiveTripId,
+  seedDraftFromTrip,
   swapActivity,
   toStayOption,
   updateTripDates,
   type ApiTripWithItinerary,
 } from '../api';
 import { ApiError, isApiConfigured } from '../api/client';
-import type { ItineraryStop, PossibleOption, TripDraft } from '../types';
+import type { ItineraryStop, PossibleOption } from '../types';
 import { formatINR } from '../utils/format';
 import { diffNights, parseISODate, tripDateRangeLabel } from '../utils/dates';
 import { buildTripPdfInput, exportTripToPDF } from '../utils/pdfExport';
@@ -95,16 +96,7 @@ export default function Itinerary() {
     getTrip(storedTripId).then(
       (trip) => {
         if (cancelled) return;
-        const seed: TripDraft = {
-          prompt: trip.title?.trim() || `Trip to ${trip.destination?.name ?? 'your destination'}`,
-          destination: trip.destination?.name ?? undefined,
-          durationDays: trip.duration_days,
-          travelers: trip.traveler_count,
-          startDate: trip.start_date?.slice(0, 10) || undefined,
-          endDate: trip.end_date?.slice(0, 10) || undefined,
-          budgetAmount: trip.total_budget,
-          itinerary: null,
-        };
+        const seed = seedDraftFromTrip(trip);
         updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
         setRestoring(false);
       },

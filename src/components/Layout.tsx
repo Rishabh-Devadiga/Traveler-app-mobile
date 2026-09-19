@@ -43,6 +43,15 @@ export default function Layout() {
     const range = draft.startDate && draft.endDate ? tripDateRangeLabel(draft.startDate, draft.endDate) : '';
     subtitle = range ? `${destination} · ${range}` : destination;
   }
+  // AI Guide header follows the selected trip too — never a hardcoded place.
+  if (pathname === '/ai-guide') {
+    const liveName = asApiTrip(draft.apiTrip)?.destination?.name;
+    const destination = liveName ?? draft.destination;
+    const days = draft.durationDays;
+    subtitle = destination
+      ? `Live Concierge · ${destination}${days ? ` · ${days} day${days === 1 ? '' : 's'}` : ''}`
+      : 'Live Concierge';
+  }
 
   return (
     <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">

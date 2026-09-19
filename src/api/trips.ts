@@ -269,6 +269,39 @@ export function getTrip(tripId: string): Promise<ApiTripWithItinerary> {
   return apiClient.authGet<ApiTripWithItinerary>(`/api/trips/${encodeURIComponent(tripId)}`);
 }
 
+/**
+ * One row of GET /api/traveler/trips — the logged-in user's own trips ONLY.
+ * The picker is ALWAYS fed from this endpoint (Bearer JWT). GET /api/trips
+ * is never used for listing: it returns every traveler's trips plus test
+ * data, which is exactly what produced "another traveler" 404s in Guide.
+ * All fields optional — only `id` is required; the UI falls back gracefully.
+ */
+export interface TravelerTripSummary {
+  id: string;
+  title?: string | null;
+  destination_name?: string | null;
+  destination?: { name?: string | null } | string | null;
+  status?: string | null;
+  duration_days?: number | null;
+}
+
+/** Display name for a trip summary — title, then destination, then short id. Never hardcoded. */
+export function travelerTripName(trip: TravelerTripSummary): string {
+  if (trip.title?.trim()) return trip.title.trim();
+  const dest = typeof trip.destination === 'string' ? trip.destination : trip.destination?.name;
+  if (dest?.trim()) return dest.trim();
+  if (trip.destination_name?.trim()) return trip.destination_name.trim();
+  return `Trip ${trip.id.slice(0, 8)}`;
+}
+
+/** GET /api/traveler/trips — only the logged-in traveler's trips. */
+export async function listTravelerTrips(): Promise<TravelerTripSummary[]> {
+  const items = await apiClient.authGet<unknown>('/api/traveler/trips');
+  const list = Array.isArray(items) ? items : (items as { trips?: unknown })?.trips;
+  if (!Array.isArray(list)) return [];
+  return list.filter((t): t is TravelerTripSummary => !!t && typeof (t as { id?: unknown }).id === 'string');
+}
+
 function tripPath(tripId: string, suffix: string): string {
   return `/api/trips/${encodeURIComponent(tripId)}${suffix}`;
 }
@@ -384,8 +417,7 @@ export function confirmTrip(tripId: string): Promise<ApiTripWithItinerary> {
  * treated as stale (otherwise Itinerary would bounce back to Loading and
  * re-POST a duplicate trip).
  */
-export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): Partial<TripDraft> {
-  return {
+export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): Partial<TripDraft> {  return {
     itinerary: apiItineraryToDays(trip.itinerary),
     itinerarySignature: itineraryInputSignature({
       prompt: draft.prompt,
@@ -402,6 +434,26 @@ export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): P
     itinerarySource: 'api',
     totalCost: trip.total_cost,
     apiTrip: trip,
+  };
+}
+
+/**
+ * Build the draft seed for a backend trip (restore-after-refresh and
+ * picker select share it): prompt/derived fields come from the trip itself
+ * so header, panel, Guide and Itinerary all name the SAME trip. Callers
+ * merge `applyServerTrip(trip, seed)` on top. Nothing is hardcoded.
+ */
+export function seedDraftFromTrip(trip: ApiTripWithItinerary): TripDraft {
+  const destination = trip.destination?.name ?? undefined;
+  return {
+    prompt: trip.title?.trim() || (destination ? `Trip to ${destination}` : 'My TourFlow trip'),
+    destination,
+    durationDays: trip.duration_days,
+    travelers: trip.traveler_count,
+    startDate: trip.start_date?.slice(0, 10) || undefined,
+    endDate: trip.end_date?.slice(0, 10) || undefined,
+    budgetAmount: trip.total_budget,
+    itinerary: null,
   };
 }
 

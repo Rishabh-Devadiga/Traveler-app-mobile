@@ -4,8 +4,11 @@ import { ChatBubble, SuggestionChips } from '../components/content';
 import type { ChatMessage } from '../types';
 import { ApiError, isApiConfigured } from '../api/client';
 import { clearTravelerToken, hasTravelerToken } from '../api/auth';
-import { apiItineraryToDays, getTrip } from '../api/trips';
-import { getGuideGreeting, getGuideHistory, postGuideChat, type GuideTripCard } from '../api/guide';
+import { apiItineraryToDays, applyServerTrip, createTrip, getTrip, listTravelerTrips, seedDraftFromTrip, tripDraftToCreateRequest, writeActiveTripId } from '../api/trips';
+import type { TravelerTripSummary } from '../api/trips';
+import { travelerTripName } from '../api/trips';
+import TripPicker from '../components/TripPicker';
+import { getGuideGreeting, getGuideHistory, guideActiveTripId, postGuideChat, type GuideTripCard } from '../api/guide';
 import { useTripDraft } from '../state/useTripDraft';
 import { formatINR, formatMoney } from '../utils/format';
 
@@ -53,12 +56,60 @@ export default function AiGuide() {
   const [validationError, setValidationError] = useState<string | null>(null);
   const [failedText, setFailedText] = useState<string | null>(null);
   const [showTripPanel, setShowTripPanel] = useState(false);
+  const [myTrips, setMyTrips] = useState<TravelerTripSummary[]>([]);
+  const [tripsLoaded, setTripsLoaded] = useState(false);
+  const [tripsLoading, setTripsLoading] = useState(false);
+  const [tripsError, setTripsError] = useState<string | null>(null);
+  const [tripsKey, setTripsKey] = useState(0);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [selecting, setSelecting] = useState(false);
+  const [showTripActions, setShowTripActions] = useState(false);
+  const [recreating, setRecreating] = useState(false);
   const requestRef = useRef(0);
+  // Last backend-suggested id already auto-adopted — never chase twice.
+  const lastAutoAdoptRef = useRef<string | null>(null);
 
   const redirectToLogin = () => {
     clearTravelerToken();
     navigate('/login', { replace: true, state: { from: '/ai-guide' } });
   };
+
+  // The picker's list: ONLY the traveler's own trips (GET /api/traveler/trips).
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    setTripsLoading(true);
+    setTripsError(null);
+    listTravelerTrips().then(
+      (list) => {
+        if (cancelled) return;
+        setMyTrips(list);
+        setTripsLoaded(true);
+        setTripsLoading(false);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof ApiError && error.status === 401) {
+          redirectToLogin();
+          return;
+        }
+        setTripsError(error instanceof Error ? error.message : 'Could not load your trips.');
+        setTripsLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, tripsKey]);
+
+  // Single source of truth = draft.tripId (persisted selection). A stale id
+  // (not in the user's own list) is NEVER sent: omit it so the backend
+  // resolves the active trip instead of 404ing on someone else's trip.
+  // Fail-open while the list is still loading or failed.
+  const inList = !activeTripId || myTrips.some((t) => t.id === activeTripId);
+  const guideTripId = tripsLoaded && !inList ? undefined : activeTripId;
+  const selectionStale = tripsLoaded && !!activeTripId && !inList;
 
   // Load greeting + history on open and on every trip switch. State is
   // cleared first so Trip A's messages never show under Trip B; stale
@@ -71,6 +122,7 @@ export default function AiGuide() {
     setSuggestions([]);
     setTripCard(null);
     setBanner(null);
+    setShowTripActions(false);
     setValidationError(null);
     setFailedText(null);
     setTripInfo(null);
@@ -81,7 +133,7 @@ export default function AiGuide() {
       if (!cancelled && requestRef.current === requestId) setLoadingHistory(false);
     };
 
-    Promise.all([getGuideGreeting(activeTripId), getGuideHistory(activeTripId)])
+    Promise.all([getGuideGreeting(guideTripId), getGuideHistory(guideTripId)])
       .then(([greeting, history]) => {
         if (cancelled || requestRef.current !== requestId) return;
         const opening = greeting.greeting || history.greeting;
@@ -93,6 +145,9 @@ export default function AiGuide() {
         }
         setMessages(next);
         setTripCard(history.trip_card ?? null);
+        if (selectionStale) {
+          setBanner('The selected trip isn’t in your trip list. Showing your active trip — select one of your trips below.');
+        }
         setTripInfo({
           tripId: history.trip_id ?? greeting.trip_id,
           userName: history.user_name || greeting.user_name || '',
@@ -100,14 +155,33 @@ export default function AiGuide() {
         });
         finish();
       })
-      .catch((error: unknown) => {
+      .catch(async (error: unknown) => {
         if (cancelled || requestRef.current !== requestId) return;
+        // Log the actual status + tripId for network-tab correlation:
+        // 401 = session died (login), 404 = wrong/stale ID (pick a trip).
+        console.warn('[guide] load failed:', {
+          status: error instanceof ApiError ? error.status : 'network',
+          tripId: guideTripId ?? '(omitted)',
+        });
         if (error instanceof ApiError && error.status === 401) {
           redirectToLogin();
           return;
         }
         if (error instanceof ApiError && error.status === 404) {
+          // Backend names the right trip? Auto-adopt it once (selection moves
+          // there and this effect reloads = the retry). Null → picker UI.
+          const suggested = guideActiveTripId(error);
+          if (suggested && suggested !== guideTripId && suggested !== lastAutoAdoptRef.current) {
+            finish();
+            const ok = await adoptActiveTrip(suggested);
+            if (!cancelled && requestRef.current === requestId && !ok) {
+              setBanner('Trip not found. It may belong to another traveler — select one of your trips.');
+              setShowTripActions(true);
+            }
+            return;
+          }
           setBanner('Trip not found. It may belong to another traveler — select one of your trips.');
+          setShowTripActions(true);
         } else if (error instanceof ApiError && error.status === 0) {
           setBanner('Could not reach the TourFlow server. Check your connection and retry.');
         } else {
@@ -120,7 +194,7 @@ export default function AiGuide() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTripId, authed]);
+  }, [guideTripId, authed]);
 
   const refreshTripData = async (tripId: string | null) => {
     if (!tripId) return;
@@ -138,11 +212,12 @@ export default function AiGuide() {
     }
   };
 
-  const postMessage = async (text: string) => {
+  const postMessage = async (text: string, explicitTripId?: string) => {
+    const attemptedId = explicitTripId ?? guideTripId;
     setThinking(true);
     setBanner(null);
     try {
-      const chat = await postGuideChat(activeTripId ? { message: text, tripId: activeTripId } : { message: text });
+      const chat = await postGuideChat(attemptedId ? { message: text, tripId: attemptedId } : { message: text });
       // Every question visibly gets an answer slot — a blank backend reply
       // becomes an honest retry note, never a silent hang.
       const answer = chat.response?.trim();
@@ -155,12 +230,29 @@ export default function AiGuide() {
       setFailedText(null);
       if (chat.action?.applied) void refreshTripData(chat.trip_id);
     } catch (error) {
+      console.warn('[guide] chat failed:', {
+        status: error instanceof ApiError ? error.status : 'network',
+        tripId: guideTripId ?? '(omitted)',
+      });
       if (error instanceof ApiError && error.status === 401) {
         redirectToLogin();
         return;
       }
       if (error instanceof ApiError && error.status === 404) {
+        // Same auto-adopt, then re-post this message ONCE under the right id
+        // (the user bubble is already up — no duplicate).
+        const suggested = guideActiveTripId(error);
+        if (
+          suggested &&
+          suggested !== attemptedId &&
+          suggested !== lastAutoAdoptRef.current &&
+          (await adoptActiveTrip(suggested))
+        ) {
+          await postMessage(text, suggested);
+          return;
+        }
         setBanner('Trip not found. It may belong to another traveler — select one of your trips.');
+        setShowTripActions(true);
       } else if (error instanceof ApiError && error.status === 422) {
         setValidationError('Your message was rejected. Please type a message and try again.');
       } else if (error instanceof ApiError && error.status === 0) {
@@ -175,8 +267,7 @@ export default function AiGuide() {
     }
   };
 
-  const send = (text: string, options?: { appendUser?: boolean }) => {
-    const clean = text.trim();
+  const send = (text: string, options?: { appendUser?: boolean }) => {    const clean = text.trim();
     if (!clean) {
       setValidationError('Please type a message first.');
       return;
@@ -195,9 +286,78 @@ export default function AiGuide() {
     void postMessage(clean);
   };
 
+  // Adopt the backend-suggested trip exactly like "Select trip": full trip
+  // into the shared draft (never a truncated/cached id). Returns success.
+  const adoptActiveTrip = async (tripId: string): Promise<boolean> => {
+    lastAutoAdoptRef.current = tripId;
+    try {
+      const trip = await getTrip(tripId);
+      const seed = seedDraftFromTrip(trip);
+      // Persist immediately (state + localStorage) so the notice never
+      // reappears after refresh — the Guide reloads from this same id.
+      writeActiveTripId(trip.id);
+      updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+      return true;
+    } catch {
+      return false;
+    }
+  };
+  const handleSelectTrip = async (tripId: string) => {
+    if (selecting || tripId === activeTripId) {
+      setPickerOpen(false);
+      return;
+    }
+    setSelecting(true);
+    setBanner(null);
+    try {
+      const trip = await getTrip(tripId);
+      const seed = seedDraftFromTrip(trip);
+      writeActiveTripId(trip.id);
+      updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+      setPickerOpen(false);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        redirectToLogin();
+        return;
+      }
+      setBanner(error instanceof Error ? error.message : 'Could not open that trip. Please try again.');
+    } finally {
+      setSelecting(false);
+    }
+  };
+
+  // Escape hatch for trips created before auth (anonymous fallback user):
+  // re-POST the same draft params so the backend creates an OWNED copy,
+  // then follow it everywhere. Same payload shape as normal creation.
+  const canRecreate = isApiConfigured() && !!draft.prompt.trim() && !!draft.destination;
+  const handleRecreate = async () => {
+    if (recreating || !canRecreate) return;
+    setRecreating(true);
+    setBanner(null);
+    try {
+      const trip = await createTrip(tripDraftToCreateRequest(draft));
+      const seed = seedDraftFromTrip(trip);
+      writeActiveTripId(trip.id);
+      updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+      setShowTripActions(false);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        redirectToLogin();
+        return;
+      }
+      setBanner(error instanceof Error ? error.message : 'Could not recreate your trip. Please try again.');
+      setShowTripActions(true);
+    } finally {
+      setRecreating(false);
+    }
+  };
+
   if (!authed) {
     return <Navigate to="/login" replace state={{ from: '/ai-guide' }} />;
   }
+
+  const selectedTrip = myTrips.find((t) => t.id === activeTripId);
+  const selectorLabel = selectedTrip ? travelerTripName(selectedTrip) : (draft.destination ?? 'Select trip');
 
   const headerSubtitle = loadingHistory
     ? 'Connecting…'
@@ -253,6 +413,19 @@ export default function AiGuide() {
             {contextPill}
           </span>
         </div>
+        <button
+          type="button"
+          onClick={() => setPickerOpen(true)}
+          className="flex w-full items-center justify-between gap-2 border-b border-tourflow-cardBorder bg-tourflow-bg px-3 py-2 text-left"
+        >
+          <span className="min-w-0">
+            <span className="block text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Trip</span>
+            <span className="block truncate text-sm font-bold text-tourflow-dark">{selectorLabel}</span>
+          </span>
+          <span aria-hidden="true" className="shrink-0 text-xs font-bold text-tourflow-primary">
+            {selecting ? '…' : 'Change ›'}
+          </span>
+        </button>
 
         <div className="flex max-h-[52vh] flex-1 flex-col gap-2 overflow-y-auto p-3 thin-scroll" aria-live="polite">
           {!isApiConfigured() ? (
@@ -282,6 +455,27 @@ export default function AiGuide() {
           {banner ? (
             <div role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
               <p>{banner}</p>
+              {showTripActions ? (
+                <div className="mt-1.5 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setPickerOpen(true)}
+                    className="rounded-full bg-tourflow-dark px-3 py-1 text-[11px] font-bold text-white"
+                  >
+                    Select trip
+                  </button>
+                  {canRecreate ? (
+                    <button
+                      type="button"
+                      onClick={() => void handleRecreate()}
+                      disabled={recreating}
+                      className="rounded-full bg-tourflow-primary px-3 py-1 text-[11px] font-bold text-white disabled:opacity-60"
+                    >
+                      {recreating ? 'Recreating…' : 'Recreate under my account'}
+                    </button>
+                  ) : null}
+                </div>
+              ) : null}
               {failedText ? (
                 <button
                   type="button"
@@ -431,6 +625,19 @@ export default function AiGuide() {
           )}
         </section>
       </aside>
+
+      {pickerOpen ? (
+        <TripPicker
+          trips={myTrips}
+          selectedId={activeTripId}
+          loading={tripsLoading || selecting}
+          error={tripsError}
+          disabled={selecting}
+          onSelect={(id) => void handleSelectTrip(id)}
+          onRetry={() => setTripsKey((k) => k + 1)}
+          onClose={() => setPickerOpen(false)}
+        />
+      ) : null}
     </div>
   );
 }

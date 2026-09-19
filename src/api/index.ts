@@ -2,6 +2,9 @@ export { apiClient, isApiConfigured, ApiError } from './client';
 export {
   createTrip,
   getTrip,
+  listTravelerTrips,
+  travelerTripName,
+  seedDraftFromTrip,
   updateTripDates,
   changeAccommodation,
   changeDayAccommodation,
@@ -25,7 +28,7 @@ export {
   toStayOption,
   asApiTrip,
 } from './trips';
-export type { SwapActivityInput, AddActivityInput, EditActivityInput } from './trips';
+export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary } from './trips';
 export type {
   TripCreateRequest,
   ApiItineraryItem,
