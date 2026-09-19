@@ -16,3 +16,11 @@ export type {
   ResolvedItinerary,
 } from './trips';
 export { getPossibleOptions } from './options';
+export {
+  PROFILE_STORAGE_KEY,
+  loadProfile,
+  saveProfilePatch,
+  removeStoredAvatar,
+  ProfileError,
+} from './profile';
+export type { UserProfile, ProfilePatch, ProfileSettings, NotificationSettings } from './profile';

@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Header from './Header';
 import BottomNav from './BottomNav';
 import { travelerUser } from '../mocks/traveler';
+import { useUserProfile } from '../state/useUserProfile';
 
 const titles: Record<string, { title: string; subtitle?: string; wide?: boolean; back?: boolean; flush?: boolean }> = {
   '/home-explore': { title: 'Home Explore', subtitle: 'Intelligent travel companion' },
@@ -27,13 +28,14 @@ export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const meta = titles[pathname] ?? { title: 'TourFlow' };
+  const { profile } = useUserProfile();
 
   return (
     <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">
       <Header
         title={meta.title}
         subtitle={meta.subtitle}
-        avatarUrl={travelerUser.avatarUrl}
+        avatarUrl={profile.avatarDataUrl ?? travelerUser.avatarUrl}
         showBack={meta.back}
         onBack={() => navigate(-1)}
       />
