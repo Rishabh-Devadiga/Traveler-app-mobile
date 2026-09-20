@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
+import TripMap from '../components/TripMap';
 import { FilterPills } from '../components/home';
 import { copilotSuggestions } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
@@ -13,9 +14,13 @@ import {
   clearActiveTripId,
   clearTravelerToken,
   confirmTrip,
+  countStops,
   deleteActivity,
   getPossibleOptions,
   getTrip,
+  isCountableStop,
+  matchTripPace,
+  TRIP_PACES,
   isTripConfirmedStatus,
   isTripMarkedConfirmed,
   isUnauthorized,
@@ -26,7 +31,9 @@ import {
   swapActivity,
   toStayOption,
   updateTripDates,
+  updateTripPace,
   type ApiTripWithItinerary,
+  type TripPaceId,
 } from '../api';
 import { ApiError, isApiConfigured } from '../api/client';
 import type { ItineraryStop, PossibleOption } from '../types';
@@ -78,6 +85,7 @@ export default function Itinerary() {
   const [dateStart, setDateStart] = useState('');
   const [dateEnd, setDateEnd] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);
+  const [showMap, setShowMap] = useState(false);
 
   // Refresh survival: the in-memory draft is gone after reload, but the
   // backend trip id persists — reload the trip (including its confirmed
@@ -224,7 +232,30 @@ export default function Itinerary() {
   // Header + hero always name the trip's real destination.
   const destinationLabel = apiTrip?.destination?.name ?? draft.destination ?? 'Your destination';
   const travelersLabel = draft.travelerLabel ?? (draft.travelers ? `${draft.travelers} travelers` : 'Group');
-  const totalStops = days.reduce((sum, d) => sum + d.stopsCount, 0);
+  const totalStops = days.flatMap((d) => d.stops).filter(isCountableStop).length;
+  // Budget honesty: backend totals can exceed the trip budget (old trips) —
+  // never hide it; offer the cost optimizer prominently instead.
+  const tripTotal = draft.totalCost ?? apiTrip?.total_cost;
+  const tripBudget = draft.budgetAmount ?? apiTrip?.total_budget;
+  const overBudgetBy = tripTotal !== undefined && tripBudget ? tripTotal - tripBudget : 0;
+  // Pace comes from the trip itself (preselect); change = PUT pace + optimize.
+  const currentPace = isLive && apiTrip ? matchTripPace(apiTrip.pace) : 'balanced';
+
+  const handlePaceChange = async (pace: TripPaceId) => {
+    if (!tripId || pendingKey || pace === currentPace) return;
+    setPendingKey('pace');
+    setActionError(null);
+    try {
+      await updateTripPace(tripId, pace);
+      const updated = await optimizeTrip(tripId);
+      updateDraft(applyServerTrip(updated, draft));
+    } catch (error) {
+      if (redirectOnUnauthorized(error)) return;
+      setActionError(error instanceof Error ? error.message : 'Could not change pace. Please try again.');
+    } finally {
+      setPendingKey(null);
+    }
+  };
   const perDayMock = draft.budgetAmount ? formatINR(draft.budgetAmount / days.length) : '—';
   const perDayLive =
     isLive && draft.totalCost !== undefined ? formatINR(draft.totalCost / liveDayCount) : perDayMock;
@@ -506,6 +537,23 @@ export default function Itinerary() {
         </p>
       ) : null}
 
+      {isLive && overBudgetBy > 0 ? (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2.5">
+          <p className="text-xs font-bold text-red-700">
+            Over budget by {formatINR(overBudgetBy)} — trip total {formatINR(tripTotal ?? 0)} vs{' '}
+            {formatINR(tripBudget ?? 0)} budget.
+          </p>
+          <button
+            type="button"
+            onClick={() => void runMutation('optimize-cheap', (id) => optimizeTrip(id))}
+            disabled={pendingKey !== null}
+            className="mt-2 w-full rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+          >
+            {pendingKey === 'optimize-cheap' ? 'Making it cheaper…' : 'Make it cheaper'}
+          </button>
+        </div>
+      ) : null}
+
       {isLive && emptyDays.length > 0 ? (
         <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
           <p className="text-xs font-bold text-amber-800">
@@ -531,6 +579,36 @@ export default function Itinerary() {
         </p>
       ) : null}
 
+      {isLive && tripId && !isConfirmed ? (
+        <section aria-label="Trip pace" className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Pace</p>
+          <div className="mt-2 flex gap-2" role="radiogroup" aria-label="Trip pace">
+            {TRIP_PACES.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                role="radio"
+                aria-checked={option.id === currentPace}
+                disabled={pendingKey !== null}
+                onClick={() => void handlePaceChange(option.id)}
+                className={`flex-1 rounded-full px-3 py-2 text-xs font-bold transition-colors disabled:opacity-60 ${
+                  option.id === currentPace
+                    ? 'bg-tourflow-primary text-white shadow-float'
+                    : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
+                }`}
+              >
+                {pendingKey === 'pace' && option.id !== currentPace ? '…' : option.label}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1.5 text-xs text-tourflow-textMuted">
+            {pendingKey === 'pace'
+              ? 'Respreading days at the new pace…'
+              : TRIP_PACES.find((o) => o.id === currentPace)?.hint}
+          </p>
+        </section>
+      ) : null}
+
       {isLive && apiTrip ? (
         <div className="flex gap-2">
           <button
@@ -548,7 +626,19 @@ export default function Itinerary() {
           >
             Adjust Dates
           </button>
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            aria-expanded={showMap}
+            className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+          >
+            {showMap ? 'Hide Map' : '🗺 Map'}
+          </button>
         </div>
+      ) : null}
+
+      {showMap && isLive && tripId ? (
+        <TripMap tripId={tripId} dayCount={liveDayCount} activeDay={dayNumber} fallbackDays={days} />
       ) : null}
 
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label="Itinerary days">
@@ -572,7 +662,7 @@ export default function Itinerary() {
 
       <div>
         <h3 className="text-base font-bold">{dayHeading}</h3>
-        <p className="text-xs text-tourflow-textMuted">{dayStops.length} Stops</p>
+        <p className="text-xs text-tourflow-textMuted">{countStops(dayStops)} Stops</p>
       </div>
 
       <ul className="relative flex flex-col gap-3 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-0.5 before:bg-tourflow-cardBorder">

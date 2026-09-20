@@ -7,11 +7,13 @@ import {
   exploreGridCategories,
   filterCategories,
   homeGreeting,
-  travelerUser,
 } from '../mocks/traveler';
+import { useTravelerProfile } from '../state/useTravelerProfile';
 
 export default function HomeExplore() {
   const navigate = useNavigate();
+  const { profile } = useTravelerProfile();
+  const travelerName = profile?.full_name.trim() || 'Traveler';
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
 
@@ -36,7 +38,7 @@ export default function HomeExplore() {
         </div>
         <div className="flex items-center justify-between px-1 pb-1 pt-3">
           <div>
-            <p className="text-sm font-bold text-tourflow-dark">{homeGreeting.helloName}</p>
+            <p className="text-sm font-bold text-tourflow-dark">Hello, {travelerName}</p>
             <p className="text-xs text-tourflow-textMuted">Where to next? TourFlow verified stays & routes.</p>
           </div>
           <button
@@ -83,7 +85,7 @@ export default function HomeExplore() {
             />
           ))}
         </div>
-        <p className="text-[11px] text-tourflow-textMuted">Traveler: {travelerUser.name} · {homeGreeting.quickPromptLabel}</p>
+        <p className="text-[11px] text-tourflow-textMuted">Traveler: {travelerName} · {homeGreeting.quickPromptLabel}</p>
       </section>
 
       <section className="space-y-2">

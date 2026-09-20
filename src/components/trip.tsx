@@ -8,6 +8,8 @@ export function PromptHero({
   onChange,
   onClear,
   onVoice,
+  listening,
+  voiceSupported,
 }: {
   value: string;
   placeholder: string;
@@ -16,6 +18,8 @@ export function PromptHero({
   onChange: (v: string) => void;
   onClear: () => void;
   onVoice: () => void;
+  listening: boolean;
+  voiceSupported: boolean;
 }) {
   return (
     <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
@@ -47,7 +51,7 @@ export function PromptHero({
           </span>
         ))}
       </div>
-      <p className="mt-2 text-xs text-tourflow-textMuted">{note}</p>
+      {note ? <p className="mt-2 text-xs text-tourflow-textMuted">{note}</p> : null}
       <div className="mt-3 flex gap-2">
         <button
           type="button"
@@ -56,13 +60,17 @@ export function PromptHero({
         >
           Clear
         </button>
-        <button
-          type="button"
-          onClick={onVoice}
-          className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold text-tourflow-dark hover:border-tourflow-primary"
-        >
-          Speak instead
-        </button>
+        {voiceSupported ? (
+          <button
+            type="button"
+            onClick={onVoice}
+            aria-pressed={listening}
+            aria-label={listening ? 'Stop listening' : 'Speak instead'}
+            className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold text-tourflow-dark hover:border-tourflow-primary"
+          >
+            {listening ? 'Listening… Tap to stop' : 'Speak instead'}
+          </button>
+        ) : null}
       </div>
     </section>
   );

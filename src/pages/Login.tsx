@@ -11,8 +11,12 @@ import { travelerLogin, travelerSignup } from '../api/auth';
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? '/home-explore';
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const from = (location.state as { from?: string; mode?: string } | null)?.from ?? '/home-explore';
+  // Signup preselect: /login?mode=signup or navigate('/login', { state: { mode: 'signup' } }).
+  const requestedMode =
+    (location.state as { mode?: string } | null)?.mode ??
+    new URLSearchParams(location.search).get('mode');
+  const [mode, setMode] = useState<'login' | 'signup'>(requestedMode === 'signup' ? 'signup' : 'login');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');

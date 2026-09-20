@@ -1,4 +1,4 @@
-export { apiClient, isApiConfigured, ApiError } from './client';
+export { apiClient, isApiConfigured, getApiBaseUrl, apiErrorMessage, ApiError } from './client';
 export {
   createTrip,
   getTrip,
@@ -6,6 +6,9 @@ export {
   travelerTripName,
   seedDraftFromTrip,
   updateTripDates,
+  updateTripPace,
+  matchTripPace,
+  TRIP_PACES,
   changeAccommodation,
   changeDayAccommodation,
   swapActivity,
@@ -15,6 +18,11 @@ export {
   toggleActivity,
   confirmTrip,
   optimizeTrip,
+  getTripMap,
+  normalizeTripMap,
+  fallbackMapFromDays,
+  isCountableStop,
+  countStops,
   readActiveTripId,
   writeActiveTripId,
   clearActiveTripId,
@@ -28,7 +36,7 @@ export {
   toStayOption,
   asApiTrip,
 } from './trips';
-export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary } from './trips';
+export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary, ApiMapStop, ApiTripMap, TripMapPin, NormalizedTripMap, TripPaceId } from './trips';
 export type {
   TripCreateRequest,
   ApiItineraryItem,
@@ -38,6 +46,7 @@ export type {
   ResolvedItinerary,
 } from './trips';
 export { getPossibleOptions } from './options';
+export { extractPreferences } from './ai';
 export {
   TRAVELER_TOKEN_KEY,
   getTravelerToken,
@@ -52,6 +61,19 @@ export {
   isUnauthorized,
 } from './auth';
 export type { TravelerUser as TravelerAuthUser } from './auth';
+export {
+  getTravelerProfile,
+  patchTravelerProfile,
+  profileInitial,
+  safeText,
+  dietaryDisplay,
+  avatarUrlFor,
+  bumpAvatarVersion,
+  logAvatarEndpoints,
+  uploadTravelerAvatar,
+  deleteTravelerAvatar,
+} from './traveler';
+export type { TravelerProfile, TravelerProfilePatch } from './traveler';
 export { getGuideGreeting, getGuideHistory, postGuideChat } from './guide';
 export type {
   GuideGreeting,

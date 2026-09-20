@@ -1,4 +1,5 @@
 import { travelerTripName, type TravelerTripSummary } from '../api/trips';
+import { safeText } from '../api/traveler';
 
 interface TripPickerProps {
   trips: TravelerTripSummary[];
@@ -84,7 +85,7 @@ export default function TripPicker({
                         {travelerTripName(trip)}
                       </span>
                       <span className="block text-xs text-tourflow-textMuted">
-                        {[trip.status, trip.duration_days ? `${trip.duration_days} days` : null]
+                        {[safeText(trip.status), trip.duration_days ? `${trip.duration_days} days` : null]
                           .filter(Boolean)
                           .join(' · ') || `Trip ${trip.id.slice(0, 8)}`}
                       </span>

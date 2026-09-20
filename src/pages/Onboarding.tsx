@@ -2,19 +2,26 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import OnboardingCarousel from '../components/OnboardingCarousel';
 import { onboardingCopy, onboardingSlides } from '../mocks/traveler';
+import { hasTravelerToken, travelerLogout } from '../api/auth';
+import { clearTravelerProfileCache, useTravelerProfile } from '../state/useTravelerProfile';
+import { profileInitial } from '../api/traveler';
 
 const DISPLAY_DURATION_MS = 7000;
 
 /**
  * Entry screen. Converted from
  * `home_explore_illustrated_india_carousel/code.html` with TourFlow branding.
- * No auth/backend — Sign In is a UI placeholder.
  */
 export default function Onboarding() {
   const navigate = useNavigate();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [signInNote, setSignInNote] = useState('');
+  const [signedOut, setSignedOut] = useState(false);
   const activeSlide = onboardingSlides[activeIndex] ?? onboardingSlides[0];
+  // Session-aware auth area: token present → validate first (skeleton while
+  // checking, so no wrong state flashes); no token → buttons immediately.
+  const { profile, loading: profileLoading } = useTravelerProfile();
+  const checkingSession = hasTravelerToken() && !signedOut && !profile && profileLoading;
+  const loggedInProfile = !signedOut ? profile : null;
 
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -26,9 +33,10 @@ export default function Onboarding() {
 
   const goHome = () => navigate('/home-explore');
 
-  const handleSignIn = () => {
-    setSignInNote(onboardingCopy.signInPlaceholder);
-    window.setTimeout(() => setSignInNote(''), 2500);
+  const handleLogout = () => {
+    travelerLogout();
+    clearTravelerProfileCache();
+    setSignedOut(true);
   };
 
   return (
@@ -82,28 +90,65 @@ export default function Onboarding() {
             {onboardingCopy.startLabel}
             <span aria-hidden="true">→</span>
           </button>
-          <div className="flex w-full items-center justify-between px-2">
+          {checkingSession ? (
+            <div className="flex w-full items-center justify-center gap-1.5 py-3" aria-label="Checking session">
+              <span className="h-2 w-2 rounded-full bg-white/70 typing-dot-1" />
+              <span className="h-2 w-2 rounded-full bg-white/70 typing-dot-2" />
+              <span className="h-2 w-2 rounded-full bg-white/70 typing-dot-3" />
+            </div>
+          ) : loggedInProfile ? (
+            <div className="flex w-full items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/profile')}
+                className="flex flex-1 items-center gap-2.5 rounded-full border border-white/20 bg-white/15 px-4 py-3 text-left text-white shadow-sm backdrop-blur-md transition-all hover:bg-white/25 active:scale-[0.98]"
+                aria-label={`Open profile of ${loggedInProfile.full_name}`}
+              >
+                <span
+                  aria-hidden="true"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-tourflow-primary text-base font-extrabold text-white"
+                >
+                  {profileInitial(loggedInProfile)}
+                </span>
+                <span className="min-w-0">
+                  <span className="block truncate text-sm font-bold">{loggedInProfile.full_name}</span>
+                  <span className="block truncate text-xs text-white/70">{loggedInProfile.email}</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={handleLogout}
+                className="shrink-0 rounded-full border border-white/20 bg-transparent px-4 py-3 text-xs font-bold uppercase tracking-wide text-white/80 transition-colors hover:text-white"
+              >
+                Logout
+              </button>
+            </div>
+          ) : (
+            <div className="flex w-full gap-2">
+              <button
+                type="button"
+                onClick={() => navigate('/login')}
+                className="flex flex-1 items-center justify-center rounded-full border border-white/25 bg-white/15 px-6 py-4 text-sm font-bold uppercase tracking-wide text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-white/25 active:scale-[0.98]"
+              >
+                {onboardingCopy.signInLabel}
+              </button>
+              <button
+                type="button"
+                onClick={() => navigate('/login', { state: { mode: 'signup' } })}
+                className="flex flex-1 items-center justify-center rounded-full bg-tourflow-primary px-6 py-4 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:opacity-95 active:scale-[0.98]"
+              >
+                Create Account
+              </button>
+            </div>
+          )}
+          {!loggedInProfile && !checkingSession ? (
             <button
               type="button"
               onClick={goHome}
-              className="text-sm text-white/90 transition-colors hover:text-white"
+              className="text-sm text-white/70 transition-colors hover:text-white"
             >
               {onboardingCopy.guestLabel}
             </button>
-            <button
-              type="button"
-              onClick={handleSignIn}
-              className="flex items-center gap-1 text-sm font-semibold text-white/90 transition-colors hover:text-white"
-              aria-live="polite"
-            >
-              {onboardingCopy.signInLabel}
-              <span aria-hidden="true">›</span>
-            </button>
-          </div>
-          {signInNote ? (
-            <p role="status" className="rounded-full bg-white/15 px-3 py-1 text-xs text-white backdrop-blur-md">
-              {signInNote}
-            </p>
           ) : null}
           <p className="flex items-center gap-2 text-xs text-white/80 opacity-90">
             <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-tourflow-primary" />
