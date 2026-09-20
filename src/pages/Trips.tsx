@@ -4,8 +4,7 @@ import { SafeImage } from '../components/content';
 import { useTripDraft } from '../state/useTripDraft';
 import {
   applyServerTrip,
-  getTrip,
-  getTravelerTrip,
+  fetchPersistedTrip,
   listTravelerTrips,
   seedDraftFromTrip,
   travelerTripName,
@@ -116,12 +115,7 @@ export default function Trips() {
     setOpeningId(tripId);
     setOpenError(null);
     // The exact persisted record by UUID — never regenerated, never created.
-    getTravelerTrip(tripId).catch((firstError: unknown) => {
-      // Snapshot-less legacy row (owned trip without a saved snapshot):
-      // fall back to the canonical trip read, same backend record.
-      if (firstError instanceof ApiError && firstError.status === 404) return getTrip(tripId);
-      throw firstError;
-    }).then(
+    fetchPersistedTrip(tripId).then(
       (trip) => {
         const seed = seedDraftFromTrip(trip);
         updateDraft({ ...seed, ...applyServerTrip(trip, seed) });

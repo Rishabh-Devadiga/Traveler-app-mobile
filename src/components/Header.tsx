@@ -1,5 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import NotificationsSheet from './NotificationsSheet';
+import { useTripDraft } from '../state/useTripDraft';
+import { ApiError, isApiConfigured } from '../api/client';
+import { clearTravelerToken, hasTravelerToken } from '../api/auth';
+import { applyServerTrip, fetchPersistedTrip, getUnreadCount, seedDraftFromTrip, writeActiveTripId } from '../api';
 
 interface HeaderProps {
   title: string;
@@ -13,9 +18,63 @@ interface HeaderProps {
 
 export default function Header({ title, subtitle, avatarUrl, avatarInitial, showBack, onBack }: HeaderProps) {
   const [imgFailed, setImgFailed] = useState(false);
+  const [bellOpen, setBellOpen] = useState(false);
+  const [unread, setUnread] = useState(0);
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const { updateDraft } = useTripDraft();
   useEffect(() => {
     setImgFailed(false);
   }, [avatarUrl]);
+
+  // Unread badge from real backend data. Refreshed on mount, on every route
+  // change (Layout persists, so mount alone would go stale), and whenever
+  // the sheet reports a new count. Anonymous/unconfigured → badge hidden.
+  useEffect(() => {
+    if (!isApiConfigured() || !hasTravelerToken()) {
+      setUnread(0);
+      return;
+    }
+    let cancelled = false;
+    getUnreadCount().then(
+      (count) => {
+        if (!cancelled) setUnread(count);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (error instanceof ApiError && error.status === 401) clearTravelerToken();
+        setUnread(0);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+  const openSheetTrip = async (tripId: string): Promise<string | null> => {
+    try {
+      const trip = await fetchPersistedTrip(tripId);
+      const seed = seedDraftFromTrip(trip);
+      updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+      writeActiveTripId(trip.id);
+      setBellOpen(false);
+      navigate('/itinerary');
+      return null;
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 401) {
+        clearTravelerToken();
+        navigate('/login', { replace: true, state: { from: pathname } });
+        return null;
+      }
+      return error instanceof Error ? error.message : 'Could not open this trip.';
+    }
+  };
+
+  const authFail = () => {
+    clearTravelerToken();
+    setBellOpen(false);
+    navigate('/login', { replace: true, state: { from: pathname } });
+  };
+
   return (
     <header className="sticky top-0 z-40 border-b border-tourflow-cardBorder bg-tourflow-bg/90 pt-safe backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
@@ -63,10 +122,19 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
         <div className="flex items-center gap-2">
           <button
             type="button"
-            aria-label="Notifications"
-            className="flex h-10 w-10 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
+            aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
+            onClick={() => setBellOpen(true)}
+            className="relative flex h-10 w-10 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
           >
             <span aria-hidden="true">🔔</span>
+            {unread > 0 ? (
+              <span
+                aria-hidden="true"
+                className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-tourflow-primary px-1 text-[10px] font-extrabold text-white"
+              >
+                {unread > 9 ? '9+' : unread}
+              </span>
+            ) : null}
           </button>
           {avatarUrl && !imgFailed ? (
             <Link
@@ -92,6 +160,14 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
           ) : null}
         </div>
       </div>
+      {bellOpen ? (
+        <NotificationsSheet
+          onClose={() => setBellOpen(false)}
+          onUnreadChange={setUnread}
+          onOpenTrip={openSheetTrip}
+          onAuthFail={authFail}
+        />
+      ) : null}
     </header>
   );
 }

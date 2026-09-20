@@ -353,6 +353,20 @@ export async function getTravelerTrip(tripId: string): Promise<ApiTripWithItiner
   return trip;
 }
 
+/**
+ * Open one persisted trip by UUID: owned snapshot first (404 unless owned),
+ * legacy snapshot-less rows via the canonical trip read — same backend
+ * record either way. Never creates or regenerates anything.
+ */
+export async function fetchPersistedTrip(tripId: string): Promise<ApiTripWithItinerary> {
+  try {
+    return await getTravelerTrip(tripId);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) return getTrip(tripId);
+    throw error;
+  }
+}
+
 function tripPath(tripId: string, suffix: string): string {
   return `/api/trips/${encodeURIComponent(tripId)}${suffix}`;
 }
