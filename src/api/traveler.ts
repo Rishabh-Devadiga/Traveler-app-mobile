@@ -153,7 +153,7 @@ function avatarDetail(data: unknown): unknown {
 /** POST /api/traveler/avatar — multipart field 'file', Bearer JWT. Returns the raw parsed body. */
 export async function uploadTravelerAvatar(file: File): Promise<unknown> {
   const base = getApiBaseUrl();
-  if (!base) throw new ApiError(0, 'VITE_TOURFLOW_API_URL is not set', 'TourFlow API is not configured.');
+  if (!base) throw new ApiError(0, 'VITE_TOURFLOW_API_URL is not set', 'WanderAI API is not configured.');
   const token = getTravelerToken();
   const form = new FormData();
   form.append('file', file);
@@ -177,9 +177,9 @@ export async function uploadTravelerAvatar(file: File): Promise<unknown> {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError(0, 'Request timed out', 'TourFlow API request timed out.');
+      throw new ApiError(0, 'Request timed out', 'WanderAI API request timed out.');
     }
-    throw new ApiError(0, error, 'Could not reach the TourFlow API.');
+    throw new ApiError(0, error, 'Could not reach the WanderAI API.');
   } finally {
     window.clearTimeout(timeout);
   }
@@ -188,7 +188,7 @@ export async function uploadTravelerAvatar(file: File): Promise<unknown> {
 /** DELETE /api/traveler/avatar — removes the stored photo. */
 export async function deleteTravelerAvatar(): Promise<unknown> {
   const base = getApiBaseUrl();
-  if (!base) throw new ApiError(0, 'VITE_TOURFLOW_API_URL is not set', 'TourFlow API is not configured.');
+  if (!base) throw new ApiError(0, 'VITE_TOURFLOW_API_URL is not set', 'WanderAI API is not configured.');
   const token = getTravelerToken();
   const headers: Record<string, string> = {};
   if (token) headers.Authorization = `Bearer ${token}`;

@@ -54,7 +54,7 @@ export default function Login() {
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 0) {
-        setError('Could not reach the TourFlow server. Check your connection and try again.');
+        setError('Could not reach the WanderAI server. Check your connection and try again.');
       } else if (err instanceof ApiError && err.status === 409) {
         // Duplicate email on signup — show the backend message verbatim.
         setError(err.message);
@@ -74,7 +74,7 @@ export default function Login() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-tourflow-bg px-4 py-10 text-tourflow-dark">
       <section className="w-full max-w-md rounded-3xl border border-tourflow-cardBorder bg-white p-6 shadow-card">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">TourFlow</p>
+        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">WanderAI</p>
         <h1 className="mt-1 text-xl font-extrabold">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
         <p className="mt-1 text-xs text-tourflow-textMuted">
           {mode === 'login' ? 'Sign in to chat with your AI travel guide.' : 'Sign up to chat with your AI travel guide.'}
@@ -82,7 +82,7 @@ export default function Login() {
 
         {!isApiConfigured() ? (
           <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
-            The TourFlow server is not configured (VITE_TOURFLOW_API_URL). Sign-in needs the backend.
+            The WanderAI server is not configured (VITE_TOURFLOW_API_URL). Sign-in needs the backend.
           </p>
         ) : null}
 

@@ -157,7 +157,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       apiTrip: trip,
     }));
     writeActiveTripId(trip.id);
-    return { days, source: 'api', tripId: trip.id };
+    return { days, source: 'api', tripId: trip.id, trip };
   }, []);
 
   const resetTrip = useCallback(() => {

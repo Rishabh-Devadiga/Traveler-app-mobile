@@ -3,6 +3,8 @@ export {
   createTrip,
   getTrip,
   listTravelerTrips,
+  saveTravelerTrip,
+  getTravelerTrip,
   travelerTripName,
   seedDraftFromTrip,
   updateTripDates,

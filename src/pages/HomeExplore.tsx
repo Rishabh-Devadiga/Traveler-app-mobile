@@ -36,15 +36,15 @@ export default function HomeExplore() {
             Full 3D ↗
           </span>
         </div>
-        <div className="flex items-center justify-between px-1 pb-1 pt-3">
-          <div>
-            <p className="text-sm font-bold text-tourflow-dark">Hello, {travelerName}</p>
-            <p className="text-xs text-tourflow-textMuted">Where to next? TourFlow verified stays & routes.</p>
+        <div className="flex items-center justify-between gap-3 px-1 pb-1 pt-3">
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-sm font-bold text-tourflow-dark">Hello, {travelerName}</p>
+            <p className="truncate text-xs text-tourflow-textMuted">Where to next? WanderAI verified stays & routes.</p>
           </div>
           <button
             type="button"
             onClick={() => navigate('/plan', { state: { reset: true, source: 'manual' } })}
-            className="rounded-full bg-tourflow-dark px-3 py-1.5 text-xs font-bold text-white"
+            className="shrink-0 rounded-full bg-tourflow-dark px-3 py-1.5 text-xs font-bold text-white"
           >
             Plan
           </button>
@@ -68,7 +68,7 @@ export default function HomeExplore() {
 
       <section className="space-y-2">
         <SectionHeader title="Curated For You" actionLabel="View all" />
-        <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
+        <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
           {curatedDestinations.map((d) => (
             <DestinationCard
               key={d.id}
@@ -85,7 +85,7 @@ export default function HomeExplore() {
             />
           ))}
         </div>
-        <p className="text-[11px] text-tourflow-textMuted">Traveler: {travelerName} · {homeGreeting.quickPromptLabel}</p>
+        <p className="truncate text-[11px] text-tourflow-textMuted">Traveler: {travelerName} · {homeGreeting.quickPromptLabel}</p>
       </section>
 
       <section className="space-y-2">
@@ -94,15 +94,15 @@ export default function HomeExplore() {
       </section>
 
       <section className="flex items-center gap-3 rounded-2xl bg-tourflow-dark p-4 text-white shadow-card">
-        <span aria-hidden="true" className="text-2xl">✦</span>
-        <div className="flex-1">
-          <p className="text-sm font-bold">Smart Copilot</p>
-          <p className="text-xs text-white/70">Hyper-personalized escapes from your intent in seconds.</p>
+        <span aria-hidden="true" className="shrink-0 text-2xl">✦</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-bold">Smart Copilot</p>
+          <p className="truncate text-xs text-white/70">Hyper-personalized escapes from your intent in seconds.</p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/ai-guide')}
-          className="rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover"
+          className="shrink-0 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover"
         >
           Ask AI
         </button>

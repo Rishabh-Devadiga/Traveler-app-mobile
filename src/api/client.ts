@@ -17,7 +17,7 @@ export class ApiError extends Error {
   readonly raw: unknown;
 
   constructor(status: number, detail: unknown, message?: string, raw: unknown = detail) {
-    super(message ?? `TourFlow API request failed (status ${status})`);
+    super(message ?? `WanderAI API request failed (status ${status})`);
     this.name = 'ApiError';
     this.status = status;
     this.detail = detail;
@@ -56,7 +56,7 @@ function errorMessage(status: number, detail: unknown): string {
     if (typeof first?.msg === 'string') return first.msg;
   }
   if (detail && typeof detail === 'object') return JSON.stringify(detail);
-  return `TourFlow API request failed (status ${status})`;
+  return `WanderAI API request failed (status ${status})`;
 }
 
 interface RequestOptions {
@@ -80,7 +80,7 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
     throw new ApiError(
       0,
       'VITE_TOURFLOW_API_URL is not set',
-      'TourFlow API is not configured. Set VITE_TOURFLOW_API_URL to use the backend; otherwise the mock flow is used.',
+      'WanderAI API is not configured. Set VITE_TOURFLOW_API_URL to use the backend; otherwise the mock flow is used.',
     );
   }
 
@@ -111,9 +111,9 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError(0, 'Request timed out', 'TourFlow API request timed out.');
+      throw new ApiError(0, 'Request timed out', 'WanderAI API request timed out.');
     }
-    throw new ApiError(0, error, 'Could not reach the TourFlow API.');
+    throw new ApiError(0, error, 'Could not reach the WanderAI API.');
   } finally {
     window.clearTimeout(timeout);
   }

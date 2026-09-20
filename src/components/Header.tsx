@@ -32,7 +32,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
           ) : (
             <Link
               to="/home-explore"
-              aria-label="TourFlow home"
+              aria-label="WanderAI home"
               className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-tr from-tourflow-primary to-[#FF7A45] text-white shadow-md shadow-tourflow-primary/25"
             >
               <svg
@@ -54,7 +54,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
             <div className="flex items-center gap-2">
               <h1 className="text-lg font-bold tracking-tight text-tourflow-dark">{title}</h1>
               <span className="hidden rounded-full border border-tourflow-sageBorder bg-tourflow-sageLight px-2 py-0.5 text-[11px] font-semibold text-tourflow-sage sm:inline-flex">
-                TourFlow
+                WanderAI
               </span>
             </div>
             {subtitle ? <p className="text-xs text-tourflow-textMuted">{subtitle}</p> : null}
