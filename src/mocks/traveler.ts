@@ -106,11 +106,46 @@ export const curatedDestinations: Destination[] = [
 ];
 
 export const exploreGridCategories: Category[] = [
-  { id: 'heritage', label: 'Heritage', icon: 'fort' },
-  { id: 'beaches', label: 'Beaches', icon: 'beach_access' },
-  { id: 'mountains', label: 'Mountains', icon: 'landscape' },
-  { id: 'food', label: 'Food', icon: 'restaurant' },
-  { id: 'lakes', label: 'Lakes', icon: 'sailing' },
+  {
+    id: 'heritage',
+    label: 'Heritage',
+    icon: 'fort',
+    imageUrl:
+      'https://images.unsplash.com/photo-1548013146-72479768bada?auto=format&fit=crop&w=200&q=60',
+    imageAlt: 'Taj Mahal heritage',
+  },
+  {
+    id: 'beaches',
+    label: 'Beaches',
+    icon: 'beach_access',
+    imageUrl:
+      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=200&q=60',
+    imageAlt: 'Beach at sunset',
+  },
+  {
+    id: 'mountains',
+    label: 'Mountains',
+    icon: 'landscape',
+    imageUrl:
+      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=200&q=60',
+    imageAlt: 'Mountain peaks',
+  },
+  {
+    id: 'food',
+    label: 'Food',
+    icon: 'restaurant',
+    imageUrl:
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?auto=format&fit=crop&w=200&q=60',
+    imageAlt: 'Indian food',
+  },
+  {
+    id: 'lakes',
+    label: 'Lakes',
+    icon: 'sailing',
+    imageUrl:
+      'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=200&q=60',
+    imageAlt: 'Lake at sunset',
+  },
 ];
 
 export const globeDestinations = [
@@ -125,9 +160,7 @@ export const planJourney = {
   title: 'Tell me where you want to wander',
   heroLabel: 'Freeform Intent',
   listeningLabel: 'TourFlow Listening',
-  textareaPlaceholder: 'e.g. 4 days in Udaipur in autumn under ₹35,000 with quiet palaces...',
-  defaultPrompt:
-    'Plan me a 6-day trip to Udaipur for 2 people under ₹75,000. I love heritage, local food and slow lake evenings.',
+  textareaPlaceholder: 'Describe your dream trip — destination, days, budget…',
   detectedTags: ['Udaipur', '6 Days', '2 People', '< ₹75,000', 'Relaxed Heritage'],
   qualityNote: 'Great detail detected — budget, pace and interests captured.',
   bannerTitle: 'Verified Local Intelligence',

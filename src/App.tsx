@@ -11,6 +11,7 @@ import Itinerary from './pages/Itinerary';
 import AiGuide from './pages/AiGuide';
 import Profile from './pages/Profile';
 import GlobePage from './pages/GlobePage';
+import ErrorBoundary from './components/ErrorBoundary';
 import { isApiConfigured } from './api/client';
 import { hasTravelerToken, restoreTravelerSession } from './api/auth';
 
@@ -36,7 +37,7 @@ export default function App() {
         <Route path="/loading" element={<AiLoading />} />
         <Route path="/itinerary" element={<Itinerary />} />
         <Route path="/ai-guide" element={<AiGuide />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/profile" element={<ErrorBoundary fallbackLabel="Profile error"><Profile /></ErrorBoundary>} />
       </Route>
       <Route path="*" element={<Navigate to="/onboarding" replace />} />
     </Routes>

@@ -1,14 +1,21 @@
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
   avatarUrl?: string;
+  /** Initial letter shown when there is no avatar image (backend profile). */
+  avatarInitial?: string;
   showBack?: boolean;
   onBack?: () => void;
 }
 
-export default function Header({ title, subtitle, avatarUrl, showBack, onBack }: HeaderProps) {
+export default function Header({ title, subtitle, avatarUrl, avatarInitial, showBack, onBack }: HeaderProps) {
+  const [imgFailed, setImgFailed] = useState(false);
+  useEffect(() => {
+    setImgFailed(false);
+  }, [avatarUrl]);
   return (
     <header className="sticky top-0 z-40 border-b border-tourflow-cardBorder bg-tourflow-bg/90 pt-safe backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
@@ -61,13 +68,26 @@ export default function Header({ title, subtitle, avatarUrl, showBack, onBack }:
           >
             <span aria-hidden="true">🔔</span>
           </button>
-          {avatarUrl ? (
+          {avatarUrl && !imgFailed ? (
             <Link
               to="/profile"
               aria-label="Open profile"
               className="h-9 w-9 overflow-hidden rounded-full border border-tourflow-cardBorder bg-tourflow-surfaceMuted"
             >
-              <img src={avatarUrl} alt="Traveler avatar" className="h-full w-full object-cover" />
+              <img
+                src={avatarUrl}
+                alt="Traveler avatar"
+                onError={() => setImgFailed(true)}
+                className="h-full w-full object-cover"
+              />
+            </Link>
+          ) : avatarInitial ? (
+            <Link
+              to="/profile"
+              aria-label="Open profile"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-tourflow-cardBorder bg-tourflow-primarySoft text-sm font-extrabold text-tourflow-primary"
+            >
+              {avatarInitial}
             </Link>
           ) : null}
         </div>

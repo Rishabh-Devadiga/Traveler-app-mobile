@@ -30,6 +30,9 @@ export interface Category {
   id: string;
   label: string;
   icon: string;
+  /** Optional circular photo; grid falls back to the ✦ mark when absent. */
+  imageUrl?: string;
+  imageAlt?: string;
 }
 
 export interface InspirationTrip {

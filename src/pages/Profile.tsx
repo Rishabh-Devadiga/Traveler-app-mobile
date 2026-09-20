@@ -1,38 +1,59 @@
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { ProfileInfoCard, ProfileMenuCard } from '../components/content';
 import { travelerUser } from '../mocks/traveler';
-import { useUserProfile } from '../state/useUserProfile';
-import { validateEmail, validateName, validatePhone } from '../utils/profileValidation';
-import { AVATAR_ACCEPT_ATTR, fileToAvatarDataUrl } from '../utils/avatar';
+import { hasTravelerToken, isUnauthorized, travelerLogout } from '../api/auth';
 import {
-  PREFERENCE_GROUPS,
-  SUPPORTED_CURRENCIES,
-  SUPPORTED_LANGUAGES,
-  currencyLabel,
-  languageLabel,
-  preferenceSummary,
-} from '../data/profileOptions';
+  avatarUrlFor,
+  bumpAvatarVersion,
+  deleteTravelerAvatar,
+  dietaryDisplay,
+  getTravelerProfile,
+  logAvatarEndpoints,
+  patchTravelerProfile,
+  profileInitial,
+  safeText,
+  uploadTravelerAvatar,
+  type TravelerProfile,
+  type TravelerProfilePatch,
+} from '../api/traveler';
+import {
+  applyServerTrip,
+  getTrip,
+  listTravelerTrips,
+  seedDraftFromTrip,
+  travelerTripName,
+  writeActiveTripId,
+  type TravelerTripSummary,
+} from '../api/trips';
+import { cacheTravelerProfile, clearTravelerProfileCache } from '../state/useTravelerProfile';
+import { useTripDraft } from '../state/useTripDraft';
+import { validateName, validatePhone } from '../utils/profileValidation';
+import { SUPPORTED_CURRENCIES, SUPPORTED_LANGUAGES } from '../data/profileOptions';
 import { getSupportConfig } from '../config';
+import { tripDateRangeLabel } from '../utils/dates';
 import type { ProfileInfoRow, ProfileMenuItem } from '../types';
-import type { ProfileSettings } from '../api/profile';
 
-type FieldId = 'name' | 'phone' | 'email';
-type PhotoSheet = 'actions' | 'preview' | 'confirm-remove' | null;
-type MenuSheet = 'prefs' | 'lang' | 'currency' | 'settings' | 'help' | 'about' | null;
+type TextField = 'full_name' | 'phone' | 'bio' | 'travel_style' | 'dietary_preferences' | 'fitness_level';
+type MenuSheet = 'lang' | 'currency' | 'help' | 'about' | null;
+type PhotoSheet = 'actions' | 'preview' | null;
 
-const FIELD_META: Record<
-  FieldId,
-  { title: string; inputLabel: string; autoComplete: string; inputMode?: 'tel' | 'email' | 'text'; type: string }
-> = {
-  name: { title: 'Edit name', inputLabel: 'Full name', autoComplete: 'name', type: 'text' },
-  phone: { title: 'Edit phone', inputLabel: 'Phone number', autoComplete: 'tel', inputMode: 'tel', type: 'tel' },
-  email: { title: 'Edit email', inputLabel: 'Email address', autoComplete: 'email', inputMode: 'email', type: 'email' },
+const AVATAR_MAX_BYTES = 5 * 1024 * 1024; // 5 MB client pre-check (backend enforces too)
+
+const TEXT_META: Record<TextField, { title: string; inputLabel: string; multiline?: boolean }> = {
+  full_name: { title: 'Edit name', inputLabel: 'Full name' },
+  phone: { title: 'Edit phone', inputLabel: 'Phone number' },
+  bio: { title: 'Edit bio', inputLabel: 'Bio', multiline: true },
+  travel_style: { title: 'Edit travel style', inputLabel: 'Travel style' },
+  dietary_preferences: { title: 'Edit dietary preferences', inputLabel: 'Dietary preferences' },
+  fitness_level: { title: 'Edit fitness level', inputLabel: 'Fitness level' },
 };
 
-function validateField(field: FieldId, value: string): string | null {
-  if (field === 'name') return validateName(value);
+function validateTextField(field: TextField, value: string): string | null {
+  if (field === 'full_name') return validateName(value);
   if (field === 'phone') return validatePhone(value);
-  return validateEmail(value);
+  if (value.length > 500) return 'Keep it under 500 characters.';
+  return null;
 }
 
 /** Shared mobile bottom-sheet shell — same chrome for every Profile sheet. */
@@ -55,52 +76,69 @@ function Sheet({ label, onClose, children }: { label: string; onClose: () => voi
   );
 }
 
-function Toggle({
-  checked,
-  onChange,
-  label,
-  disabled,
-}: {
-  checked: boolean;
-  onChange: () => void;
-  label: string;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      disabled={disabled}
-      onClick={onChange}
-      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60 ${
-        checked ? 'bg-tourflow-primary' : 'bg-gray-200'
-      }`}
-    >
-      <span
-        aria-hidden="true"
-        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${checked ? 'left-[22px]' : 'left-0.5'}`}
-      />
-    </button>
-  );
+function displayOrNotSet(value: unknown): string {
+  const trimmed = safeText(value).trim();
+  return trimmed ? trimmed : 'Not set';
 }
 
+function languageDisplay(raw: unknown): string {
+  const text = safeText(raw).trim();
+  if (!text) return 'Not set';
+  const found = SUPPORTED_LANGUAGES.find(
+    (o) => o.id.toLowerCase() === text.toLowerCase() || o.label.toLowerCase() === text.toLowerCase(),
+  );
+  return found ? found.label : text;
+}
+
+function currencyDisplay(raw: unknown): string {
+  const text = safeText(raw).trim();
+  if (!text) return 'Not set';
+  const found = SUPPORTED_CURRENCIES.find((o) => o.code.toLowerCase() === text.toLowerCase());
+  return found ? `${found.name} (${found.code} ${found.symbol})` : text;
+}
+
+function tripSubtitle(trip: TravelerTripSummary): string {
+  const destRaw = typeof trip.destination === 'string' ? trip.destination : trip.destination?.name;
+  const dest = safeText(destRaw).trim() || safeText(trip.destination_name).trim();
+  const start = safeText(trip.start_date).slice(0, 10);
+  const end = safeText(trip.end_date).slice(0, 10);
+  const dates = start && end ? tripDateRangeLabel(start, end) : '';
+  return [dest, dates, safeText(trip.status)].filter(Boolean).join(' · ');
+}
+
+/**
+ * Profile tab — fully backend-driven (Bearer JWT, no mock user data).
+ * Without a token the tab routes to /login.
+ */
 export default function Profile() {
-  const { profile, saving, save, removeAvatar } = useUserProfile();
+  const navigate = useNavigate();
+  const { updateDraft } = useTripDraft();
+  const authed = hasTravelerToken();
+  const [profile, setProfile] = useState<TravelerProfile | null>(null);
+  const [trips, setTrips] = useState<TravelerTripSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [loadKey, setLoadKey] = useState(0);
   const [toast, setToast] = useState('');
-  const [editingField, setEditingField] = useState<FieldId | null>(null);
+  const [editingField, setEditingField] = useState<TextField | null>(null);
   const [draft, setDraft] = useState('');
   const [fieldError, setFieldError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [menuSheet, setMenuSheet] = useState<MenuSheet>(null);
+  const [menuError, setMenuError] = useState<string | null>(null);
   const [photoSheet, setPhotoSheet] = useState<PhotoSheet>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
-  const [photoSaving, setPhotoSaving] = useState(false);
-  const [menuSheet, setMenuSheet] = useState<MenuSheet>(null);
-  const [menuError, setMenuError] = useState<string | null>(null);
-  const [prefsDraft, setPrefsDraft] = useState<string[]>([]);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
+  // Optimistic photo: the just-uploaded image shows instantly (before the
+  // reload confirms has_avatar), then swaps to the server URL. Revoked once
+  // the server image takes over — never while displayed.
+  const [optimisticUrl, setOptimisticUrl] = useState<string | null>(null);
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const [openingTrip, setOpeningTrip] = useState<string | null>(null);
   const support = useMemo(() => getSupportConfig(), []);
 
   const showToast = (message: string) => {
@@ -108,18 +146,131 @@ export default function Profile() {
     window.setTimeout(() => setToast(''), 2500);
   };
 
+  const logout = () => {
+    travelerLogout();
+    clearTravelerProfileCache();
+    navigate('/login', { replace: true });
+  };
+
+  useEffect(() => {
+    if (!authed) return;
+    let cancelled = false;
+    setLoading(true);
+    setLoadError(null);
+    Promise.all([getTravelerProfile(), listTravelerTrips()]).then(
+      ([p, t]) => {
+        if (cancelled) return;
+        setProfile(p);
+        cacheTravelerProfile(p);
+        setTrips(t);
+        setLoading(false);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (isUnauthorized(error)) {
+          travelerLogout();
+          clearTravelerProfileCache();
+          navigate('/login', { replace: true, state: { from: '/profile' } });
+          return;
+        }
+        setLoadError(error instanceof Error ? error.message : 'Could not load your profile.');
+        setLoading(false);
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authed, loadKey]);
+
+  // A new profile (or fresh avatar URL) gets a clean <img> attempt.
+  useEffect(() => {
+    setImgFailed(false);
+  }, [profile?.id, profile?.has_avatar]);
+
+  // Server image confirmed → drop the optimistic one (revoke AFTER swap).
+  // Diagnostic: has_avatar without a usable id can never render — log it
+  // so the Network tab + console tell the exact story.
+  useEffect(() => {
+    if (!profile) return;
+    const src = avatarUrlFor(profile);
+    if (profile.has_avatar === true && !src) {
+      console.warn('[avatar] has_avatar=true but no usable user id — showing initial', {
+        id: (profile as { id?: unknown }).id ?? '(missing)',
+      });
+    }
+    if (src && optimisticUrl) {
+      URL.revokeObjectURL(optimisticUrl);
+      setOptimisticUrl(null);
+    }
+  }, [profile, optimisticUrl]);
+
+  if (!authed) {
+    return <Navigate to="/login" replace state={{ from: '/profile' }} />;
+  }
+
+  // Loading always shows a spinner (never blank). A failed load shows the
+  // error + Retry in the same place — reachable whether or not `loading`
+  // already flipped, so the page can never go blank.
+  if (loading && !profile) {
+    return (
+      <div className="flex flex-col gap-4" aria-label="Loading profile">
+        <div className="flex gap-1 p-1" aria-label="Loading">
+          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-1" />
+          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
+          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
+        </div>
+        <p className="text-xs text-tourflow-textMuted">Loading your profile…</p>
+      </div>
+    );
+  }
+
+  if (loadError && !profile) {
+    return (
+      <div className="flex flex-col gap-4" aria-label="Profile load error">
+        <div role="alert" className="rounded-2xl border border-red-200 bg-white p-4 shadow-card">
+          <p className="text-sm font-bold text-red-700">Couldn’t load your profile</p>
+          <p className="mt-1 text-xs text-tourflow-textMuted">{loadError}</p>
+          <button
+            type="button"
+            onClick={() => setLoadKey((k) => k + 1)}
+            className="mt-3 w-full rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Every field below is optional-chained with a "Not set" fallback, so a
+  // null profile (e.g. load failed after a previous success cleared it)
+  // still renders a safe page instead of crashing on field access.
+  const fullName = displayOrNotSet(profile?.full_name);
+  const email = displayOrNotSet(profile?.email);
+  const initial = profile ? profileInitial(profile) : '?';
+
   const rows: ProfileInfoRow[] = [
-    { id: 'name', label: 'Name', value: profile.name },
-    { id: 'phone', label: 'Phone', value: profile.phone, verified: profile.phoneVerified },
-    { id: 'email', label: 'Email', value: profile.email, verified: profile.emailVerified },
+    { id: 'full_name', label: 'Name', value: fullName },
+    { id: 'phone', label: 'Phone', value: displayOrNotSet(profile?.phone) },
+    { id: 'email', label: 'Email', value: email },
   ];
 
-  const primaryItems: ProfileMenuItem[] = [
-    { id: 'prefs', title: 'Travel Preferences', subtitle: preferenceSummary(profile.travelPreferences), icon: 'tune' },
-    { id: 'lang', title: 'Language', subtitle: languageLabel(profile.language), icon: 'language' },
-    { id: 'currency', title: 'Currency', subtitle: currencyLabel(profile.currency), icon: 'currency_rupee' },
-    { id: 'settings', title: 'Settings', subtitle: 'Notifications, privacy, sync', icon: 'settings' },
+  const prefItems: ProfileMenuItem[] = [
+    { id: 'bio', title: 'Bio', subtitle: displayOrNotSet(profile?.bio), icon: 'edit_note' },
+    { id: 'travel_style', title: 'Travel Style', subtitle: displayOrNotSet(profile?.travel_style), icon: 'tune' },
+    { id: 'dietary_preferences', title: 'Dietary Preferences', subtitle: displayOrNotSet(dietaryDisplay(profile?.dietary_preferences)), icon: 'restaurant' },
+    { id: 'fitness_level', title: 'Fitness Level', subtitle: displayOrNotSet(profile?.fitness_level), icon: 'fitness_center' },
+    { id: 'lang', title: 'Language', subtitle: languageDisplay(profile?.language), icon: 'language' },
+    { id: 'currency', title: 'Currency', subtitle: currencyDisplay(profile?.preferred_currency), icon: 'currency_rupee' },
   ];
+
+  const tripItems: ProfileMenuItem[] = trips.map((t) => ({
+    id: t.id,
+    title: travelerTripName(t),
+    subtitle: tripSubtitle(t) || 'Tap to open',
+    icon: 'map',
+  }));
 
   const supportItems: ProfileMenuItem[] = [
     { id: 'help', title: 'Help & Support', subtitle: 'Concierge and trip help', icon: 'support_agent' },
@@ -132,8 +283,26 @@ export default function Profile() {
   ];
 
   const openEditor = (id: string) => {
-    if (id !== 'name' && id !== 'phone' && id !== 'email') return;
-    setDraft(profile[id]);
+    if (!profile) return;
+    if (id === 'email') {
+      showToast('Contact support to change your email.');
+      return;
+    }
+    if (id !== 'full_name' && id !== 'phone') return;
+    setDraft(id === 'full_name' ? profile.full_name : (profile.phone ?? ''));
+    setFieldError(null);
+    setEditingField(id);
+  };
+
+  const openPrefEditor = (id: string) => {
+    if (!profile) return;
+    if (id === 'lang' || id === 'currency' || id === 'help' || id === 'about') {
+      setMenuError(null);
+      setMenuSheet(id);
+      return;
+    }
+    if (id !== 'bio' && id !== 'travel_style' && id !== 'dietary_preferences' && id !== 'fitness_level') return;
+    setDraft(profile[id] ?? '');
     setFieldError(null);
     setEditingField(id);
   };
@@ -145,103 +314,77 @@ export default function Profile() {
   };
 
   const handleFieldSave = async () => {
-    if (!editingField || saving) return;
+    if (!editingField || saving || !profile) return;
     const trimmed = draft.trim();
-    const validationError = validateField(editingField, trimmed);
+    const validationError = validateTextField(editingField, trimmed);
     if (validationError) {
       setFieldError(validationError);
       return;
     }
+    // No-op edits don't hit the backend.
+    const current = editingField === 'full_name' ? profile.full_name : (profile[editingField] ?? '');
+    if (trimmed === (current ?? '').trim()) {
+      setEditingField(null);
+      return;
+    }
     setFieldError(null);
+    setSaving(true);
     try {
-      await save({ [editingField]: trimmed });
+      const patch: TravelerProfilePatch = { [editingField]: trimmed };
+      const updated = await patchTravelerProfile(patch);
+      setProfile(updated);
+      cacheTravelerProfile(updated);
       setEditingField(null);
       showToast('Profile updated.');
     } catch (err) {
-      // Keep the sheet open so the user can retry; surface the failure.
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
       setFieldError(err instanceof Error ? err.message : 'Could not save your changes. Please try again.');
-    }
-  };
-
-  const openPhotoActions = () => {
-    setPhotoError(null);
-    setPhotoSheet('actions');
-  };
-
-  const closePhotoSheet = () => {
-    if (photoSaving) return;
-    setPhotoSheet(null);
-    setPhotoError(null);
-  };
-
-  const handleFileSelected = (file: File | undefined) => {
-    if (!file) return;
-    setPhotoError(null);
-    setPreviewFile(file);
-    // Transient preview only — the persisted value is the processed data URL
-    // written on Save. The object URL is revoked when replaced or on save.
-    setPreviewUrl((previous) => {
-      if (previous) URL.revokeObjectURL(previous);
-      return URL.createObjectURL(file);
-    });
-    setPhotoSheet('preview');
-  };
-
-  const closePreview = () => {
-    if (photoSaving) return;
-    setPreviewUrl((previous) => {
-      if (previous) URL.revokeObjectURL(previous);
-      return null;
-    });
-    setPreviewFile(null);
-    setPhotoError(null);
-    setPhotoSheet(null);
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  };
-
-  const handlePhotoSave = async () => {
-    if (!previewFile || photoSaving) return;
-    setPhotoSaving(true);
-    setPhotoError(null);
-    try {
-      const dataUrl = await fileToAvatarDataUrl(previewFile);
-      await save({ avatarDataUrl: dataUrl });
-      setPreviewUrl((previous) => {
-        if (previous) URL.revokeObjectURL(previous);
-        return null;
-      });
-      setPreviewFile(null);
-      setPhotoSheet(null);
-      if (fileInputRef.current) fileInputRef.current.value = '';
-      showToast('Profile photo updated.');
-    } catch (err) {
-      // Stay on the preview so the user can pick another photo or cancel.
-      setPhotoError(err instanceof Error ? err.message : 'Could not save your photo. Please try again.');
     } finally {
-      setPhotoSaving(false);
+      setSaving(false);
     }
   };
 
-  const handleRemovePhoto = async () => {
-    if (photoSaving) return;
-    setPhotoSaving(true);
-    setPhotoError(null);
-    try {
-      await removeAvatar();
-      setPhotoSheet(null);
-      showToast('Profile photo removed.');
-    } catch (err) {
-      setPhotoError(err instanceof Error ? err.message : 'Could not remove your photo. Please try again.');
-    } finally {
-      setPhotoSaving(false);
-    }
-  };
-
-  const openMenuSheet = (id: string) => {
-    if (id !== 'prefs' && id !== 'lang' && id !== 'currency' && id !== 'settings' && id !== 'help' && id !== 'about') return;
+  const handleLanguageSelect = async (id: string) => {
+    if (saving || !profile || id === profile.language) return;
     setMenuError(null);
-    if (id === 'prefs') setPrefsDraft([...profile.travelPreferences]);
-    setMenuSheet(id);
+    setSaving(true);
+    try {
+      const updated = await patchTravelerProfile({ language: id });
+      setProfile(updated);
+      cacheTravelerProfile(updated);
+      showToast('Language updated.');
+    } catch (err) {
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
+      setMenuError(err instanceof Error ? err.message : 'Could not save your language. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCurrencySelect = async (code: string) => {
+    if (saving || !profile || code === profile.preferred_currency) return;
+    setMenuError(null);
+    setSaving(true);
+    try {
+      const updated = await patchTravelerProfile({ preferred_currency: code });
+      setProfile(updated);
+      cacheTravelerProfile(updated);
+      showToast('Currency updated.');
+    } catch (err) {
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
+      setMenuError(err instanceof Error ? err.message : 'Could not save your currency. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const closeMenuSheet = () => {
@@ -250,136 +393,248 @@ export default function Profile() {
     setMenuError(null);
   };
 
-  const togglePrefDraft = (id: string) => {
-    setPrefsDraft((previous) => (previous.includes(id) ? previous.filter((p) => p !== id) : [...previous, id]));
-  };
-
-  const handlePrefsSave = async () => {
-    if (saving) return;
-    setMenuError(null);
+  const handleOpenTrip = async (tripId: string) => {
+    if (openingTrip) return;
+    setOpeningTrip(tripId);
     try {
-      await save({ travelPreferences: prefsDraft });
-      setMenuSheet(null);
-      showToast('Travel preferences updated.');
+      const trip = await getTrip(tripId);
+      const seed = seedDraftFromTrip(trip);
+      writeActiveTripId(trip.id);
+      updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+      navigate('/itinerary');
     } catch (err) {
-      setMenuError(err instanceof Error ? err.message : 'Could not save your preferences. Please try again.');
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
+      showToast(err instanceof Error ? err.message : 'Could not open that trip.');
+    } finally {
+      setOpeningTrip(null);
     }
   };
 
-  const handleLanguageSelect = async (id: string) => {
-    if (saving || id === profile.language) return;
-    setMenuError(null);
+  const meta = editingField ? TEXT_META[editingField] : null;
+
+  const avatarSrc = profile ? avatarUrlFor(profile) : null;
+  // Server image wins; optimistic (just-uploaded) photo covers the gap until
+  // the reload confirms has_avatar; initial circle is the last resort.
+  // <img> onError always falls back to initial — verified on both slots.
+  const displaySrc = avatarSrc && !imgFailed ? avatarSrc : optimisticUrl;
+  const showAvatarImg = !!displaySrc;
+
+  const reloadProfile = async (): Promise<TravelerProfile> => {
+    const updated = await getTravelerProfile();
+    setProfile(updated);
+    cacheTravelerProfile(updated);
+    return updated;
+  };
+
+  const closePhotoSheet = () => {
+    if (photoBusy) return;
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    setPreviewUrl(null);
+    setPreviewFile(null);
+    setPhotoError(null);
+    setPhotoSheet(null);
+    if (galleryRef.current) galleryRef.current.value = '';
+    if (cameraRef.current) cameraRef.current.value = '';
+  };
+
+  const handleFileSelected = (file: File | undefined) => {
+    if (!file) return;
+    // Client pre-checks (backend enforces the same): image type + 5 MB.
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('Only image uploads are allowed. Please choose a photo file.');
+      setPhotoSheet('actions');
+      return;
+    }
+    if (file.size > AVATAR_MAX_BYTES) {
+      setPhotoError('Photo must be at most 5 MB. Please choose a smaller image.');
+      setPhotoSheet('actions');
+      return;
+    }
+    setPhotoError(null);
+    setPreviewFile(file);
+    setPreviewUrl((previous) => {
+      if (previous) URL.revokeObjectURL(previous);
+      return URL.createObjectURL(file);
+    });
+    setPhotoSheet('preview');
+  };
+
+  const handlePhotoUpload = async () => {
+    if (!previewFile || photoBusy) return;
+    setPhotoBusy(true);
+    setPhotoError(null);
     try {
-      await save({ language: id });
-      showToast('Language updated.');
+      await uploadTravelerAvatar(previewFile);
+      bumpAvatarVersion();
+      const fresh = await reloadProfile();
+      logAvatarEndpoints('upload', avatarUrlFor(fresh));
+      // Instant photo: hand the preview URL to the optimistic slot instead
+      // of revoking it — the server image swaps in once confirmed above.
+      const kept = previewUrl;
+      setPreviewUrl(null);
+      setPreviewFile(null);
+      setPhotoError(null);
+      setPhotoSheet(null);
+      if (galleryRef.current) galleryRef.current.value = '';
+      if (cameraRef.current) cameraRef.current.value = '';
+      if (kept) setOptimisticUrl(kept);
+      showToast('Profile photo updated.');
     } catch (err) {
-      setMenuError(err instanceof Error ? err.message : 'Could not save your language. Please try again.');
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
+      // 422 (and friends): exact backend message, sheet stays open.
+      setPhotoError(err instanceof Error ? err.message : 'Could not upload your photo. Please try again.');
+    } finally {
+      setPhotoBusy(false);
     }
   };
 
-  const handleCurrencySelect = async (code: string) => {
-    if (saving || code === profile.currency) return;
-    setMenuError(null);
+  const handlePhotoRemove = async () => {
+    if (photoBusy) return;
+    setPhotoBusy(true);
+    setPhotoError(null);
     try {
-      await save({ currency: code });
-      showToast('Currency updated.');
+      await deleteTravelerAvatar();
+      bumpAvatarVersion();
+      setOptimisticUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      const freshAfterRemove = await reloadProfile();
+      logAvatarEndpoints('remove', avatarUrlFor(freshAfterRemove));
+      closePhotoSheet();
+      showToast('Profile photo removed.');
     } catch (err) {
-      setMenuError(err instanceof Error ? err.message : 'Could not save your currency. Please try again.');
+      if (isUnauthorized(err)) {
+        logout();
+        return;
+      }
+      setPhotoError(err instanceof Error ? err.message : 'Could not remove your photo. Please try again.');
+    } finally {
+      setPhotoBusy(false);
     }
   };
-
-  const handleSettingsChange = async (next: ProfileSettings) => {
-    if (saving) return;
-    setMenuError(null);
-    try {
-      await save({ settings: next });
-    } catch (err) {
-      setMenuError(err instanceof Error ? err.message : 'Could not save your settings. Please try again.');
-    }
-  };
-
-  const avatarSrc = profile.avatarDataUrl ?? travelerUser.avatarUrl;
-  const meta = editingField ? FIELD_META[editingField] : null;
-  const settings = profile.settings;
 
   return (
     <div className="flex flex-col gap-4">
       <section className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
-        <div className="relative">
-          <img
-            src={avatarSrc}
-            alt={`${profile.name} profile photo`}
-            className="h-16 w-16 rounded-full border-2 border-tourflow-primary object-cover"
-          />
-          <button
-            type="button"
-            aria-label="Change avatar"
-            onClick={openPhotoActions}
+        <button
+          type="button"
+          onClick={() => {
+            setPhotoError(null);
+            setPhotoSheet('actions');
+          }}
+          aria-label="Change profile photo"
+          className="relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-tourflow-primary"
+        >
+          {showAvatarImg ? (
+            <img
+              src={displaySrc}
+              alt={`${fullName} profile photo`}
+              onError={() => {
+                // Optimistic preview died → drop it so the server image (or
+                // initial) takes over; only a server-URL failure arms the
+                // initial fallback.
+                if (optimisticUrl && displaySrc === optimisticUrl) {
+                  URL.revokeObjectURL(optimisticUrl);
+                  setOptimisticUrl(null);
+                } else {
+                  setImgFailed(true);
+                }
+              }}
+              className="h-16 w-16 rounded-full border-2 border-tourflow-primary object-cover"
+            />
+          ) : (
+            <div
+              role="img"
+              aria-label={`${fullName} profile avatar`}
+              className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-tourflow-primary bg-tourflow-primarySoft text-2xl font-extrabold text-tourflow-primary"
+            >
+              {initial}
+            </div>
+          )}
+          <span
+            aria-hidden="true"
             className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-tourflow-primary text-xs text-white"
           >
             ✎
-          </button>
-        </div>
+          </span>
+        </button>
         <div className="flex-1">
-          <h2 className="text-base font-extrabold">{profile.name}</h2>
-          <p className="text-xs text-tourflow-textMuted">{travelerUser.tier}</p>
+          <h2 className="text-base font-extrabold">{fullName}</h2>
+          <p className="text-xs text-tourflow-textMuted">{email}</p>
           <p className="mt-1 inline-block rounded-full bg-tourflow-primarySoft px-2 py-0.5 text-[11px] font-bold text-tourflow-primary">
-            {travelerUser.activeTripLabel}
+            {trips.length === 1 ? '1 trip' : `${trips.length} trips`}
           </p>
         </div>
       </section>
 
       <ProfileInfoCard rows={rows} onEdit={openEditor} />
-      <ProfileMenuCard title="Preferences & Settings" items={primaryItems} onSelect={openMenuSheet} />
-      <ProfileMenuCard title="Support & About" items={supportItems} onSelect={openMenuSheet} />
+      <ProfileMenuCard title="Travel Profile" items={prefItems} onSelect={openPrefEditor} />
+      {tripItems.length > 0 ? (
+        <ProfileMenuCard title={`My Trips · ${trips.length}`} items={tripItems} onSelect={(id) => void handleOpenTrip(id)} />
+      ) : (
+        <section aria-label="My Trips" className="rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
+          <h3 className="border-b border-tourflow-cardBorder px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
+            My Trips · 0
+          </h3>
+          <p className="px-4 py-3 text-xs text-tourflow-textMuted">No trips yet — plan a journey to create your first one.</p>
+        </section>
+      )}
+      {openingTrip ? (
+        <p role="status" className="text-center text-xs font-semibold text-tourflow-textMuted">Opening your trip…</p>
+      ) : null}
+      <ProfileMenuCard title="Support & About" items={supportItems} onSelect={openPrefEditor} />
 
       <button
         type="button"
-        onClick={() => showToast('Logged out of TourFlow (mock, no auth in Phase 1).')}
+        onClick={logout}
         className="w-full rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"
       >
         Log out
       </button>
 
-      {/* Hidden device image picker: JPG, JPEG, PNG, WebP only. */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={AVATAR_ACCEPT_ATTR}
-        aria-hidden="true"
-        tabIndex={-1}
-        className="hidden"
-        onChange={(event) => handleFileSelected(event.target.files?.[0])}
-      />
-
-      {/* Name / phone / email edit bottom sheet */}
+      {/* Text-field edit bottom sheet (name/phone/bio/preferences) */}
       {editingField && meta ? (
         <Sheet label={meta.title} onClose={closeEditor}>
           <h3 className="text-base font-extrabold text-tourflow-dark">{meta.title}</h3>
           <label htmlFor="profile-field-input" className="mt-3 block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
             {meta.inputLabel}
           </label>
-          <input
-            id="profile-field-input"
-            type={meta.type}
-            inputMode={meta.inputMode}
-            autoComplete={meta.autoComplete}
-            value={draft}
-            disabled={saving}
-            onChange={(event) => {
-              setDraft(event.target.value);
-              if (fieldError) setFieldError(null);
-            }}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') void handleFieldSave();
-            }}
-            className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary disabled:opacity-60"
-          />
-          {editingField !== 'name' ? (
-            <p className="mt-1.5 text-[11px] text-tourflow-textMuted">
-              Changing this will remove its Verified badge until it is verified again.
-            </p>
-          ) : null}
+          {meta.multiline ? (
+            <textarea
+              id="profile-field-input"
+              rows={4}
+              value={draft}
+              disabled={saving}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                if (fieldError) setFieldError(null);
+              }}
+              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary disabled:opacity-60"
+            />
+          ) : (
+            <input
+              id="profile-field-input"
+              type="text"
+              autoComplete="off"
+              value={draft}
+              disabled={saving}
+              onChange={(event) => {
+                setDraft(event.target.value);
+                if (fieldError) setFieldError(null);
+              }}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') void handleFieldSave();
+              }}
+              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary disabled:opacity-60"
+            />
+          )}
           {fieldError ? (
             <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
               {fieldError}
@@ -406,170 +661,10 @@ export default function Profile() {
         </Sheet>
       ) : null}
 
-      {/* Photo action sheet */}
-      {photoSheet === 'actions' ? (
-        <Sheet label="Profile photo options" onClose={closePhotoSheet}>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark hover:bg-tourflow-bg"
-          >
-            Change Photo
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setPhotoError(null);
-              setPhotoSheet('confirm-remove');
-            }}
-            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50"
-          >
-            Remove Photo
-          </button>
-          <button
-            type="button"
-            onClick={closePhotoSheet}
-            className="mt-1 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-3 text-sm font-bold text-tourflow-dark"
-          >
-            Cancel
-          </button>
-        </Sheet>
-      ) : null}
-
-      {/* Photo preview sheet */}
-      {photoSheet === 'preview' ? (
-        <Sheet label="Preview new profile photo" onClose={closePreview}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Preview</h3>
-          {previewUrl ? (
-            <img
-              src={previewUrl}
-              alt="Preview of selected profile photo"
-              className="mx-auto mt-3 h-40 w-40 rounded-full border-2 border-tourflow-primary object-cover"
-            />
-          ) : null}
-          {photoError ? (
-            <p role="alert" className="mt-2 text-center text-xs font-semibold text-red-600">
-              {photoError}
-            </p>
-          ) : null}
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={closePreview}
-              disabled={photoSaving}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void handlePhotoSave()}
-              disabled={photoSaving || !previewFile}
-              className="flex-1 rounded-xl bg-tourflow-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
-            >
-              {photoSaving ? 'Saving…' : 'Use Photo'}
-            </button>
-          </div>
-        </Sheet>
-      ) : null}
-
-      {/* Remove-photo confirmation */}
-      {photoSheet === 'confirm-remove' ? (
-        <Sheet label="Remove profile picture?" onClose={closePhotoSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Remove profile picture?</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
-            Your photo will be removed and the default avatar will be shown instead. Your other profile details stay the same.
-          </p>
-          {photoError ? (
-            <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
-              {photoError}
-            </p>
-          ) : null}
-          <div className="mt-4 flex gap-2">
-            <button
-              type="button"
-              onClick={closePhotoSheet}
-              disabled={photoSaving}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void handleRemovePhoto()}
-              disabled={photoSaving}
-              className="flex-1 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
-            >
-              {photoSaving ? 'Removing…' : 'Remove'}
-            </button>
-          </div>
-        </Sheet>
-      ) : null}
-
-      {/* Travel preferences sheet */}
-      {menuSheet === 'prefs' ? (
-        <Sheet label="Travel preferences" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Travel Preferences</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">Current: {preferenceSummary(prefsDraft)}</p>
-          {PREFERENCE_GROUPS.map((group) => (
-            <div key={group.id} className="mt-4">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{group.title}</p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {group.options.map((option) => {
-                  const selected = prefsDraft.includes(option.id);
-                  return (
-                    <button
-                      key={option.id}
-                      type="button"
-                      aria-pressed={selected}
-                      disabled={saving}
-                      onClick={() => togglePrefDraft(option.id)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
-                        selected
-                          ? 'border-tourflow-primary bg-tourflow-primarySoft text-tourflow-primary'
-                          : 'border-tourflow-cardBorder bg-white text-tourflow-dark'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-          {menuError ? (
-            <p role="alert" className="mt-3 text-xs font-semibold text-red-600">
-              {menuError}
-            </p>
-          ) : null}
-          <div className="mt-5 flex gap-2">
-            <button
-              type="button"
-              onClick={closeMenuSheet}
-              disabled={saving}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={() => void handlePrefsSave()}
-              disabled={saving}
-              className="flex-1 rounded-xl bg-tourflow-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
-            >
-              {saving ? 'Saving…' : 'Save'}
-            </button>
-          </div>
-        </Sheet>
-      ) : null}
-
       {/* Language sheet */}
-      {menuSheet === 'lang' ? (
+      {menuSheet === 'lang' && profile ? (
         <Sheet label="Language" onClose={closeMenuSheet}>
           <h3 className="text-base font-extrabold text-tourflow-dark">Language</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
-            Saved as a preference. The app interface is not translated yet.
-          </p>
           <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
             {SUPPORTED_LANGUAGES.map((option, index) => {
               const selected = profile.language === option.id;
@@ -610,15 +705,12 @@ export default function Profile() {
       ) : null}
 
       {/* Currency sheet */}
-      {menuSheet === 'currency' ? (
+      {menuSheet === 'currency' && profile ? (
         <Sheet label="Currency" onClose={closeMenuSheet}>
           <h3 className="text-base font-extrabold text-tourflow-dark">Currency</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
-            Saved as your preference. Trip prices are currently shown in INR.
-          </p>
           <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
             {SUPPORTED_CURRENCIES.map((option, index) => {
-              const selected = profile.currency === option.code;
+              const selected = profile.preferred_currency === option.code;
               return (
                 <button
                   key={option.code}
@@ -644,100 +736,6 @@ export default function Profile() {
               );
             })}
           </div>
-          {menuError ? (
-            <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
-              {menuError}
-            </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={closeMenuSheet}
-            disabled={saving}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
-          >
-            Done
-          </button>
-        </Sheet>
-      ) : null}
-
-      {/* Settings sheet */}
-      {menuSheet === 'settings' ? (
-        <Sheet label="Settings" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Settings</h3>
-
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Notifications</p>
-          <div className="mt-1 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
-            {(
-              [
-                { id: 'tripUpdates', title: 'Trip Updates' },
-                { id: 'bookingUpdates', title: 'Booking Updates' },
-                { id: 'promotionalUpdates', title: 'Promotional Updates' },
-              ] as const
-            ).map((row, index) => (
-              <div
-                key={row.id}
-                className={`flex items-center justify-between gap-3 bg-white px-4 py-3 ${
-                  index > 0 ? 'border-t border-tourflow-cardBorder' : ''
-                }`}
-              >
-                <span className="text-sm font-bold text-tourflow-dark">{row.title}</span>
-                <Toggle
-                  checked={settings.notifications[row.id]}
-                  disabled={saving}
-                  label={row.title}
-                  onChange={() =>
-                    void handleSettingsChange({
-                      ...settings,
-                      notifications: { ...settings.notifications, [row.id]: !settings.notifications[row.id] },
-                    })
-                  }
-                />
-              </div>
-            ))}
-          </div>
-
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Privacy</p>
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-tourflow-cardBorder bg-white px-4 py-3">
-            <span>
-              <span className="block text-sm font-bold text-tourflow-dark">Profile Visibility</span>
-              <span className="block text-xs text-tourflow-textMuted">
-                {settings.profileVisibility === 'private' ? 'Private · stored on this device' : 'Public'} · local-only
-              </span>
-            </span>
-            <Toggle
-              checked={settings.profileVisibility === 'public'}
-              disabled={saving}
-              label="Profile visibility"
-              onChange={() =>
-                void handleSettingsChange({
-                  ...settings,
-                  profileVisibility: settings.profileVisibility === 'public' ? 'private' : 'public',
-                })
-              }
-            />
-          </div>
-
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Sync</p>
-          <div className="flex items-center justify-between gap-3 rounded-2xl border border-tourflow-cardBorder bg-white px-4 py-3">
-            <span>
-              <span className="block text-sm font-bold text-tourflow-dark">Sync Profile</span>
-              <span className="block text-xs text-tourflow-textMuted">Local-only · no server sync yet</span>
-            </span>
-            <Toggle
-              checked={settings.syncProfile}
-              disabled={saving}
-              label="Sync profile"
-              onChange={() => void handleSettingsChange({ ...settings, syncProfile: !settings.syncProfile })}
-            />
-          </div>
-          <button
-            type="button"
-            onClick={() => showToast('Sync is not available yet — your profile stays on this device.')}
-            className="mt-2 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-primary"
-          >
-            Sync Now
-          </button>
-
           {menuError ? (
             <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
               {menuError}
@@ -820,6 +818,109 @@ export default function Profile() {
           >
             Done
           </button>
+        </Sheet>
+      ) : null}
+
+      {/* Avatar device pickers: Camera vs Gallery */}
+      <input
+        ref={galleryRef}
+        type="file"
+        accept="image/*"
+        aria-hidden="true"
+        tabIndex={-1}
+        className="hidden"
+        onChange={(event) => handleFileSelected(event.target.files?.[0])}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        aria-hidden="true"
+        tabIndex={-1}
+        className="hidden"
+        onChange={(event) => handleFileSelected(event.target.files?.[0])}
+      />
+
+      {/* Avatar action sheet */}
+      {photoSheet === 'actions' ? (
+        <Sheet label="Profile photo options" onClose={closePhotoSheet}>
+          <button
+            type="button"
+            disabled={photoBusy}
+            onClick={() => cameraRef.current?.click()}
+            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark hover:bg-tourflow-bg disabled:opacity-60"
+          >
+            📷 Take Photo
+          </button>
+          <button
+            type="button"
+            disabled={photoBusy}
+            onClick={() => galleryRef.current?.click()}
+            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark hover:bg-tourflow-bg disabled:opacity-60"
+          >
+            🖼️ Choose from Gallery
+          </button>
+          {profile?.has_avatar === true ? (
+            <button
+              type="button"
+              disabled={photoBusy}
+              onClick={() => void handlePhotoRemove()}
+              className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-red-600 hover:bg-red-50 disabled:opacity-60"
+            >
+              {photoBusy ? 'Removing…' : 'Remove photo'}
+            </button>
+          ) : null}
+          {photoError ? (
+            <p role="alert" className="mt-2 text-xs font-semibold text-red-600">
+              {photoError}
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={closePhotoSheet}
+            disabled={photoBusy}
+            className="mt-1 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-3 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        </Sheet>
+      ) : null}
+
+      {/* Avatar preview + upload sheet */}
+      {photoSheet === 'preview' ? (
+        <Sheet label="Preview new profile photo" onClose={closePhotoSheet}>
+          <h3 className="text-base font-extrabold text-tourflow-dark">Preview</h3>
+          {previewUrl ? (
+            <img
+              src={previewUrl}
+              alt="Preview of selected profile photo"
+              className="mx-auto mt-3 h-40 w-40 rounded-full border-2 border-tourflow-primary object-cover"
+            />
+          ) : null}
+          {photoError ? (
+            <p role="alert" className="mt-2 text-center text-xs font-semibold text-red-600">
+              {photoError}
+            </p>
+          ) : null}
+          <div className="mt-4 flex gap-2">
+            <button
+              type="button"
+              onClick={closePhotoSheet}
+              disabled={photoBusy}
+              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => void handlePhotoUpload()}
+              disabled={photoBusy || !previewFile}
+              className="flex-1 rounded-xl bg-tourflow-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+            >
+              {photoBusy ? 'Uploading…' : 'Use Photo'}
+            </button>
+          </div>
         </Sheet>
       ) : null}
 

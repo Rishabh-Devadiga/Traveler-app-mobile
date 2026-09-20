@@ -1,8 +1,8 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Header from './Header';
 import BottomNav from './BottomNav';
-import { travelerUser } from '../mocks/traveler';
-import { useUserProfile } from '../state/useUserProfile';
+import { useTravelerProfile } from '../state/useTravelerProfile';
+import { avatarUrlFor, profileInitial } from '../api/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import { asApiTrip } from '../api/trips';
 import { tripDateRangeLabel } from '../utils/dates';
@@ -31,7 +31,7 @@ export default function Layout() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const meta = titles[pathname] ?? { title: 'TourFlow' };
-  const { profile } = useUserProfile();
+  const { profile: travelerProfile } = useTravelerProfile();
   const { draft } = useTripDraft();
 
   // The itinerary header names the trip's real destination (never a stale
@@ -58,7 +58,8 @@ export default function Layout() {
       <Header
         title={meta.title}
         subtitle={subtitle}
-        avatarUrl={profile.avatarDataUrl ?? travelerUser.avatarUrl}
+        avatarUrl={travelerProfile ? (avatarUrlFor(travelerProfile) ?? undefined) : undefined}
+        avatarInitial={travelerProfile ? profileInitial(travelerProfile) : undefined}
         showBack={meta.back}
         onBack={() => navigate(-1)}
       />

@@ -1,4 +1,5 @@
 import type { Category, Destination } from '../types';
+import { SafeImage } from './content';
 
 export function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
   return (
@@ -123,12 +124,22 @@ export function CategoryGrid({ items }: { items: Category[] }) {
     <div className="grid grid-cols-5 gap-2">
       {items.map((item) => (
         <div key={item.id} className="flex flex-col items-center gap-1 text-center">
-          <span
-            aria-hidden="true"
-            className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-lg shadow-soft"
-          >
-            ✦
-          </span>
+          {item.imageUrl ? (
+            <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft">
+              <SafeImage
+                src={item.imageUrl}
+                alt={item.imageAlt ?? `${item.label} photo`}
+                className="h-full w-full object-cover"
+              />
+            </span>
+          ) : (
+            <span
+              aria-hidden="true"
+              className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-lg shadow-soft"
+            >
+              ✦
+            </span>
+          )}
           <span className="text-[11px] font-semibold text-tourflow-dark">{item.label}</span>
         </div>
       ))}

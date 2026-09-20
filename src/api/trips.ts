@@ -3,6 +3,7 @@ import { formatINR } from '../utils/format';
 import { durationDaysFromRange, parseISODate } from '../utils/dates';
 import { itineraryInputSignature } from '../utils/generateMockItinerary';
 import { apiClient } from './client';
+import { safeText } from './traveler';
 
 /**
  * Typed layer over the existing TourFlow backend trip endpoints (Phase 3A).
@@ -283,15 +284,18 @@ export interface TravelerTripSummary {
   destination?: { name?: string | null } | string | null;
   status?: string | null;
   duration_days?: number | null;
+  start_date?: string | null;
+  end_date?: string | null;
 }
 
 /** Display name for a trip summary — title, then destination, then short id. Never hardcoded. */
 export function travelerTripName(trip: TravelerTripSummary): string {
-  if (trip.title?.trim()) return trip.title.trim();
-  const dest = typeof trip.destination === 'string' ? trip.destination : trip.destination?.name;
-  if (dest?.trim()) return dest.trim();
-  if (trip.destination_name?.trim()) return trip.destination_name.trim();
-  return `Trip ${trip.id.slice(0, 8)}`;
+  const title = safeText(trip.title).trim();
+  if (title) return title;
+  const destRaw = typeof trip.destination === 'string' ? trip.destination : trip.destination?.name;
+  const dest = safeText(destRaw).trim() || safeText(trip.destination_name).trim();
+  if (dest) return dest;
+  return `Trip ${safeText(trip.id).slice(0, 8) || 'unknown'}`;
 }
 
 /** GET /api/traveler/trips — only the logged-in traveler's trips. */
@@ -299,7 +303,17 @@ export async function listTravelerTrips(): Promise<TravelerTripSummary[]> {
   const items = await apiClient.authGet<unknown>('/api/traveler/trips');
   const list = Array.isArray(items) ? items : (items as { trips?: unknown })?.trips;
   if (!Array.isArray(list)) return [];
-  return list.filter((t): t is TravelerTripSummary => !!t && typeof (t as { id?: unknown }).id === 'string');
+  // Backend ids may arrive as numbers — normalize to strings up front so no
+  // downstream `.slice`/key access can throw.
+  const out: TravelerTripSummary[] = [];
+  for (const t of list) {
+    if (!t || typeof t !== 'object') continue;
+    const rawId = (t as { id?: unknown }).id;
+    const id = typeof rawId === 'string' ? rawId : typeof rawId === 'number' ? String(rawId) : null;
+    if (!id) continue;
+    out.push({ ...(t as Record<string, unknown>), id } as TravelerTripSummary);
+  }
+  return out;
 }
 
 function tripPath(tripId: string, suffix: string): string {
@@ -327,6 +341,30 @@ export function updateTripDates(tripId: string, startDate: string, endDate: stri
  */
 export function optimizeTrip(tripId: string): Promise<ApiTripWithItinerary> {
   return apiClient.authPost<ApiTripWithItinerary>(tripPath(tripId, '/optimize'), {}, { timeoutMs: CREATE_TRIP_TIMEOUT_MS });
+}
+
+/** Trip pace options shown on the Itinerary pace selector. */
+export const TRIP_PACES = [
+  { id: 'relaxed', label: 'Relaxed', hint: '1 stop/day, slow days' },
+  { id: 'balanced', label: 'Balanced', hint: '~2 stops/day' },
+  { id: 'packed', label: 'Packed', hint: '2 stops/day, full days' },
+] as const;
+
+export type TripPaceId = (typeof TRIP_PACES)[number]['id'];
+
+/** Match a backend pace string to a selector option (fallback: balanced). */
+export function matchTripPace(pace: unknown): TripPaceId {
+  const clean = safeText(pace).trim().toLowerCase();
+  const found = TRIP_PACES.find((p) => p.id === clean);
+  return found ? found.id : 'balanced';
+}
+
+/**
+ * PUT /api/trips/{id} — change pace only. Pair with POST /optimize to
+ * respread days at the new pace (see the Itinerary pace selector).
+ */
+export function updateTripPace(tripId: string, pace: TripPaceId): Promise<ApiTripWithItinerary> {
+  return apiClient.authPut<ApiTripWithItinerary>(tripPath(tripId, ''), { pace });
 }
 
 /** POST /api/trips/{id}/change-accommodation — swap the stay for the whole trip. */
@@ -410,6 +448,155 @@ export function confirmTrip(tripId: string): Promise<ApiTripWithItinerary> {
   return apiClient.authPost<ApiTripWithItinerary>(tripPath(tripId, '/confirm'), {});
 }
 
+/** One raw stop row of GET /api/trips/{id}/map (tolerant — keys vary). */
+export interface ApiMapStop {
+  item_id?: unknown;
+  id?: unknown;
+  day_number?: unknown;
+  day?: unknown;
+  order_index?: unknown;
+  order?: unknown;
+  title?: unknown;
+  name?: unknown;
+  start_time?: unknown;
+  time?: unknown;
+  location?: unknown;
+  latitude?: unknown;
+  longitude?: unknown;
+  lat?: unknown;
+  lng?: unknown;
+  lon?: unknown;
+  item_type?: unknown;
+  type?: unknown;
+  has_coordinates?: unknown;
+}
+
+/** Raw GET /api/trips/{id}/map body (tolerant — only center/stops/counts matter). */
+export interface ApiTripMap {
+  center?: { latitude?: unknown; longitude?: unknown } | [unknown, unknown] | null;
+  stops?: unknown;
+  unmapped_count?: unknown;
+}
+
+/** Normalized map pin — numbers only when the backend actually sent them. */
+export interface TripMapPin {
+  id: string;
+  day: number;
+  order: number;
+  title: string;
+  time: string;
+  location: string;
+  latitude: number;
+  longitude: number;
+  itemType: string;
+}
+
+export interface NormalizedTripMap {
+  center: { latitude: number; longitude: number } | null;
+  pins: TripMapPin[];
+  /** Stops without coordinates, by day, for the honest "no map pin" list. */
+  unmapped: Array<{ day: number; title: string }>;
+  unmappedCount: number;
+}
+
+function asNumber(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function asInt(value: unknown): number | null {
+  const n = asNumber(value);
+  return n === null ? null : Math.floor(n);
+}
+
+/** GET /api/trips/{id}/map — pins, center and unmapped counts for the map view. */
+export function getTripMap(tripId: string): Promise<ApiTripMap> {
+  return apiClient.authGet<ApiTripMap>(tripPath(tripId, '/map'));
+}
+
+/** Normalize the map payload defensively — no invented coordinates, ever. */
+export function normalizeTripMap(data: ApiTripMap): NormalizedTripMap {
+  let center: NormalizedTripMap['center'] = null;
+  const c = data.center;
+  if (Array.isArray(c)) {
+    const lat = asNumber(c[0]);
+    const lng = asNumber(c[1]);
+    if (lat !== null && lng !== null) center = { latitude: lat, longitude: lng };
+  } else if (c && typeof c === 'object') {
+    const lat = asNumber((c as { latitude?: unknown }).latitude);
+    const lng = asNumber((c as { longitude?: unknown }).longitude);
+    if (lat !== null && lng !== null) center = { latitude: lat, longitude: lng };
+  }
+  const rawStops = Array.isArray(data.stops) ? data.stops : [];
+  const pins: TripMapPin[] = [];
+  const unmapped: NormalizedTripMap['unmapped'] = [];
+  rawStops.forEach((raw, index) => {
+    if (!raw || typeof raw !== 'object') return;
+    const s = raw as ApiMapStop;
+    const day = asInt(s.day_number ?? s.day) ?? 0;
+    const title = safeText(s.title ?? s.name).trim() || `Stop ${index + 1}`;
+    const lat = asNumber(s.latitude ?? s.lat);
+    const lng = asNumber(s.longitude ?? s.lng ?? s.lon);
+    if (lat === null || lng === null || s.has_coordinates === false) {
+      unmapped.push({ day, title });
+      return;
+    }
+    pins.push({
+      id: safeText(s.item_id ?? s.id).trim() || `${day}-${index}`,
+      day,
+      order: asInt(s.order_index ?? s.order) ?? index,
+      title,
+      time: safeText(s.start_time ?? s.time).trim(),
+      location: safeText(s.location).trim(),
+      latitude: lat,
+      longitude: lng,
+      itemType: safeText(s.item_type ?? s.type).trim().toLowerCase() || 'unknown',
+    });
+  });
+  const unmappedCount = asInt(data.unmapped_count) ?? unmapped.length;
+  return { center, pins, unmapped, unmappedCount };
+}
+
+/**
+ * Fallback pins from itinerary days (their stops already carry backend
+ * lat/lng). Used ONLY when GET /map 404s — same honesty rules: stops
+ * without coordinates land in `unmapped`, nothing is invented.
+ */
+export function fallbackMapFromDays(days: ItineraryDay[]): NormalizedTripMap {
+  const pins: TripMapPin[] = [];
+  const unmapped: NormalizedTripMap['unmapped'] = [];
+  for (const day of days) {
+    day.stops.forEach((stop, index) => {
+      if (typeof stop.latitude !== 'number' || typeof stop.longitude !== 'number') {
+        unmapped.push({ day: day.day, title: stop.title });
+        return;
+      }
+      pins.push({
+        id: stop.id,
+        day: day.day,
+        order: index,
+        title: stop.title,
+        time: [stop.time, stop.endTime].filter(Boolean).join(' – '),
+        location: stop.location ?? '',
+        latitude: stop.latitude,
+        longitude: stop.longitude,
+        itemType: (stop.tags[0] ?? '').toLowerCase() || 'unknown',
+      });
+    });
+  }
+  return {
+    center:
+      pins.length > 0
+        ? {
+            latitude: pins.reduce((a, p) => a + p.latitude, 0) / pins.length,
+            longitude: pins.reduce((a, p) => a + p.longitude, 0) / pins.length,
+          }
+        : null,
+    pins,
+    unmapped,
+    unmappedCount: unmapped.length,
+  };
+}
+
 /**
  * Map a returned backend trip onto the shared `TripDraft` patch the UI
  * already understands — the single place mutations land. The signature is
@@ -487,6 +674,16 @@ function toStop(item: ApiItineraryItem): ItineraryStop {
   };
 }
 
+/** Departure/info notes render on the timeline but never count as activity stops. */
+export function isCountableStop(stop: Pick<ItineraryStop, 'tags'>): boolean {
+  return (stop.tags[0] ?? '').toLowerCase() !== 'note';
+}
+
+/** Countable stops in a list (departure notes excluded). */
+export function countStops(stops: Array<Pick<ItineraryStop, 'tags'>>): number {
+  return stops.filter(isCountableStop).length;
+}
+
 /** Group backend itinerary rows into the `ItineraryDay[]` shape the UI already renders. */
 export function apiItineraryToDays(items: ApiItineraryItem[]): ItineraryDay[] {
   const byDay = new Map<number, ApiItineraryItem[]>();
@@ -506,7 +703,7 @@ export function apiItineraryToDays(items: ApiItineraryItem[]): ItineraryDay[] {
         id: `api-day-${dayNumber}`,
         day: dayNumber,
         title: `Day ${dayNumber}`,
-        stopsCount: stops.length,
+        stopsCount: countStops(stops),
         stops,
       };
     });

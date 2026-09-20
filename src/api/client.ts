@@ -39,6 +39,16 @@ export function isApiConfigured(): boolean {
   return readBaseUrl() !== undefined;
 }
 
+/** Base URL for building non-JSON resource URLs (e.g. avatar image src). */
+export function getApiBaseUrl(): string | undefined {
+  return readBaseUrl();
+}
+
+/** Verbatim backend error text for a status + parsed body (shared with multipart calls). */
+export function apiErrorMessage(status: number, detail: unknown): string {
+  return errorMessage(status, detail);
+}
+
 function errorMessage(status: number, detail: unknown): string {
   if (typeof detail === 'string' && detail) return detail;
   if (Array.isArray(detail)) {
@@ -50,7 +60,7 @@ function errorMessage(status: number, detail: unknown): string {
 }
 
 interface RequestOptions {
-  method: 'GET' | 'POST' | 'PUT';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH';
   body?: unknown;
   timeoutMs?: number;
   /**
@@ -58,6 +68,8 @@ interface RequestOptions {
    * exists. Guide routes require it; the open trip routes omit it.
    */
   auth?: boolean;
+  /** fetch cache mode — 'no-store' for always-fresh reads (profile/avatar state). */
+  cache?: RequestCache;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -85,6 +97,7 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
       signal: controller.signal,
+      ...(options.cache ? { cache: options.cache } : {}),
     });
     const data: unknown = await response.json().catch(() => null);
     if (!response.ok) {
@@ -108,6 +121,7 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
 
 export interface AuthRequestOptions {
   timeoutMs?: number;
+  cache?: RequestCache;
 }
 
 export const apiClient = {
@@ -116,11 +130,15 @@ export const apiClient = {
     request<T>(path, { method: 'POST', body, timeoutMs }),
   put: <T>(path: string, body: unknown, timeoutMs?: number) =>
     request<T>(path, { method: 'PUT', body, timeoutMs }),
+  patch: <T>(path: string, body: unknown, timeoutMs?: number) =>
+    request<T>(path, { method: 'PATCH', body, timeoutMs }),
   /** Authenticated variants — send the traveler JWT when one is stored. */
   authGet: <T>(path: string, options?: AuthRequestOptions) =>
-    request<T>(path, { method: 'GET', auth: true, timeoutMs: options?.timeoutMs }),
+    request<T>(path, { method: 'GET', auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
   authPost: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
-    request<T>(path, { method: 'POST', body, auth: true, timeoutMs: options?.timeoutMs }),
+    request<T>(path, { method: 'POST', body, auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
   authPut: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
-    request<T>(path, { method: 'PUT', body, auth: true, timeoutMs: options?.timeoutMs }),
+    request<T>(path, { method: 'PUT', body, auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
+  authPatch: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
+    request<T>(path, { method: 'PATCH', body, auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
 };

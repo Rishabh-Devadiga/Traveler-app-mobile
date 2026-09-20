@@ -1,10 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { InspirationCard, PromptHero } from '../components/trip';
 import { inspirationTrips, planJourney } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import { parseTripPrompt } from '../utils/parseTripPrompt';
 import { formatINR } from '../utils/format';
+import {
+  appendTranscript,
+  displayWithInterim,
+  isSpeechSupported,
+  speechErrorMessage,
+  startListening,
+} from '../utils/speech';
+import { extractPreferences } from '../api/ai';
 
 function detectedTagsFor(prompt: string): string[] {
   const parsed = parseTripPrompt(prompt);
@@ -47,20 +55,28 @@ export default function PlanJourney() {
       return navState.prompt;
     }
     if (navState?.reset) {
-      return planJourney.defaultPrompt;
+      return '';
     }
     // If a trip was already completed, or an uninitiated manual session encounters a stale globe draft:
     if (draft.itinerary !== null || (draft.destinationSource === 'globe' && navState?.source !== 'globe')) {
-      return planJourney.defaultPrompt;
+      return '';
     }
     if (draft.prompt) {
       return draft.prompt;
     }
-    return planJourney.defaultPrompt;
+    return '';
   });
 
   const [error, setError] = useState('');
   const [voiceNote, setVoiceNote] = useState('');
+  const [listening, setListening] = useState(false);
+  const [interim, setInterim] = useState('');
+  const voiceSupported = useMemo(() => isSpeechSupported(), []);
+  const stopVoiceRef = useRef<(() => void) | null>(null);
+  const voicedRef = useRef('');
+
+  // Mic stops with the page — never left running after navigation.
+  useEffect(() => () => stopVoiceRef.current?.(), []);
 
   // Handle incoming navigation state transitions and session cleanups
   useEffect(() => {
@@ -87,13 +103,13 @@ export default function PlanJourney() {
       } else if (s?.destination) {
         setPrompt(`Trip to ${s.destination}`);
       } else {
-        setPrompt(planJourney.defaultPrompt);
+        setPrompt('');
       }
       navigate(location.pathname, { replace: true, state: null });
     } else if (draft.itinerary !== null || (draft.destinationSource === 'globe' && !globePrefill)) {
       resetTrip();
       setGlobePrefill(null);
-      setPrompt(planJourney.defaultPrompt);
+      setPrompt('');
     }
   }, [location.state, location.pathname, draft.itinerary, draft.destinationSource, globePrefill, navigate, resetTrip, startTrip]);
 
@@ -112,11 +128,48 @@ export default function PlanJourney() {
   }, [parsed.destination, globePrefill]);
 
   const handleVoice = () => {
-    setVoiceNote('Listening… (mock) — try: “Solo trip to Pondicherry for 3 days under ₹18,000”.');
-    window.setTimeout(() => {
-      setPrompt('Solo trip to Pondicherry for 3 days under ₹18,000 with beach cafes and slow mornings.');
-      setVoiceNote('');
-    }, 1200);
+    // Tap-to-stop: final chunks already appended stay put.
+    if (listening) {
+      stopVoiceRef.current?.();
+      return;
+    }
+    setVoiceNote('');
+    setInterim('');
+    voicedRef.current = '';
+    const stop = startListening('en-IN', {
+      onInterimText: (text) => setInterim(text),
+      onFinalText: (text) => {
+        setInterim('');
+        voicedRef.current = appendTranscript(voicedRef.current, text);
+        // Append — typed text is never wiped by dictation.
+        setPrompt((previous) => appendTranscript(previous, text));
+      },
+      onSpeechError: (kind) => {
+        setListening(false);
+        setInterim('');
+        stopVoiceRef.current = null;
+        setVoiceNote(speechErrorMessage(kind));
+      },
+      onSpeechEnd: () => {
+        setListening(false);
+        const said = voicedRef.current;
+        voicedRef.current = '';
+        setInterim('');
+        stopVoiceRef.current = null;
+        setVoiceNote('');
+        // Existing extract flow over the final dictated text so chips
+        // (destination, days, travelers, budget, style) build from voice too.
+        // Best-effort: chips already derive locally; typed text stays safe.
+        if (said.trim()) void extractPreferences(said).catch(() => {});
+      },
+    });
+    if (!stop) {
+      setVoiceNote('Voice typing needs Chrome/Edge over HTTPS — type karo');
+      return;
+    }
+    stopVoiceRef.current = stop;
+    setListening(true);
+    setVoiceNote('Listening… bolo "plan me a 6-day trip to Udaipur…"');
   };
 
   const handleContinue = () => {
@@ -153,16 +206,18 @@ export default function PlanJourney() {
       ) : null}
 
       <PromptHero
-        value={prompt}
+        value={displayWithInterim(prompt, interim, listening)}
         placeholder={planJourney.textareaPlaceholder}
-        tags={detectedTagsFor(prompt)}
-        note={planJourney.qualityNote}
+        tags={prompt.trim() ? detectedTagsFor(prompt) : []}
+        note={prompt.trim() ? planJourney.qualityNote : ''}
         onChange={(value) => {
           setPrompt(value);
           if (value.trim()) setError('');
         }}
         onClear={() => setPrompt('')}
         onVoice={handleVoice}
+        listening={listening}
+        voiceSupported={voiceSupported}
       />
       {voiceNote ? <p className="text-xs text-tourflow-sage" role="status">{voiceNote}</p> : null}
       {error ? (
