@@ -5,6 +5,7 @@ export {
   listTravelerTrips,
   saveTravelerTrip,
   getTravelerTrip,
+  fetchPersistedTrip,
   travelerTripName,
   seedDraftFromTrip,
   updateTripDates,
@@ -48,6 +49,13 @@ export type {
   ResolvedItinerary,
 } from './trips';
 export { getPossibleOptions } from './options';
+export {
+  listNotifications,
+  getUnreadCount,
+  markNotificationRead,
+  markAllNotificationsRead,
+} from './notifications';
+export type { TravelerNotification } from './notifications';
 export { extractPreferences } from './ai';
 export {
   TRAVELER_TOKEN_KEY,

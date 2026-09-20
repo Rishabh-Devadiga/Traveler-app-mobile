@@ -3,7 +3,6 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ProfileInfoCard, ProfileMenuCard } from '../components/content';
 import { travelerUser } from '../mocks/traveler';
 import { hasTravelerToken, isUnauthorized, travelerLogout } from '../api/auth';
-import { ApiError } from '../api/client';
 import {
   avatarUrlFor,
   bumpAvatarVersion,
@@ -20,8 +19,7 @@ import {
 } from '../api/traveler';
 import {
   applyServerTrip,
-  getTrip,
-  getTravelerTrip,
+  fetchPersistedTrip,
   listTravelerTrips,
   seedDraftFromTrip,
   travelerTripName,
@@ -401,10 +399,7 @@ export default function Profile() {
     try {
       // Owned snapshot first (404 unless owned); legacy snapshot-less rows
       // fall back to the canonical trip read — same backend record either way.
-      const trip = await getTravelerTrip(tripId).catch((firstError: unknown) => {
-        if (firstError instanceof ApiError && firstError.status === 404) return getTrip(tripId);
-        throw firstError;
-      });
+      const trip = await fetchPersistedTrip(tripId);
       const seed = seedDraftFromTrip(trip);
       writeActiveTripId(trip.id);
       updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
