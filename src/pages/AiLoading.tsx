@@ -6,14 +6,15 @@ import { useTripDraft } from '../state/useTripDraft';
 import { tripDateRangeLabel } from '../utils/dates';
 import { isApiConfigured } from '../api/client';
 import { ApiError } from '../api/client';
-import { clearTravelerToken } from '../api/auth';
+import { clearTravelerToken, hasTravelerToken } from '../api/auth';
+import { saveTravelerTrip, type ResolvedItinerary } from '../api/trips';
 
 const STEP_INTERVAL_MS = 900;
 
 function friendlyErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 0) {
-      return 'Could not reach the TourFlow backend. Check that it is running and try again.';
+      return 'Could not reach the WanderAI backend. Check that it is running and try again.';
     }
     return error.message;
   }
@@ -28,6 +29,9 @@ export default function AiLoading() {
   const [apiStatus, setApiStatus] = useState<number | null>(null);
   const [retryKey, setRetryKey] = useState(0);
   const finishedRef = useRef(false);
+  // Last successfully generated trip (createTrip response). Retry after a
+  // history-save failure re-saves THIS trip — it never re-POSTs creation.
+  const savedTripRef = useRef<ResolvedItinerary | null>(null);
   // Single in-flight POST shared across effect re-runs. React 18 StrictMode
   // (dev) mounts → runs effects → cleans up → re-runs effects: without this,
   // the second run would either fire a duplicate POST or (with a plain
@@ -75,27 +79,51 @@ export default function AiLoading() {
     if (!inflightRef.current) {
       inflightRef.current = generateServerItinerary(draft);
     }
+    const finishTo = (path: '/itinerary' | '/trips') => {
+      window.clearInterval(stepTimer);
+      setCompletedSteps(planningSteps.length);
+      window.setTimeout(() => {
+        if (!cancelled) navigate(path);
+      }, 900);
+    };
+    const failWith = (error: unknown) => {
+      if (error instanceof ApiError && error.status === 401) {
+        // Session died mid-creation — same handling as the Guide.
+        clearTravelerToken();
+        navigate('/login', { replace: true, state: { from: '/home-explore' } });
+        return;
+      }
+      setApiStatus(error instanceof ApiError ? error.status : null);
+      setApiError(friendlyErrorMessage(error));
+    };
     inflightRef.current.then(
-      () => {
+      (resolved) => {
         if (cancelled) return;
-        window.clearInterval(stepTimer);
-        setCompletedSteps(planningSteps.length);
-        window.setTimeout(() => {
-          if (!cancelled) navigate('/itinerary');
-        }, 900);
+        savedTripRef.current = resolved;
+        // Generation succeeded. Logged-in travelers persist the trip into
+        // history, then land on Trips; the anonymous flow keeps /itinerary
+        // (nothing to persist without a session).
+        if (!hasTravelerToken() || !resolved.tripId || !resolved.trip) {
+          finishTo('/itinerary');
+          return;
+        }
+        saveTravelerTrip(resolved.tripId, resolved.trip).then(
+          () => {
+            if (!cancelled) finishTo('/trips');
+          },
+          (error: unknown) => {
+            if (cancelled) return;
+            window.clearInterval(stepTimer);
+            inflightRef.current = null;
+            failWith(error);
+          },
+        );
       },
       (error: unknown) => {
         if (cancelled) return;
         window.clearInterval(stepTimer);
         inflightRef.current = null;
-        if (error instanceof ApiError && error.status === 401) {
-          // Session died mid-creation — same handling as the Guide.
-          clearTravelerToken();
-          navigate('/login', { replace: true, state: { from: '/home-explore' } });
-          return;
-        }
-        setApiStatus(error instanceof ApiError ? error.status : null);
-        setApiError(friendlyErrorMessage(error));
+        failWith(error);
       },
     );
 
@@ -122,6 +150,25 @@ export default function AiLoading() {
   const previews = loadingPreviewImages(draft.destination);
 
   const handleRetry = () => {
+    // Generation already succeeded but the history save failed — retry ONLY
+    // the save (never re-POST a duplicate trip).
+    const saved = savedTripRef.current;
+    if (saved && saved.tripId && saved.trip) {
+      const { tripId, trip } = saved;
+      saveTravelerTrip(tripId, trip).then(
+        () => navigate('/trips'),
+        (error: unknown) => {
+          if (error instanceof ApiError && error.status === 401) {
+            clearTravelerToken();
+            navigate('/login', { replace: true, state: { from: '/home-explore' } });
+            return;
+          }
+          setApiStatus(error instanceof ApiError ? error.status : null);
+          setApiError(friendlyErrorMessage(error));
+        },
+      );
+      return;
+    }
     finishedRef.current = false;
     inflightRef.current = null;
     setApiError(null);
@@ -229,7 +276,7 @@ export default function AiLoading() {
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-tourflow-primary/20" />
           <span className="text-2xl">✦</span>
         </div>
-        <p className="relative mt-3 text-sm font-semibold">TourFlow is curating your days…</p>
+          <p className="relative mt-3 text-sm font-semibold">WanderAI is curating your days…</p>
         <p className="relative mt-1 inline-block rounded-full bg-tourflow-surfaceMuted px-3 py-1 text-xs font-bold">
           {capsule}
         </p>

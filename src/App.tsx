@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import Layout from './components/Layout';
 import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
+import Trips from './pages/Trips';
 import HomeExplore from './pages/HomeExplore';
 import PlanJourney from './pages/PlanJourney';
 import TripChecklist from './pages/TripChecklist';
@@ -33,6 +34,7 @@ export default function App() {
         <Route path="/home-explore" element={<HomeExplore />} />
         <Route path="/globe" element={<GlobePage />} />
         <Route path="/plan" element={<PlanJourney />} />
+        <Route path="/trips" element={<Trips />} />
         <Route path="/checklist" element={<TripChecklist />} />
         <Route path="/loading" element={<AiLoading />} />
         <Route path="/itinerary" element={<Itinerary />} />

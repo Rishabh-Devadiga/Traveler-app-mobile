@@ -13,6 +13,7 @@ import type {
   TravelerUser,
 } from '../types';
 import avatarLocal from '../assets/avatar.png';
+import udaipurCityPalace from '../assets/udaipur-city-palace.jpg';
 
 /**
  * Centralized Phase-1 mock data.
@@ -33,7 +34,7 @@ export const travelerUser: TravelerUser = {
   preferences: 'Pure Veg, Mountain Scenic, Moderate Pace',
   language: 'English (IN)',
   currency: 'Indian Rupee (INR ₹)',
-  appVersion: 'TourFlow v2.4',
+  appVersion: 'WanderAI v2.4',
   build: 'Build 204',
 };
 
@@ -61,10 +62,9 @@ export const curatedDestinations: Destination[] = [
     pricePerPerson: '₹28K/person',
     idealDays: 'Ideal: 4 Days',
     rating: '4.9',
-    reviewsLabel: '4.9 (1.2k TourFlow Reviews)',
-    imageUrl:
-      'https://images.unsplash.com/photo-1568495286059-9ad3f0b12de6?auto=format&fit=crop&w=800&q=60',
-    imageAlt: 'Udaipur Lake Palace at sunset',
+    reviewsLabel: '4.9 (1.2k WanderAI Reviews)',
+    imageUrl: udaipurCityPalace,
+    imageAlt: 'City Palace on Lake Pichola, Udaipur',
     tag: 'Top Pick',
   },
   {
@@ -74,7 +74,7 @@ export const curatedDestinations: Destination[] = [
     pricePerPerson: '₹22K/person',
     idealDays: 'Ideal: 3 Days',
     rating: '4.8',
-    reviewsLabel: '4.8 (980 TourFlow Reviews)',
+    reviewsLabel: '4.8 (980 WanderAI Reviews)',
     imageUrl:
       'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=800&q=60',
     imageAlt: 'Goa beach at sunset',
@@ -86,7 +86,7 @@ export const curatedDestinations: Destination[] = [
     pricePerPerson: '₹25K/person',
     idealDays: 'Ideal: 5 Days',
     rating: '4.8',
-    reviewsLabel: '4.8 (1.1k TourFlow Reviews)',
+    reviewsLabel: '4.8 (1.1k WanderAI Reviews)',
     imageUrl:
       'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=800&q=60',
     imageAlt: 'Manali mountains',
@@ -98,7 +98,7 @@ export const curatedDestinations: Destination[] = [
     pricePerPerson: '₹30K/person',
     idealDays: 'Ideal: 4 Days',
     rating: '4.9',
-    reviewsLabel: '4.9 (860 TourFlow Reviews)',
+    reviewsLabel: '4.9 (860 WanderAI Reviews)',
     imageUrl:
       'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=800&q=60',
     imageAlt: 'Kerala backwaters houseboat',
@@ -159,7 +159,7 @@ export const planJourney = {
   stepLabel: 'Step 1 of 3 · AI Conversational Planner',
   title: 'Tell me where you want to wander',
   heroLabel: 'Freeform Intent',
-  listeningLabel: 'TourFlow Listening',
+  listeningLabel: 'WanderAI Listening',
   textareaPlaceholder: 'Describe your dream trip — destination, days, budget…',
   detectedTags: ['Udaipur', '6 Days', '2 People', '< ₹75,000', 'Relaxed Heritage'],
   qualityNote: 'Great detail detected — budget, pace and interests captured.',
@@ -452,8 +452,8 @@ export const profileMenuSupport: ProfileMenuItem[] = [
   },
   {
     id: 'about',
-    title: 'About TourFlow',
-    subtitle: 'TourFlow v2.4 (Build 204)',
+    title: 'About WanderAI',
+    subtitle: 'WanderAI v2.4 (Build 204)',
     icon: 'info',
   },
 ];
@@ -532,10 +532,10 @@ export const onboardingSlides: OnboardingSlide[] = [
 ];
 
 export const onboardingCopy = {
-  badge: 'TOURFLOW V2.4',
+  badge: 'WanderAI V2.4',
   eyebrow: 'MEET YOUR AI COMPANION',
   titlePrefix: 'WELCOME TO',
-  titleBrand: 'TOURFLOW',
+  titleBrand: 'WanderAI',
   subtitle:
     'Effortlessly plan hyper-personalized escapes across majestic peaks, serene coastlines, and hidden villages.',
   startLabel: 'Start Your Journey',

@@ -27,7 +27,7 @@ export function PromptHero({
         <span className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Freeform Intent</span>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-tourflow-sage">
           <span className="h-2 w-2 rounded-full bg-tourflow-sage animate-pulse-dot" aria-hidden="true" />
-          TourFlow Listening
+          WanderAI Listening
         </span>
       </div>
       <label htmlFor="travel-prompt" className="sr-only">

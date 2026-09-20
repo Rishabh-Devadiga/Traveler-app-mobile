@@ -2,7 +2,7 @@ import type { ItineraryDay, ItineraryStop, StayOption, TripDraft } from '../type
 import { formatINR } from '../utils/format';
 import { durationDaysFromRange, parseISODate } from '../utils/dates';
 import { itineraryInputSignature } from '../utils/generateMockItinerary';
-import { apiClient } from './client';
+import { ApiError, apiClient } from './client';
 import { safeText } from './traveler';
 
 /**
@@ -228,7 +228,7 @@ export function tripDraftToCreateRequest(draft: TripDraft): TripCreateRequest {
   const prompt = draft.prompt.trim();
   const destination = draft.destination?.trim() ? draft.destination.trim() : undefined;
   const body: TripCreateRequest = {
-    title: destination ? `${destination} getaway` : prompt.slice(0, 60) || 'My TourFlow trip',
+    title: destination ? `${destination} getaway` : prompt.slice(0, 60) || 'My WanderAI trip',
     currency: 'INR',
     pace: paceForStyle(draft.style),
   };
@@ -275,10 +275,14 @@ export function getTrip(tripId: string): Promise<ApiTripWithItinerary> {
  * The picker is ALWAYS fed from this endpoint (Bearer JWT). GET /api/trips
  * is never used for listing: it returns every traveler's trips plus test
  * data, which is exactly what produced "another traveler" 404s in Guide.
- * All fields optional — only `id` is required; the UI falls back gracefully.
+ * The backend keys rows by `trip_id`; `id` is accepted as a tolerance alias
+ * and normalized below. All fields optional except the id — the UI falls
+ * back gracefully. Budget/cost/cover fields arrive when the saved snapshot
+ * carries them; older snapshots simply omit them.
  */
 export interface TravelerTripSummary {
   id: string;
+  trip_id?: string | null;
   title?: string | null;
   destination_name?: string | null;
   destination?: { name?: string | null } | string | null;
@@ -286,6 +290,13 @@ export interface TravelerTripSummary {
   duration_days?: number | null;
   start_date?: string | null;
   end_date?: string | null;
+  formatted_dates?: string | null;
+  total_budget?: number | null;
+  total_cost?: number | null;
+  hero_image_url?: string | null;
+  traveler_count?: number | null;
+  updated_at?: string | null;
+  created_at?: string | null;
 }
 
 /** Display name for a trip summary — title, then destination, then short id. Never hardcoded. */
@@ -303,17 +314,43 @@ export async function listTravelerTrips(): Promise<TravelerTripSummary[]> {
   const items = await apiClient.authGet<unknown>('/api/traveler/trips');
   const list = Array.isArray(items) ? items : (items as { trips?: unknown })?.trips;
   if (!Array.isArray(list)) return [];
-  // Backend ids may arrive as numbers — normalize to strings up front so no
-  // downstream `.slice`/key access can throw.
+  // Backend ids may arrive as numbers and under `trip_id` (the canonical
+  // key) — normalize to strings up front so no downstream `.slice`/key
+  // access can throw.
   const out: TravelerTripSummary[] = [];
   for (const t of list) {
     if (!t || typeof t !== 'object') continue;
-    const rawId = (t as { id?: unknown }).id;
+    const record = t as Record<string, unknown>;
+    const rawId = record.id ?? record.trip_id;
     const id = typeof rawId === 'string' ? rawId : typeof rawId === 'number' ? String(rawId) : null;
     if (!id) continue;
-    out.push({ ...(t as Record<string, unknown>), id } as TravelerTripSummary);
+    out.push({ ...record, id } as TravelerTripSummary);
   }
   return out;
+}
+
+/**
+ * POST /api/traveler/trips — persist the generated trip as the traveler's
+ * own canonical snapshot (create-or-update by id, 403 on another traveler's
+ * id). Called once per successful Plan generation so Trips history, Guide
+ * picker and Profile all read the same record. Throws ApiError on failure —
+ * callers surface it; nothing is silently skipped.
+ */
+export function saveTravelerTrip(tripId: string, trip: ApiTripWithItinerary): Promise<unknown> {
+  return apiClient.authPost<unknown>('/api/traveler/trips', { trip_id: tripId, trip });
+}
+
+/**
+ * GET /api/traveler/trips/{trip_id} — the owned trip's full canonical
+ * snapshot (404 unless owned — no existence leak). Guarded into
+ * ApiTripWithItinerary; a bad shape throws 404-style ApiError so callers
+ * treat it exactly like "trip gone".
+ */
+export async function getTravelerTrip(tripId: string): Promise<ApiTripWithItinerary> {
+  const data = await apiClient.authGet<unknown>(`/api/traveler/trips/${encodeURIComponent(tripId)}`);
+  const trip = asApiTrip(data);
+  if (!trip) throw new ApiError(404, 'trip not found', 'This trip is no longer available.');
+  return trip;
 }
 
 function tripPath(tripId: string, suffix: string): string {
@@ -633,7 +670,7 @@ export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): P
 export function seedDraftFromTrip(trip: ApiTripWithItinerary): TripDraft {
   const destination = trip.destination?.name ?? undefined;
   return {
-    prompt: trip.title?.trim() || (destination ? `Trip to ${destination}` : 'My TourFlow trip'),
+    prompt: trip.title?.trim() || (destination ? `Trip to ${destination}` : 'My WanderAI trip'),
     destination,
     durationDays: trip.duration_days,
     travelers: trip.traveler_count,
@@ -743,5 +780,7 @@ export interface ResolvedItinerary {
   days: ItineraryDay[];
   source: ItinerarySource;
   tripId?: string;
+  /** Full backend trip when source is 'api' — used to persist the snapshot. */
+  trip?: ApiTripWithItinerary;
 }
 
