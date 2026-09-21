@@ -39,6 +39,7 @@ import { ApiError, isApiConfigured } from '../api/client';
 import type { ItineraryStop, PossibleOption } from '../types';
 import { formatINR } from '../utils/format';
 import { diffNights, parseISODate, tripDateRangeLabel } from '../utils/dates';
+import { formatDistanceKm, haversineKm } from '../utils/distance';
 import { buildTripPdfInput, exportTripToPDF } from '../utils/pdfExport';
 
 type Sheet =
@@ -179,6 +180,29 @@ export default function Itinerary() {
     () => (apiTrip?.accommodation_alternatives ?? []).map(toStayOption),
     [apiTrip],
   );
+  // Day-scoped stay picker: alternatives nearest the initiating day's current
+  // stay sort first (straight-line estimates only). Without coordinates the
+  // backend order is preserved.
+  const staySheetDay = sheet?.kind === 'stay' ? sheet.dayNumber : null;
+  const staySheetAnchor = useMemo(() => {
+    if (staySheetDay === null) return null;
+    const entry = (apiTrip?.daily_accommodations ?? []).find((d) => d.day_number === staySheetDay);
+    const lat = entry?.hotel.latitude;
+    const lng = entry?.hotel.longitude;
+    if (typeof lat !== 'number' || typeof lng !== 'number') return null;
+    return { latitude: lat, longitude: lng };
+  }, [apiTrip, staySheetDay]);
+  const sortedStayAlternatives = useMemo(() => {
+    if (!staySheetAnchor) return stayAlternatives.map((alt) => ({ alt, km: null as number | null }));
+    return stayAlternatives
+      .map((alt, index) => ({
+        alt,
+        index,
+        km: haversineKm(staySheetAnchor.latitude, staySheetAnchor.longitude, alt.latitude, alt.longitude),
+      }))
+      .sort((a, b) => (a.km === null ? 1 : 0) - (b.km === null ? 1 : 0) || (a.km ?? 0) - (b.km ?? 0) || a.index - b.index)
+      .map(({ alt, km }) => ({ alt, km }));
+  }, [stayAlternatives, staySheetAnchor]);
   const optionCategories = useMemo(() => {
     const unique = [...new Set((options ?? []).map((o) => o.category))].sort();
     return [{ id: 'all', label: 'All', icon: '' }, ...unique.map((c) => ({ id: c, label: c, icon: '' }))];
@@ -405,14 +429,19 @@ export default function Itinerary() {
     const busy = pendingKey !== null;
     if (kind === 'Stay') {
       return (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => setSheet({ kind: 'stay', stopId: stop.id, dayNumber })}
-          className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
-        >
-          Change stay
-        </button>
+        <div className="flex flex-col items-start gap-1.5">
+          {stop.hotelAssignmentReason ? (
+            <p className="text-[11px] leading-snug text-tourflow-textMuted">{stop.hotelAssignmentReason}</p>
+          ) : null}
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => setSheet({ kind: 'stay', stopId: stop.id, dayNumber })}
+            className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+          >
+            Change stay
+          </button>
+        </div>
       );
     }
     if (kind === 'Activity' || kind === 'Meal' || kind === 'Leisure') {
@@ -874,16 +903,18 @@ export default function Itinerary() {
           <h3 className="text-base font-extrabold text-tourflow-dark">Change stay</h3>
           <p className="mt-1 text-xs text-tourflow-textMuted">
             Pick an alternative for the entire trip or for Day {sheet.dayNumber} only.
+            {staySheetAnchor ? ` Nearest first for Day ${sheet.dayNumber}.` : null}
           </p>
           <div className="mt-3 flex flex-col gap-2">
-            {stayAlternatives.length === 0 ? (
+            {sortedStayAlternatives.length === 0 ? (
               <p className="text-xs text-tourflow-textMuted">No alternative stays for this trip.</p>
             ) : (
-              stayAlternatives.map((alt) => (
+              sortedStayAlternatives.map(({ alt, km }) => (
                 <div key={alt.id} className="rounded-2xl border border-tourflow-cardBorder p-3">
                   <p className="text-sm font-bold text-tourflow-dark">{alt.name}</p>
                   <p className="text-xs text-tourflow-textMuted">
                     {formatINR(alt.totalPrice)} total · {alt.badge.replace(/_/g, ' ')}
+                    {formatDistanceKm(km) ? ` · ${formatDistanceKm(km)} away` : null}
                   </p>
                   <div className="mt-2 flex gap-2">
                     <button

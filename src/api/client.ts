@@ -15,13 +15,16 @@ export class ApiError extends Error {
   readonly detail: unknown;
   /** Full parsed response body (siblings of `detail`, e.g. guide 404 `active_trip`, are kept here). */
   readonly raw: unknown;
+  /** Machine-readable cause: 'timeout' for AbortController timeouts, undefined otherwise. */
+  readonly code?: string;
 
-  constructor(status: number, detail: unknown, message?: string, raw: unknown = detail) {
+  constructor(status: number, detail: unknown, message?: string, raw: unknown = detail, code?: string) {
     super(message ?? `WanderAI API request failed (status ${status})`);
     this.name = 'ApiError';
     this.status = status;
     this.detail = detail;
     this.raw = raw;
+    this.code = code;
   }
 }
 
@@ -111,7 +114,13 @@ async function request<T>(path: string, options: RequestOptions): Promise<T> {
   } catch (error) {
     if (error instanceof ApiError) throw error;
     if (error instanceof DOMException && error.name === 'AbortError') {
-      throw new ApiError(0, 'Request timed out', 'WanderAI API request timed out.');
+      throw new ApiError(
+        0,
+        'Request timed out',
+        'The itinerary is taking longer than expected. Please try again.',
+        'Request timed out',
+        'timeout',
+      );
     }
     throw new ApiError(0, error, 'Could not reach the WanderAI API.');
   } finally {

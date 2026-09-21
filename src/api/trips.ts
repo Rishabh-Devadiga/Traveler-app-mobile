@@ -66,6 +66,8 @@ export interface ApiItineraryItem {
   evidence?: unknown;
   walking_intensity?: string | null;
   rest_buffer_minutes?: number | null;
+  /** Day-wise stay explanation (hotel stops only; flattened from meta_data.ui). */
+  hotel_assignment_reason?: string | null;
 }
 
 /** Backend AccommodationOption as built by `_hotel_option` (routes.py). */
@@ -85,6 +87,9 @@ export interface ApiStayOption {
   hero_image: string | null;
   images: string[];
   badge: string;
+  /** Catalog coordinates for proximity sorting (absent on older trips). */
+  latitude?: number | null;
+  longitude?: number | null;
 }
 
 /** Subset of `_trip_dict` the Traveler app consumes. */
@@ -124,7 +129,7 @@ export interface ApiTripWithItinerary {
   daily_accommodations: Array<{ day_number: number; hotel: ApiStayOption }>;
 }
 
-const CREATE_TRIP_TIMEOUT_MS = 120_000; // backend runs discovery + generation inline
+const CREATE_TRIP_TIMEOUT_MS = 300_000; // live discovery + generation can take ~2 min inline
 
 /**
  * The backend trip id survives refresh (single localStorage key) so a
@@ -722,6 +727,7 @@ function toStop(item: ApiItineraryItem): ItineraryStop {
     longitude: typeof item.longitude === 'number' ? item.longitude : undefined,
     sourceUrl: item.source_url ?? undefined,
     location: item.location ?? undefined,
+    hotelAssignmentReason: item.hotel_assignment_reason ?? undefined,
   };
 }
 
@@ -777,6 +783,8 @@ export function toStayOption(hotel: ApiStayOption): StayOption {
     heroImage: hotel.hero_image ?? undefined,
     images: hotel.images,
     badge: hotel.badge,
+    latitude: typeof hotel.latitude === 'number' ? hotel.latitude : undefined,
+    longitude: typeof hotel.longitude === 'number' ? hotel.longitude : undefined,
   };
 }
 

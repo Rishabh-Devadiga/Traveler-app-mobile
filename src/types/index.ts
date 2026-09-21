@@ -81,6 +81,8 @@ export interface ItineraryStop {
   longitude?: number;
   sourceUrl?: string;
   location?: string;
+  /** Day-wise stay explanation for hotel stops (absent on older trips). */
+  hotelAssignmentReason?: string;
 }
 
 /** Real catalog accommodation, mapped 1:1 from the backend AccommodationOption. */
@@ -99,6 +101,9 @@ export interface StayOption {
   heroImage?: string;
   images: string[];
   badge: string;
+  /** Catalog coordinates for proximity sorting (absent on older trips). */
+  latitude?: number;
+  longitude?: number;
 }
 
 /** Real catalog activity alternative from GET /api/possible-options. */

@@ -13,6 +13,9 @@ const STEP_INTERVAL_MS = 900;
 
 function friendlyErrorMessage(error: unknown): string {
   if (error instanceof ApiError) {
+    if (error.code === 'timeout') {
+      return 'The itinerary is taking longer than expected. Please try again.';
+    }
     if (error.status === 0) {
       return 'Could not reach the WanderAI backend. Check that it is running and try again.';
     }
@@ -27,6 +30,7 @@ export default function AiLoading() {
   const [completedSteps, setCompletedSteps] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<number | null>(null);
+  const [showSlowNotice, setShowSlowNotice] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const finishedRef = useRef(false);
   // Last successfully generated trip (createTrip response). Retry after a
@@ -75,12 +79,19 @@ export default function AiLoading() {
     const stepTimer = window.setInterval(() => {
       setCompletedSteps((value) => (value < planningSteps.length - 1 ? value + 1 : value));
     }, STEP_INTERVAL_MS);
+    // Long-running feedback only: the POST keeps running until the trip-creation
+    // timeout or completion. This timer never cancels or re-fires the request.
+    const slowTimer = window.setTimeout(() => {
+      if (!cancelled) setShowSlowNotice(true);
+    }, 90_000);
 
     if (!inflightRef.current) {
       inflightRef.current = generateServerItinerary(draft);
     }
     const finishTo = (path: '/itinerary' | '/trips') => {
       window.clearInterval(stepTimer);
+      window.clearTimeout(slowTimer);
+      setShowSlowNotice(false);
       setCompletedSteps(planningSteps.length);
       window.setTimeout(() => {
         if (!cancelled) navigate(path);
@@ -95,6 +106,8 @@ export default function AiLoading() {
       }
       setApiStatus(error instanceof ApiError ? error.status : null);
       setApiError(friendlyErrorMessage(error));
+      window.clearInterval(stepTimer);
+      window.clearTimeout(slowTimer);
     };
     inflightRef.current.then(
       (resolved) => {
@@ -114,6 +127,7 @@ export default function AiLoading() {
           (error: unknown) => {
             if (cancelled) return;
             window.clearInterval(stepTimer);
+            window.clearTimeout(slowTimer);
             inflightRef.current = null;
             failWith(error);
           },
@@ -122,6 +136,7 @@ export default function AiLoading() {
       (error: unknown) => {
         if (cancelled) return;
         window.clearInterval(stepTimer);
+        window.clearTimeout(slowTimer);
         inflightRef.current = null;
         failWith(error);
       },
@@ -130,6 +145,7 @@ export default function AiLoading() {
     return () => {
       cancelled = true;
       window.clearInterval(stepTimer);
+      window.clearTimeout(slowTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [retryKey, apiError, useBackend]);
@@ -173,6 +189,7 @@ export default function AiLoading() {
     inflightRef.current = null;
     setApiError(null);
     setApiStatus(null);
+    setShowSlowNotice(false);
     setCompletedSteps(0);
     setRetryKey((key) => key + 1);
   };
@@ -280,6 +297,12 @@ export default function AiLoading() {
         <p className="relative mt-1 inline-block rounded-full bg-tourflow-surfaceMuted px-3 py-1 text-xs font-bold">
           {capsule}
         </p>
+        {useBackend && showSlowNotice && !apiError ? (
+          <p className="relative mt-2 rounded-2xl bg-tourflow-surfaceMuted p-3 text-xs leading-relaxed" role="status">
+            <span className="font-bold">Still working — </span>
+            Your itinerary is taking a little longer than usual. Please keep this screen open.
+          </p>
+        ) : null}
         <p className="relative mt-2 text-xs text-tourflow-textMuted">
           {draft.style ? `${draft.style} tempo · ` : ''}
           {useBackend ? 'Live backend generation — no mock data.' : 'Simulated planning — no AI or API calls.'}
