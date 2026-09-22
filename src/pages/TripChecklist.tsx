@@ -23,6 +23,9 @@ export default function TripChecklist() {
   const navigate = useNavigate();
   const { draft, updateDraft, ensureParsed, capturedCount } = useTripDraft();
   const [dateError, setDateError] = useState('');
+  // Double-tap guard: the button dies the moment generation starts, so one
+  // tap can only ever kick off one creation flow.
+  const [creating, setCreating] = useState(false);
 
   useEffect(() => {
     ensureParsed();
@@ -261,10 +264,15 @@ export default function TripChecklist() {
 
       <button
         type="button"
-        onClick={() => navigate('/loading')}
-        className="w-full rounded-2xl bg-tourflow-primary px-4 py-3.5 text-sm font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
+        disabled={creating}
+        onClick={() => {
+          if (creating) return;
+          setCreating(true);
+          navigate('/loading');
+        }}
+        className="w-full rounded-2xl bg-tourflow-primary px-4 py-3.5 text-sm font-bold text-white shadow-float hover:bg-tourflow-primaryHover disabled:opacity-70"
       >
-        Generate Itinerary
+        {creating ? 'Starting…' : 'Generate Itinerary'}
       </button>
     </div>
   );

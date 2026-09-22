@@ -2,6 +2,9 @@ export { apiClient, isApiConfigured, getApiBaseUrl, apiErrorMessage, ApiError } 
 export {
   createTrip,
   getTrip,
+  deleteTrip,
+  findPlanningDuplicate,
+  CREATE_TRIP_TIMEOUT_MS,
   listTravelerTrips,
   saveTravelerTrip,
   getTravelerTrip,
@@ -39,7 +42,7 @@ export {
   toStayOption,
   asApiTrip,
 } from './trips';
-export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary, ApiMapStop, ApiTripMap, TripMapPin, NormalizedTripMap, TripPaceId } from './trips';
+export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary, DuplicateCheckInput, ApiMapStop, ApiTripMap, TripMapPin, NormalizedTripMap, TripPaceId } from './trips';
 export type {
   TripCreateRequest,
   ApiItineraryItem,

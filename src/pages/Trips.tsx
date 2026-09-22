@@ -4,6 +4,7 @@ import { SafeImage } from '../components/content';
 import { useTripDraft } from '../state/useTripDraft';
 import {
   applyServerTrip,
+  deleteTrip,
   fetchPersistedTrip,
   listTravelerTrips,
   seedDraftFromTrip,
@@ -57,6 +58,8 @@ export default function Trips() {
   const [retryKey, setRetryKey] = useState(0);
   const [openingId, setOpeningId] = useState<string | null>(null);
   const [openError, setOpenError] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const authed = hasTravelerToken();
   const configured = isApiConfigured();
@@ -112,9 +115,9 @@ export default function Trips() {
   }
 
   const openTrip = (tripId: string) => {
+    if (openingId !== null || deletingId !== null) return;
     setOpeningId(tripId);
-    setOpenError(null);
-    // The exact persisted record by UUID — never regenerated, never created.
+    setOpenError(null);    // The exact persisted record by UUID — never regenerated, never created.
     fetchPersistedTrip(tripId).then(
       (trip) => {
         const seed = seedDraftFromTrip(trip);
@@ -136,6 +139,42 @@ export default function Trips() {
               ? openErr.message
               : 'Could not open this trip.',
         );
+      },
+    );
+  };
+
+  const handleDelete = (tripId: string) => {
+    if (deletingId !== null || openingId !== null) return;
+    // Two-tap inline confirm: first tap arms, second tap deletes.
+    if (confirmDeleteId !== tripId) {
+      setConfirmDeleteId(tripId);
+      setOpenError(null);
+      window.setTimeout(() => {
+        setConfirmDeleteId((armed) => (armed === tripId ? null : armed));
+      }, 5000);
+      return;
+    }
+    setConfirmDeleteId(null);
+    setDeletingId(tripId);
+    setOpenError(null);
+    deleteTrip(tripId).then(
+      () => {
+        setDeletingId(null);
+        setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
+      },
+      (deleteErr: unknown) => {
+        setDeletingId(null);
+        // Already gone server-side counts as deleted — drop the card anyway.
+        if (deleteErr instanceof ApiError && deleteErr.status === 404) {
+          setTrips((prev) => prev.filter((trip) => trip.id !== tripId));
+          return;
+        }
+        if (deleteErr instanceof ApiError && deleteErr.status === 401) {
+          clearTravelerToken();
+          navigate('/login', { replace: true, state: { from: '/trips' } });
+          return;
+        }
+        setOpenError(deleteErr instanceof Error ? deleteErr.message : 'Could not delete this trip.');
       },
     );
   };
@@ -198,11 +237,14 @@ export default function Trips() {
             const money = moneyLine(trip);
             const generated = generatedLine(trip);
             const opening = openingId === trip.id;
+            const armed = confirmDeleteId === trip.id;
+            const deleting = deletingId === trip.id;
+            const busy = openingId !== null || deletingId !== null;
             return (
-              <li key={trip.id}>
+              <li key={trip.id} className="relative">
                 <button
                   type="button"
-                  disabled={openingId !== null}
+                  disabled={busy}
                   onClick={() => openTrip(trip.id)}
                   className="block w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white text-left shadow-card transition-transform hover:scale-[1.01] disabled:opacity-70"
                 >
@@ -233,6 +275,21 @@ export default function Trips() {
                       {opening ? 'Opening…' : generated || 'View itinerary →'}
                     </p>
                   </div>
+                </button>
+                <button
+                  type="button"
+                  disabled={busy}
+                  onClick={() => handleDelete(trip.id)}
+                  aria-label={armed ? `Confirm delete ${name}` : `Delete ${name}`}
+                  className={`absolute right-3 top-3 rounded-full px-2.5 py-1 text-[11px] font-bold shadow backdrop-blur-sm transition-colors disabled:opacity-60 ${
+                    armed
+                      ? 'bg-red-600 text-white'
+                      : deleting
+                        ? 'bg-black/55 text-white'
+                        : 'bg-black/55 text-white hover:bg-red-600'
+                  }`}
+                >
+                  {deleting ? 'Deleting…' : armed ? 'Confirm?' : 'Delete'}
                 </button>
               </li>
             );

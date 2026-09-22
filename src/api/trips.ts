@@ -149,7 +149,7 @@ export interface RouteDaySummary {
   warnings?: string[];
 }
 
-const CREATE_TRIP_TIMEOUT_MS = 300_000; // live discovery + generation can take ~2 min inline
+export const CREATE_TRIP_TIMEOUT_MS = 300_000; // live discovery + generation can take ~2 min inline (AbortController; never below 120s)
 
 /**
  * The backend trip id survives refresh (single localStorage key) so a
@@ -397,6 +397,52 @@ function tripPath(tripId: string, suffix: string): string {
 }
 
 /**
+ * DELETE /api/trips/{id} — deletes the trip. A 404 means it is already gone
+ * and callers should treat that as success (drop the card anyway).
+ */
+export function deleteTrip(tripId: string): Promise<unknown> {
+  return apiClient.authDelete<unknown>(tripPath(tripId, ''));
+}
+
+function summaryDestinationLower(trip: TravelerTripSummary): string {
+  const raw = typeof trip.destination === 'string' ? trip.destination : trip.destination?.name;
+  return safeText(raw).trim().toLowerCase() || safeText(trip.destination_name).trim().toLowerCase();
+}
+
+function summaryDate(value: string | null | undefined): string {
+  return safeText(value).slice(0, 10);
+}
+
+export interface DuplicateCheckInput {
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+/**
+ * Find an existing still-planning trip for the same destination + dates.
+ * Confirmed trips are never treated as duplicates (a confirmed booking must
+ * not be "reopened" by a new plan). Returns the first match or null.
+ * Requires destination AND both dates — without dates there is nothing
+ * meaningful to match on, so no dialog is shown.
+ */
+export function findPlanningDuplicate(
+  input: DuplicateCheckInput,
+  list: TravelerTripSummary[],
+): TravelerTripSummary | null {
+  const dest = input.destination?.trim().toLowerCase();
+  if (!dest || !input.startDate || !input.endDate) return null;
+  for (const trip of list) {
+    if (safeText(trip.status).trim().toLowerCase() === 'confirmed') continue;
+    if (summaryDestinationLower(trip) !== dest) continue;
+    if (summaryDate(trip.start_date) !== input.startDate) continue;
+    if (summaryDate(trip.end_date) !== input.endDate) continue;
+    return trip;
+  }
+  return null;
+}
+
+/**
  * PUT /api/trips/{id} — adjust trip dates. Sends start/end as ISO datetimes
  * plus duration_days = (end-start)+1 so the body is always self-consistent
  * (the backend reconciles from dates on disagreement).
@@ -547,9 +593,12 @@ export interface ApiMapStop {
   has_coordinates?: unknown;
 }
 
-/** Raw GET /api/trips/{id}/map body (tolerant — only center/stops/counts matter). */
+/** Raw GET /api/trips/{id}/map body. Stops arrive nested as
+ *  `days[].stops[]` (day number may live on the day entry); a flat `stops[]`
+ *  array is accepted as a tolerance alias. Only center/stops/counts matter. */
 export interface ApiTripMap {
   center?: { latitude?: unknown; longitude?: unknown } | [unknown, unknown] | null;
+  days?: unknown;
   stops?: unknown;
   unmapped_count?: unknown;
 }
@@ -584,6 +633,13 @@ function asInt(value: unknown): number | null {
   return n === null ? null : Math.floor(n);
 }
 
+/** Coordinate coercion mirroring the map's +guard: finite numbers or numeric strings. */
+function asCoord(value: unknown): number | null {
+  const n =
+    typeof value === 'number' ? value : typeof value === 'string' && value.trim() !== '' ? Number(value) : NaN;
+  return Number.isFinite(n) ? n : null;
+}
+
 /** GET /api/trips/{id}/map — pins, center and unmapped counts for the map view. */
 export function getTripMap(tripId: string): Promise<ApiTripMap> {
   return apiClient.authGet<ApiTripMap>(tripPath(tripId, '/map'));
@@ -594,25 +650,41 @@ export function normalizeTripMap(data: ApiTripMap): NormalizedTripMap {
   let center: NormalizedTripMap['center'] = null;
   const c = data.center;
   if (Array.isArray(c)) {
-    const lat = asNumber(c[0]);
-    const lng = asNumber(c[1]);
+    const lat = asCoord(c[0]);
+    const lng = asCoord(c[1]);
     if (lat !== null && lng !== null) center = { latitude: lat, longitude: lng };
   } else if (c && typeof c === 'object') {
-    const lat = asNumber((c as { latitude?: unknown }).latitude);
-    const lng = asNumber((c as { longitude?: unknown }).longitude);
+    const lat = asCoord((c as { latitude?: unknown }).latitude);
+    const lng = asCoord((c as { longitude?: unknown }).longitude);
     if (lat !== null && lng !== null) center = { latitude: lat, longitude: lng };
   }
-  const rawStops = Array.isArray(data.stops) ? data.stops : [];
+  const rawStops: Array<{ raw: unknown; fallbackDay: number | null }> = [];
+  // Canonical shape: days[].stops[] (day may live on the day entry).
+  if (Array.isArray(data.days)) {
+    data.days.forEach((dayEntry, dayIndex) => {
+      if (!dayEntry || typeof dayEntry !== 'object') return;
+      const entry = dayEntry as { day?: unknown; day_number?: unknown; stops?: unknown };
+      const entryDay = asInt(entry.day_number ?? entry.day) ?? dayIndex + 1;
+      const stops = Array.isArray(entry.stops) ? entry.stops : [];
+      for (const raw of stops) rawStops.push({ raw, fallbackDay: entryDay });
+    });
+  }
+  // Tolerance alias: flat stops[] (day must live on the stop itself).
+  if (Array.isArray(data.stops)) {
+    for (const raw of data.stops) rawStops.push({ raw, fallbackDay: null });
+  }
   const pins: TripMapPin[] = [];
   const unmapped: NormalizedTripMap['unmapped'] = [];
-  rawStops.forEach((raw, index) => {
+  rawStops.forEach(({ raw, fallbackDay }, index) => {
     if (!raw || typeof raw !== 'object') return;
     const s = raw as ApiMapStop;
-    const day = asInt(s.day_number ?? s.day) ?? 0;
+    const day = asInt(s.day_number ?? s.day) ?? fallbackDay ?? 0;
     const title = safeText(s.title ?? s.name).trim() || `Stop ${index + 1}`;
-    const lat = asNumber(s.latitude ?? s.lat);
-    const lng = asNumber(s.longitude ?? s.lng ?? s.lon);
-    if (lat === null || lng === null || s.has_coordinates === false) {
+    // Plotted ONLY with truthy has_coordinates AND finite coords — the same
+    // predicate the map draws with, so counts never disagree with pins.
+    const lat = asCoord(s.latitude ?? s.lat);
+    const lng = asCoord(s.longitude ?? s.lng ?? s.lon);
+    if (!s.has_coordinates || lat === null || lng === null) {
       unmapped.push({ day, title });
       return;
     }

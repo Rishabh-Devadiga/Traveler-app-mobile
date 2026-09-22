@@ -63,7 +63,7 @@ function errorMessage(status: number, detail: unknown): string {
 }
 
 interface RequestOptions {
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
   timeoutMs?: number;
   /**
@@ -141,6 +141,8 @@ export const apiClient = {
     request<T>(path, { method: 'PUT', body, timeoutMs }),
   patch: <T>(path: string, body: unknown, timeoutMs?: number) =>
     request<T>(path, { method: 'PATCH', body, timeoutMs }),
+  delete: <T>(path: string, timeoutMs?: number) =>
+    request<T>(path, { method: 'DELETE', timeoutMs }),
   /** Authenticated variants — send the traveler JWT when one is stored. */
   authGet: <T>(path: string, options?: AuthRequestOptions) =>
     request<T>(path, { method: 'GET', auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
@@ -150,4 +152,6 @@ export const apiClient = {
     request<T>(path, { method: 'PUT', body, auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
   authPatch: <T>(path: string, body: unknown, options?: AuthRequestOptions) =>
     request<T>(path, { method: 'PATCH', body, auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
+  authDelete: <T>(path: string, options?: AuthRequestOptions) =>
+    request<T>(path, { method: 'DELETE', auth: true, timeoutMs: options?.timeoutMs, cache: options?.cache }),
 };
