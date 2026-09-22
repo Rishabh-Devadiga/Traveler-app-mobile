@@ -83,6 +83,9 @@ export interface ItineraryStop {
   location?: string;
   /** Day-wise stay explanation for hotel stops (absent on older trips). */
   hotelAssignmentReason?: string;
+  /** Check-in/out dates for traveler-picked live stays (absent otherwise). */
+  checkInDate?: string;
+  checkOutDate?: string;
 }
 
 /** Real catalog accommodation, mapped 1:1 from the backend AccommodationOption. */

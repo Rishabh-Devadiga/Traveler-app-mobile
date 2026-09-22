@@ -68,6 +68,11 @@ export interface ApiItineraryItem {
   rest_buffer_minutes?: number | null;
   /** Day-wise stay explanation (hotel stops only; flattened from meta_data.ui). */
   hotel_assignment_reason?: string | null;
+  /** Raw per-item metadata (check-in/out dates for traveler-picked live stays). */
+  meta_data?: {
+    check_in_date?: string | null;
+    check_out_date?: string | null;
+  } | null;
 }
 
 /** Backend AccommodationOption as built by `_hotel_option` (routes.py). */
@@ -127,6 +132,21 @@ export interface ApiTripWithItinerary {
   selected_accommodation: ApiStayOption | null;
   accommodation_alternatives: ApiStayOption[];
   daily_accommodations: Array<{ day_number: number; hotel: ApiStayOption }>;
+  /** Additive per-day route summaries (absent on trips saved before they existed). */
+  route_days?: RouteDaySummary[];
+}
+
+/** One entry of the backend `route_days` summary (all fields optional-tolerant). */
+export interface RouteDaySummary {
+  day: number;
+  date?: string | null;
+  activity_count?: number | null;
+  hotel?: string | null;
+  daily_travel_minutes?: number | null;
+  max_one_way_minutes?: number | null;
+  status?: string | null;
+  explanation?: string | null;
+  warnings?: string[];
 }
 
 const CREATE_TRIP_TIMEOUT_MS = 300_000; // live discovery + generation can take ~2 min inline
@@ -728,6 +748,8 @@ function toStop(item: ApiItineraryItem): ItineraryStop {
     sourceUrl: item.source_url ?? undefined,
     location: item.location ?? undefined,
     hotelAssignmentReason: item.hotel_assignment_reason ?? undefined,
+    checkInDate: item.meta_data?.check_in_date ?? undefined,
+    checkOutDate: item.meta_data?.check_out_date ?? undefined,
   };
 }
 

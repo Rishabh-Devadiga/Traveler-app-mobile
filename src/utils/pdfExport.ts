@@ -27,6 +27,11 @@ export interface TripPdfDay {
   day: number;
   title: string;
   stops: TripPdfStop[];
+  /** Optional route summary (absent for trips saved before it existed). */
+  status?: string | null;
+  travelSummary?: string | null;
+  explanation?: string | null;
+  warnings?: string[];
 }
 
 export interface TripPdfInput {
@@ -56,6 +61,15 @@ export interface TripPdfSourceDay {
   }>;
 }
 
+/** Optional per-day route info merged by day number; safely ignored when absent. */
+export interface TripPdfRouteDay {
+  day: number;
+  status?: string | null;
+  travelSummary?: string | null;
+  explanation?: string | null;
+  warnings?: string[];
+}
+
 /** Build PDF input from real trip data. Pure — unit-testable without jsPDF. */
 export function buildTripPdfInput(args: {
   title: string;
@@ -68,7 +82,9 @@ export function buildTripPdfInput(args: {
   stay: TripPdfStay | null;
   stayAlternatives: string[];
   days: TripPdfSourceDay[];
+  routeDays?: TripPdfRouteDay[];
 }): TripPdfInput {
+  const routeByDay = new Map((args.routeDays ?? []).map((r) => [r.day, r]));
   return {
     fileSlug: args.destination.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
     title: args.title,
@@ -80,17 +96,25 @@ export function buildTripPdfInput(args: {
     costLines: args.costLines,
     stay: args.stay,
     stayAlternatives: args.stayAlternatives,
-    days: args.days.map((d) => ({
-      day: d.day,
-      title: d.title,
-      stops: d.stops.map((s) => ({
-        time: [s.time, s.endTime].filter(Boolean).join(' – '),
-        title: s.title,
-        description: s.description,
-        cost: s.costLabel ?? '',
-        location: s.location ?? '',
-      })),
-    })),
+    days: args.days.map((d) => {
+      const route = routeByDay.get(d.day);
+      const warnings = (route?.warnings ?? []).filter(Boolean);
+      return {
+        day: d.day,
+        title: d.title,
+        stops: d.stops.map((s) => ({
+          time: [s.time, s.endTime].filter(Boolean).join(' – '),
+          title: s.title,
+          description: s.description,
+          cost: s.costLabel ?? '',
+          location: s.location ?? '',
+        })),
+        status: route?.status ?? null,
+        travelSummary: route?.travelSummary ?? null,
+        explanation: route?.explanation ?? null,
+        warnings,
+      };
+    }),
   };
 }
 
@@ -156,6 +180,12 @@ export function exportTripToPDF(input: TripPdfInput): void {
 
   for (const day of input.days) {
     line(`Day ${day.day}: ${day.title}`, 13, true, 6);
+    if (day.status) line(`Route status: ${day.status}`, 9, false, 4);
+    if (day.travelSummary) line(day.travelSummary, 9, false, 4);
+    if (day.explanation) line(day.explanation, 9, false, 4);
+    for (const warning of day.warnings ?? []) {
+      line(`Warning: ${warning}`, 9, false, 4);
+    }
     for (const stop of day.stops) {
       const head = [stop.time, stop.title].filter(Boolean).join(' — ');
       line(head || '(untimed stop)', 10, true);

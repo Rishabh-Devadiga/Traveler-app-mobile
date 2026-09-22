@@ -164,6 +164,11 @@ export default function AiLoading() {
     ...(dateRange ? [dateRange] : []),
   ].join(' · ');
   const previews = loadingPreviewImages(draft.destination);
+  // The "fewer days" hint applies only when the backend actually reports an
+  // activity-inventory shortage. Other 422s (hotel inventory, provider
+  // quota, bad dates) must not show it.
+  const isActivityShortage =
+    apiStatus === 422 && /activit|experience/i.test(apiError ?? '');
 
   const handleRetry = () => {
     // Generation already succeeded but the history save failed — retry ONLY
@@ -251,7 +256,7 @@ export default function AiLoading() {
         <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
           <p className="text-sm font-bold text-red-700">Trip creation failed</p>
           <p className="mt-1 text-xs text-tourflow-textMuted">{apiError}</p>
-          {apiStatus === 422 ? (
+          {isActivityShortage ? (
             <p className="mt-1 text-xs text-tourflow-textMuted">
               The backend can’t build this trip as specified — long stays need more distinct
               experiences than the catalog holds. Try fewer days or different dates.
@@ -266,7 +271,7 @@ export default function AiLoading() {
             >
               Try Again
             </button>
-            {apiStatus === 422 ? (
+            {isActivityShortage ? (
               <button
                 type="button"
                 onClick={() => navigate('/checklist')}

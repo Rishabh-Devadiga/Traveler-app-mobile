@@ -428,10 +428,17 @@ export default function Itinerary() {
     const kind = stopKind(stop);
     const busy = pendingKey !== null;
     if (kind === 'Stay') {
+      const stayDates =
+        stop.checkInDate || stop.checkOutDate
+          ? `Check-in ${stop.checkInDate ?? '—'} · Check-out ${stop.checkOutDate ?? '—'}`
+          : null;
       return (
         <div className="flex flex-col items-start gap-1.5">
           {stop.hotelAssignmentReason ? (
             <p className="text-[11px] leading-snug text-tourflow-textMuted">{stop.hotelAssignmentReason}</p>
+          ) : null}
+          {stayDates ? (
+            <p className="text-[11px] font-semibold text-tourflow-textMuted">{stayDates}</p>
           ) : null}
           <button
             type="button"
@@ -497,6 +504,16 @@ export default function Itinerary() {
           : null,
         stayAlternatives: stayAlternatives.map((s) => s.name),
         days,
+        routeDays: (apiTrip?.route_days ?? []).map((d) => ({
+          day: d.day,
+          status: d.status ?? null,
+          travelSummary:
+            typeof d.daily_travel_minutes === 'number'
+              ? `~${Math.round(d.daily_travel_minutes)} min estimated travel`
+              : null,
+          explanation: d.explanation ?? null,
+          warnings: d.warnings ?? [],
+        })),
       }),
     );
   };
@@ -693,6 +710,39 @@ export default function Itinerary() {
         <h3 className="text-base font-bold">{dayHeading}</h3>
         <p className="text-xs text-tourflow-textMuted">{countStops(dayStops)} Stops</p>
       </div>
+
+      {(() => {
+        const routeDay = apiTrip?.route_days?.find((d) => d.day === dayNumber);
+        if (!routeDay) return null;
+        const travelLine =
+          typeof routeDay.daily_travel_minutes === 'number'
+            ? `~${Math.round(routeDay.daily_travel_minutes)} min estimated travel`
+            : null;
+        const showBlock =
+          routeDay.status != null ||
+          travelLine !== null ||
+          (routeDay.warnings ?? []).length > 0 ||
+          routeDay.explanation != null;
+        if (!showBlock) return null;
+        return (
+          <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+            {routeDay.status != null ? (
+              <p className="text-xs font-bold text-tourflow-dark">Route status: {routeDay.status}</p>
+            ) : null}
+            {travelLine !== null ? (
+              <p className="mt-0.5 text-xs text-tourflow-textMuted">{travelLine}</p>
+            ) : null}
+            {routeDay.explanation != null ? (
+              <p className="mt-0.5 text-xs text-tourflow-textMuted">{routeDay.explanation}</p>
+            ) : null}
+            {(routeDay.warnings ?? []).map((warning, index) => (
+              <p key={`${index}-${warning.slice(0, 48)}`} className="mt-0.5 text-xs text-tourflow-textMuted">
+                ⚠ {warning}
+              </p>
+            ))}
+          </div>
+        );
+      })()}
 
       <ul className="relative flex flex-col gap-3 before:absolute before:bottom-4 before:left-5 before:top-4 before:w-0.5 before:bg-tourflow-cardBorder">
         {dayStops.map((stop) => (
