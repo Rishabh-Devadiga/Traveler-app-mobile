@@ -183,7 +183,7 @@ export default function AiGuide() {
           setBanner('Trip not found. It may belong to another traveler — select one of your trips.');
           setShowTripActions(true);
         } else if (error instanceof ApiError && error.status === 0) {
-          setBanner('Could not reach the TourFlow server. Check your connection and retry.');
+          setBanner('Could not reach the WanderAI server. Check your connection and retry.');
         } else {
           setBanner(error instanceof Error ? error.message : 'Could not load your conversation.');
         }
@@ -430,7 +430,7 @@ export default function AiGuide() {
         <div className="flex max-h-[52vh] flex-1 flex-col gap-2 overflow-y-auto p-3 thin-scroll" aria-live="polite">
           {!isApiConfigured() ? (
             <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
-              The TourFlow server is not configured (VITE_TOURFLOW_API_URL). The guide needs the backend.
+              The WanderAI server is not configured (VITE_TOURFLOW_API_URL). The guide needs the backend.
             </p>
           ) : null}
           {loadingHistory ? (
@@ -493,7 +493,7 @@ export default function AiGuide() {
             </div>
           ) : null}
           {thinking ? (
-            <div className="flex gap-1 p-1" aria-label="TourFlow is typing">
+            <div className="flex gap-1 p-1" aria-label="WanderAI is typing">
               <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-1" />
               <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
               <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />

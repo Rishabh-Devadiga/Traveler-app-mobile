@@ -43,8 +43,8 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        aria-label="Ask TourFlow AI"
-        className="w-full bg-transparent text-sm text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
+        aria-label="Ask WanderAI"
+        className="w-full min-w-0 bg-transparent text-sm text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
       />
       <button
         type="submit"
@@ -92,27 +92,31 @@ export function FilterPills({
 
 export function DestinationCard({ destination, onPlan }: { destination: Destination; onPlan: (id: string) => void }) {
   return (
-    <article className="w-[240px] shrink-0 overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]">
-      <div className="relative h-32 w-full overflow-hidden bg-tourflow-surfaceMuted">
-        <img src={destination.imageUrl} alt={destination.imageAlt} loading="lazy" className="h-full w-full object-cover" />
+    <article className="w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]">
+      <div className="relative h-36 w-full overflow-hidden bg-tourflow-surfaceMuted">
+        <SafeImage
+          src={destination.imageUrl}
+          alt={destination.imageAlt}
+          className="h-full w-full object-cover"
+        />
         {destination.tag ? (
           <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white">
             {destination.tag}
           </span>
         ) : null}
       </div>
-      <div className="space-y-1 p-3">
-        <h3 className="truncate text-sm font-bold text-tourflow-dark">{destination.name}</h3>
-        <p className="text-xs text-tourflow-textMuted">{destination.reviewsLabel}</p>
-        <p className="text-xs font-semibold text-tourflow-dark">
+      <div className="flex flex-col gap-1 p-3">
+        <h3 className="truncate text-sm font-bold leading-snug text-tourflow-dark">{destination.name}</h3>
+        <p className="truncate text-xs text-tourflow-textMuted">{destination.reviewsLabel}</p>
+        <p className="truncate text-xs font-semibold text-tourflow-dark">
           {destination.pricePerPerson} · <span className="font-normal">{destination.idealDays}</span>
         </p>
         <button
           type="button"
           onClick={() => onPlan(destination.id)}
-          className="mt-2 w-full rounded-full bg-tourflow-primarySoft px-3 py-1.5 text-xs font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white"
+          className="mt-1 w-full truncate rounded-full bg-tourflow-primarySoft px-3 py-1.5 text-xs font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white"
         >
-          Plan {destination.name.split(',')[0]} Journey
+          Plan {destination.name.split(',')[0].trim()} Journey
         </button>
       </div>
     </article>
@@ -123,7 +127,7 @@ export function CategoryGrid({ items }: { items: Category[] }) {
   return (
     <div className="grid grid-cols-5 gap-2">
       {items.map((item) => (
-        <div key={item.id} className="flex flex-col items-center gap-1 text-center">
+        <div key={item.id} className="flex min-w-0 flex-col items-center gap-1 text-center">
           {item.imageUrl ? (
             <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft">
               <SafeImage
@@ -140,7 +144,7 @@ export function CategoryGrid({ items }: { items: Category[] }) {
               ✦
             </span>
           )}
-          <span className="text-[11px] font-semibold text-tourflow-dark">{item.label}</span>
+          <span className="w-full truncate text-[11px] font-semibold leading-tight text-tourflow-dark">{item.label}</span>
         </div>
       ))}
     </div>

@@ -105,7 +105,7 @@ export function exportTripToPDF(input: TripPdfInput): void {
     doc.setFontSize(8);
     doc.setTextColor(130, 130, 150);
     doc.setFont('helvetica', 'normal');
-    doc.text('TourFlow — Traveler itinerary', margin, 10);
+    doc.text('WanderAI — Traveler itinerary', margin, 10);
     doc.text(`Generated ${new Date().toLocaleDateString()}`, pageWidth - margin, 10, { align: 'right' });
   };
 

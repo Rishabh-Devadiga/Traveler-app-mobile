@@ -19,7 +19,7 @@ import {
 } from '../api/traveler';
 import {
   applyServerTrip,
-  getTrip,
+  fetchPersistedTrip,
   listTravelerTrips,
   seedDraftFromTrip,
   travelerTripName,
@@ -276,7 +276,7 @@ export default function Profile() {
     { id: 'help', title: 'Help & Support', subtitle: 'Concierge and trip help', icon: 'support_agent' },
     {
       id: 'about',
-      title: 'About TourFlow',
+      title: 'About WanderAI',
       subtitle: `${travelerUser.appVersion} (${travelerUser.build})`,
       icon: 'info',
     },
@@ -397,7 +397,9 @@ export default function Profile() {
     if (openingTrip) return;
     setOpeningTrip(tripId);
     try {
-      const trip = await getTrip(tripId);
+      // Owned snapshot first (404 unless owned); legacy snapshot-less rows
+      // fall back to the canonical trip read — same backend record either way.
+      const trip = await fetchPersistedTrip(tripId);
       const seed = seedDraftFromTrip(trip);
       writeActiveTripId(trip.id);
       updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
@@ -802,13 +804,13 @@ export default function Profile() {
 
       {/* About sheet */}
       {menuSheet === 'about' ? (
-        <Sheet label="About TourFlow" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">TourFlow</h3>
+          <Sheet label="About WanderAI" onClose={closeMenuSheet}>
+            <h3 className="text-base font-extrabold text-tourflow-dark">WanderAI</h3>
           <p className="mt-1 text-xs text-tourflow-textMuted">
             {travelerUser.appVersion} ({travelerUser.build})
           </p>
           <p className="mt-3 text-xs leading-relaxed text-tourflow-textMuted">
-            TourFlow is your AI travel companion for hyper-personalized escapes across India — plan journeys, track
+            WanderAI is your AI travel companion for hyper-personalized escapes across India — plan journeys, track
             checklists, and explore with a live AI guide.
           </p>
           <button
