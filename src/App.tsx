@@ -38,6 +38,7 @@ export default function App() {
         <Route path="/checklist" element={<TripChecklist />} />
         <Route path="/loading" element={<AiLoading />} />
         <Route path="/itinerary" element={<Itinerary />} />
+        <Route path="/itinerary/:tripId" element={<Itinerary />} />
         <Route path="/ai-guide" element={<AiGuide />} />
         <Route path="/profile" element={<ErrorBoundary fallbackLabel="Profile error"><Profile /></ErrorBoundary>} />
       </Route>

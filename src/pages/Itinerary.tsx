@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
 import TripMap from '../components/TripMap';
 import { FilterPills } from '../components/home';
@@ -32,6 +32,7 @@ import {
   toStayOption,
   updateTripDates,
   updateTripPace,
+  writeActiveTripId,
   type ApiTripWithItinerary,
   type TripPaceId,
 } from '../api';
@@ -76,6 +77,7 @@ function stopKind(stop: ItineraryStop): string {
 
 export default function Itinerary() {
   const navigate = useNavigate();
+  const { tripId: routeTripId } = useParams();
   const { draft, updateDraft, isItineraryStale } = useTripDraft();
   const [activeDay, setActiveDay] = useState(1);
   const [optionFilter, setOptionFilter] = useState('all');
@@ -88,25 +90,32 @@ export default function Itinerary() {
   const [dateError, setDateError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
 
-  // Refresh survival: the in-memory draft is gone after reload, but the
-  // backend trip id persists — reload the trip (including its confirmed
-  // status) instead of bouncing to /plan.
+  // Refresh survival + deep links: the in-memory draft is gone after reload,
+  // but the backend trip id persists — reload the trip (including its
+  // confirmed status) instead of bouncing to /plan. An explicit
+  // /itinerary/:tripId URL always wins over the stored id.
   const [storedTripId] = useState<string | null>(() => readActiveTripId());
+  const targetId = routeTripId ?? storedTripId;
   const [restoring, setRestoring] = useState(
-    () => !draft.prompt.trim() && draft.itinerary === null && readActiveTripId() !== null && isApiConfigured(),
+    () =>
+      isApiConfigured() &&
+      (routeTripId
+        ? draft.tripId !== routeTripId || draft.itinerary === null
+        : !draft.prompt.trim() && draft.itinerary === null && readActiveTripId() !== null),
   );
   const [restoreError, setRestoreError] = useState<string | null>(null);
   const [restoreKey, setRestoreKey] = useState(0);
 
   useEffect(() => {
-    if (!restoring || !storedTripId) return;
+    if (!restoring || !targetId) return;
     let cancelled = false;
     setRestoreError(null);
-    getTrip(storedTripId).then(
+    getTrip(targetId).then(
       (trip) => {
         if (cancelled) return;
         const seed = seedDraftFromTrip(trip);
         updateDraft({ ...seed, ...applyServerTrip(trip, seed) });
+        writeActiveTripId(trip.id);
         setRestoring(false);
       },
       (error: unknown) => {
@@ -128,7 +137,7 @@ export default function Itinerary() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [restoring, storedTripId, restoreKey]);
+  }, [restoring, targetId, restoreKey]);
 
   const isLive = draft.itinerarySource === 'api';
   const apiTrip = asApiTrip(draft.apiTrip);

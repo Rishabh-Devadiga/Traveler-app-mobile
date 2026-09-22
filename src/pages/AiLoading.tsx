@@ -7,7 +7,18 @@ import { tripDateRangeLabel } from '../utils/dates';
 import { isApiConfigured } from '../api/client';
 import { ApiError } from '../api/client';
 import { clearTravelerToken, hasTravelerToken } from '../api/auth';
-import { saveTravelerTrip, type ResolvedItinerary } from '../api/trips';
+import {
+  applyServerTrip,
+  fetchPersistedTrip,
+  findPlanningDuplicate,
+  listTravelerTrips,
+  saveTravelerTrip,
+  seedDraftFromTrip,
+  travelerTripName,
+  writeActiveTripId,
+  type ResolvedItinerary,
+  type TravelerTripSummary,
+} from '../api/trips';
 
 const STEP_INTERVAL_MS = 900;
 
@@ -26,12 +37,17 @@ function friendlyErrorMessage(error: unknown): string {
 
 export default function AiLoading() {
   const navigate = useNavigate();
-  const { draft, generateItinerary, generateServerItinerary, isItineraryStale } = useTripDraft();
+  const { draft, generateItinerary, generateServerItinerary, isItineraryStale, updateDraft } = useTripDraft();
   const [completedSteps, setCompletedSteps] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [apiStatus, setApiStatus] = useState<number | null>(null);
   const [showSlowNotice, setShowSlowNotice] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  const [dup, setDup] = useState<{ status: 'idle' | 'checking' | 'found' | 'clear'; trip?: TravelerTripSummary }>({
+    status: 'idle',
+  });
+  const [dupError, setDupError] = useState<string | null>(null);
+  const [openingDup, setOpeningDup] = useState(false);
+  const [retryingSave, setRetryingSave] = useState(false);
   const finishedRef = useRef(false);
   // Last successfully generated trip (createTrip response). Retry after a
   // history-save failure re-saves THIS trip — it never re-POSTs creation.
@@ -76,6 +92,48 @@ export default function AiLoading() {
     if (missingDestination) return;
 
     let cancelled = false;
+
+    // Duplicate guard: same destination + same dates already planning → ask
+    // first, POST only on explicit "Create new". The history read is LIGHT
+    // (GET /api/traveler/trips only — never the full /api/trips list) and
+    // capped at 3s: on timeout the check is skipped and creation continues.
+    // A slow history read must never block creation.
+    const canDupCheck =
+      hasTravelerToken() && !!draft.destination && !!draft.startDate && !!draft.endDate;
+    if (canDupCheck && dup.status !== 'clear') {
+      if (dup.status === 'idle') {
+        setDup({ status: 'checking' });
+        const DUP_CHECK_TIMEOUT_MS = 3000;
+        let dupTimer = 0;
+        const timeout = new Promise<null>((resolve) => {
+          dupTimer = window.setTimeout(() => resolve(null), DUP_CHECK_TIMEOUT_MS);
+        });
+        Promise.race([listTravelerTrips(), timeout]).then(
+          (list) => {
+            window.clearTimeout(dupTimer);
+            if (cancelled) return;
+            // null = timed out → skip the check, continue to creation.
+            if (!Array.isArray(list)) {
+              setDup({ status: 'clear' });
+              return;
+            }
+            const match = findPlanningDuplicate(
+              { destination: draft.destination, startDate: draft.startDate, endDate: draft.endDate },
+              list,
+            );
+            setDup(match ? { status: 'found', trip: match } : { status: 'clear' });
+          },
+          () => {
+            window.clearTimeout(dupTimer);
+            if (!cancelled) setDup({ status: 'clear' });
+          },
+        );
+      }
+      return () => {
+        cancelled = true;
+      };
+    }
+
     const stepTimer = window.setInterval(() => {
       setCompletedSteps((value) => (value < planningSteps.length - 1 ? value + 1 : value));
     }, STEP_INTERVAL_MS);
@@ -88,7 +146,7 @@ export default function AiLoading() {
     if (!inflightRef.current) {
       inflightRef.current = generateServerItinerary(draft);
     }
-    const finishTo = (path: '/itinerary' | '/trips') => {
+    const finishTo = (path: string) => {
       window.clearInterval(stepTimer);
       window.clearTimeout(slowTimer);
       setShowSlowNotice(false);
@@ -104,7 +162,6 @@ export default function AiLoading() {
         navigate('/login', { replace: true, state: { from: '/home-explore' } });
         return;
       }
-      setApiStatus(error instanceof ApiError ? error.status : null);
       setApiError(friendlyErrorMessage(error));
       window.clearInterval(stepTimer);
       window.clearTimeout(slowTimer);
@@ -114,15 +171,16 @@ export default function AiLoading() {
         if (cancelled) return;
         savedTripRef.current = resolved;
         // Generation succeeded. Logged-in travelers persist the trip into
-        // history, then land on Trips; the anonymous flow keeps /itinerary
-        // (nothing to persist without a session).
+        // history, then land DIRECTLY on its Day-by-Day detail — never the
+        // list. The anonymous flow keeps /itinerary too (nothing to persist
+        // without a session).
         if (!hasTravelerToken() || !resolved.tripId || !resolved.trip) {
-          finishTo('/itinerary');
+          finishTo(resolved.tripId ? `/itinerary/${resolved.tripId}` : '/itinerary');
           return;
         }
         saveTravelerTrip(resolved.tripId, resolved.trip).then(
           () => {
-            if (!cancelled) finishTo('/trips');
+            if (!cancelled) finishTo(`/itinerary/${resolved.tripId}`);
           },
           (error: unknown) => {
             if (cancelled) return;
@@ -148,7 +206,7 @@ export default function AiLoading() {
       window.clearTimeout(slowTimer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [retryKey, apiError, useBackend]);
+  }, [retryKey, apiError, useBackend, dup.status]);
 
   if (!draft.prompt.trim()) {
     return <Navigate to="/plan" replace />;
@@ -164,27 +222,25 @@ export default function AiLoading() {
     ...(dateRange ? [dateRange] : []),
   ].join(' · ');
   const previews = loadingPreviewImages(draft.destination);
-  // The "fewer days" hint applies only when the backend actually reports an
-  // activity-inventory shortage. Other 422s (hotel inventory, provider
-  // quota, bad dates) must not show it.
-  const isActivityShortage =
-    apiStatus === 422 && /activit|experience/i.test(apiError ?? '');
+  // Backend 422 detail is shown VERBATIM (it carries quota/budget hints like
+  // "cheapest workable plan ≈ ₹X") — no generic copy is ever substituted.
 
   const handleRetry = () => {
     // Generation already succeeded but the history save failed — retry ONLY
-    // the save (never re-POST a duplicate trip).
+    // the save (never re-POST a duplicate trip). Button dies while saving.
     const saved = savedTripRef.current;
     if (saved && saved.tripId && saved.trip) {
       const { tripId, trip } = saved;
+      setRetryingSave(true);
       saveTravelerTrip(tripId, trip).then(
-        () => navigate('/trips'),
+        () => navigate(`/itinerary/${tripId}`),
         (error: unknown) => {
+          setRetryingSave(false);
           if (error instanceof ApiError && error.status === 401) {
             clearTravelerToken();
             navigate('/login', { replace: true, state: { from: '/home-explore' } });
             return;
           }
-          setApiStatus(error instanceof ApiError ? error.status : null);
           setApiError(friendlyErrorMessage(error));
         },
       );
@@ -193,7 +249,6 @@ export default function AiLoading() {
     finishedRef.current = false;
     inflightRef.current = null;
     setApiError(null);
-    setApiStatus(null);
     setShowSlowNotice(false);
     setCompletedSteps(0);
     setRetryKey((key) => key + 1);
@@ -206,6 +261,38 @@ export default function AiLoading() {
     if (!useBackend || (draft.itinerary !== null && !isItineraryStale)) {
       navigate('/itinerary');
     }
+  };
+
+  const openDuplicate = () => {
+    const trip = dup.trip;
+    if (!trip || openingDup) return;
+    setOpeningDup(true);
+    setDupError(null);
+    // Open the exact persisted record — never regenerated, never created.
+    fetchPersistedTrip(trip.id).then(
+      (full) => {
+        const seed = seedDraftFromTrip(full);
+        updateDraft({ ...seed, ...applyServerTrip(full, seed) });
+        writeActiveTripId(full.id);
+        navigate(`/itinerary/${full.id}`);
+      },
+      (error: unknown) => {
+        setOpeningDup(false);
+        if (error instanceof ApiError && error.status === 401) {
+          clearTravelerToken();
+          navigate('/login', { replace: true, state: { from: '/home-explore' } });
+          return;
+        }
+        setDupError(error instanceof Error ? error.message : 'Could not open that trip.');
+      },
+    );
+  };
+
+  const createNewAnyway = () => {
+    if (openingDup) return;
+    setDupError(null);
+    // Explicit user choice — the effect below fires the single POST.
+    setDup({ status: 'clear' });
   };
 
   return (
@@ -226,8 +313,7 @@ export default function AiLoading() {
 
       <h2 className="text-xl font-extrabold tracking-tight">Crafting {destinationLabel} Getaway...</h2>
 
-      {missingDestination && !apiError ? (
-        <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
+      {missingDestination && !apiError ? (        <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
           <p className="text-sm font-bold text-red-700">Destination needed for live planning</p>
           <p className="mt-1 text-xs text-tourflow-textMuted">
             The backend needs a destination to generate your trip. Type any destination —
@@ -252,34 +338,68 @@ export default function AiLoading() {
         </section>
       ) : null}
 
+      {dup.status === 'checking' && !apiError ? (
+        <p className="rounded-xl bg-tourflow-surfaceMuted px-3 py-2 text-xs font-semibold text-tourflow-textMuted" role="status">
+          Checking your existing trips…
+        </p>
+      ) : null}
+
+      {dup.status === 'found' && dup.trip && !apiError ? (
+        <section
+          className="rounded-2xl border border-tourflow-primaryBorder bg-white p-4 shadow-card"
+          role="alertdialog"
+          aria-label="Trip already in progress"
+        >
+          <p className="text-sm font-bold">Trip already in progress</p>
+          <p className="mt-1 text-xs text-tourflow-textMuted">
+            {travelerTripName(dup.trip)}
+            {dup.trip.start_date && dup.trip.end_date
+              ? ` · ${tripDateRangeLabel(
+                  dup.trip.start_date.slice(0, 10),
+                  dup.trip.end_date.slice(0, 10),
+                )}`
+              : ''}
+            {' '}— continue where you left off, or plan it again from scratch.
+          </p>
+          {dupError ? (
+            <p className="mt-1 text-xs font-semibold text-red-600" role="alert">{dupError}</p>
+          ) : null}
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              onClick={openDuplicate}
+              disabled={openingDup}
+              autoFocus
+              className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+            >
+              {openingDup ? 'Opening…' : 'Open existing'}
+            </button>
+            <button
+              type="button"
+              onClick={createNewAnyway}
+              disabled={openingDup}
+              className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold disabled:opacity-60"
+            >
+              Create new
+            </button>
+          </div>
+        </section>
+      ) : null}
+
       {apiError ? (
         <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
           <p className="text-sm font-bold text-red-700">Trip creation failed</p>
           <p className="mt-1 text-xs text-tourflow-textMuted">{apiError}</p>
-          {isActivityShortage ? (
-            <p className="mt-1 text-xs text-tourflow-textMuted">
-              The backend can’t build this trip as specified — long stays need more distinct
-              experiences than the catalog holds. Try fewer days or different dates.
-            </p>
-          ) : null}
           <p className="mt-1 text-xs text-tourflow-textMuted">Your prompt and checklist edits are preserved.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
               onClick={handleRetry}
-              className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover"
+              disabled={retryingSave}
+              className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
             >
-              Try Again
+              {retryingSave ? 'Saving…' : 'Try Again'}
             </button>
-            {isActivityShortage ? (
-              <button
-                type="button"
-                onClick={() => navigate('/checklist')}
-                className="flex-1 rounded-full bg-tourflow-dark px-3 py-2 text-xs font-bold text-white"
-              >
-                Adjust Dates
-              </button>
-            ) : null}
             <button
               type="button"
               onClick={() => navigate('/plan')}
