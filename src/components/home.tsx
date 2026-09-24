@@ -90,9 +90,9 @@ export function FilterPills({
   );
 }
 
-export function DestinationCard({ destination, onPlan }: { destination: Destination; onPlan: (id: string) => void }) {
+export function DestinationCard({ destination, onPlan, className }: { destination: Destination; onPlan: (id: string) => void; className?: string }) {
   return (
-    <article className="w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]">
+    <article className={`w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]${className ? ` ${className}` : ''}`}>
       <div className="relative h-36 w-full overflow-hidden bg-tourflow-surfaceMuted">
         <SafeImage
           src={destination.imageUrl}
@@ -107,7 +107,14 @@ export function DestinationCard({ destination, onPlan }: { destination: Destinat
       </div>
       <div className="flex flex-col gap-1 p-3">
         <h3 className="truncate text-sm font-bold leading-snug text-tourflow-dark">{destination.name}</h3>
-        <p className="truncate text-xs text-tourflow-textMuted">{destination.reviewsLabel}</p>
+        {destination.reviewsLabel ? (
+          <p className="truncate text-xs text-tourflow-textMuted">{destination.reviewsLabel}</p>
+        ) : null}
+        {destination.subThemes && destination.subThemes.length > 0 ? (
+          <p className="truncate text-[11px] font-medium text-tourflow-textMuted">
+            {destination.subThemes.slice(0, 2).join(' · ')}
+          </p>
+        ) : null}
         <p className="truncate text-xs font-semibold text-tourflow-dark">
           {destination.pricePerPerson} · <span className="font-normal">{destination.idealDays}</span>
         </p>
@@ -123,30 +130,47 @@ export function DestinationCard({ destination, onPlan }: { destination: Destinat
   );
 }
 
-export function CategoryGrid({ items }: { items: Category[] }) {
+export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?: (id: string) => void }) {
   return (
     <div className="grid grid-cols-5 gap-2">
-      {items.map((item) => (
-        <div key={item.id} className="flex min-w-0 flex-col items-center gap-1 text-center">
-          {item.imageUrl ? (
-            <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft">
-              <SafeImage
-                src={item.imageUrl}
-                alt={item.imageAlt ?? `${item.label} photo`}
-                className="h-full w-full object-cover"
-              />
-            </span>
-          ) : (
-            <span
-              aria-hidden="true"
-              className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-lg shadow-soft"
-            >
-              ✦
-            </span>
-          )}
-          <span className="w-full truncate text-[11px] font-semibold leading-tight text-tourflow-dark">{item.label}</span>
-        </div>
-      ))}
+      {items.map((item) => {
+        const content = (
+          <>
+            {item.imageUrl ? (
+              <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft">
+                <SafeImage
+                  src={item.imageUrl}
+                  alt={item.imageAlt ?? `${item.label} photo`}
+                  className="h-full w-full object-cover"
+                />
+              </span>
+            ) : (
+              <span
+                aria-hidden="true"
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-lg shadow-soft"
+              >
+                ✦
+              </span>
+            )}
+            <span className="w-full truncate text-[11px] font-semibold leading-tight text-tourflow-dark">{item.label}</span>
+          </>
+        );
+        return onSelect ? (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => onSelect(item.id)}
+            aria-label={`Explore ${item.label} destinations`}
+            className="flex min-w-0 cursor-pointer flex-col items-center gap-1 rounded-xl text-center transition-transform hover:scale-105 active:scale-95"
+          >
+            {content}
+          </button>
+        ) : (
+          <div key={item.id} className="flex min-w-0 flex-col items-center gap-1 text-center">
+            {content}
+          </div>
+        );
+      })}
     </div>
   );
 }

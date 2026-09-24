@@ -1,4 +1,4 @@
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import Header from './Header';
 import BottomNav from './BottomNav';
 import { useTravelerProfile } from '../state/useTravelerProfile';
@@ -6,9 +6,15 @@ import { avatarUrlFor, profileInitial } from '../api/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import { asApiTrip } from '../api/trips';
 import { tripDateRangeLabel } from '../utils/dates';
+import { getCuratedCategory, normalizeCuratedCategory } from '../utils/curated';
 
 const titles: Record<string, { title: string; subtitle?: string; wide?: boolean; back?: boolean; flush?: boolean }> = {
   '/home-explore': { title: 'Home Explore', subtitle: 'Intelligent travel companion' },
+  '/curated': {
+    title: 'Curated For You',
+    subtitle: 'Explore destinations picked for your next journey',
+    back: true,
+  },
   '/globe': {
     title: 'Incredible India',
     subtitle: '3D Travel Globe · 60 Iconic Destinations',
@@ -30,14 +36,24 @@ const titles: Record<string, { title: string; subtitle?: string; wide?: boolean;
 
 export default function Layout() {
   const { pathname } = useLocation();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const meta = titles[pathname] ?? { title: 'WanderAI' };
   const { profile: travelerProfile } = useTravelerProfile();
   const { draft } = useTripDraft();
 
+  // The /curated header follows the ?category= query so one reusable page
+  // serves every Home filter (direct links and refresh safe).
+  let title = meta.title;
+
   // The itinerary header names the trip's real destination (never a stale
   // hardcoded one) plus the selected date range when set.
   let subtitle = meta.subtitle;
+  if (pathname === '/curated') {
+    const category = getCuratedCategory(normalizeCuratedCategory(searchParams.get('category')));
+    title = category.title;
+    subtitle = category.subtitle;
+  }
   if (pathname === '/itinerary') {
     const liveName = asApiTrip(draft.apiTrip)?.destination?.name;
     const destination = liveName ?? draft.destination ?? 'Your trip';
@@ -57,7 +73,7 @@ export default function Layout() {
   return (
     <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">
       <Header
-        title={meta.title}
+        title={title}
         subtitle={subtitle}
         avatarUrl={travelerProfile ? (avatarUrlFor(travelerProfile) ?? undefined) : undefined}
         avatarInitial={travelerProfile ? profileInitial(travelerProfile) : undefined}

@@ -19,11 +19,28 @@ export interface Destination {
   region: string;
   pricePerPerson: string;
   idealDays: string;
-  rating: string;
-  reviewsLabel: string;
+  /**
+   * Editorial pick score shown on the card. Optional — entries without a
+   * rating simply hide the rating line instead of showing invented numbers.
+   */
+  rating?: string;
+  /** Optional — hidden on the card when absent (no fake review counts). */
+  reviewsLabel?: string;
   imageUrl: string;
   imageAlt: string;
+  /** Photo source credit (e.g. 'Wikimedia Commons'). Stored for licensing; not rendered on cards. */
+  imageCredit?: string;
   tag?: string;
+  /**
+   * Explicit Home filter category ids (e.g. 'heritage', 'beach').
+   * When absent, `filterCuratedByCategory` falls back to the legacy
+   * name/region text matching so older entries keep working.
+   */
+  categories?: string[];
+  /** Destination-level travel themes (e.g. 'Forts & Palaces'). Genuine matches only. */
+  subThemes?: string[];
+  /** Curated "Popular" flag — editorial selection, not a live platform metric. */
+  isPopular?: boolean;
 }
 
 export interface Category {

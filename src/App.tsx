@@ -5,6 +5,7 @@ import Onboarding from './pages/Onboarding';
 import Login from './pages/Login';
 import Trips from './pages/Trips';
 import HomeExplore from './pages/HomeExplore';
+import CuratedForYou from './pages/CuratedForYou';
 import PlanJourney from './pages/PlanJourney';
 import TripChecklist from './pages/TripChecklist';
 import AiLoading from './pages/AiLoading';
@@ -32,6 +33,7 @@ export default function App() {
       <Route path="/login" element={<Login />} />
       <Route element={<Layout />}>
         <Route path="/home-explore" element={<HomeExplore />} />
+        <Route path="/curated" element={<CuratedForYou />} />
         <Route path="/globe" element={<GlobePage />} />
         <Route path="/plan" element={<PlanJourney />} />
         <Route path="/trips" element={<Trips />} />

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlobeView from '../components/GlobeView';
 import { CategoryGrid, DestinationCard, FilterPills, SearchBar, SectionHeader } from '../components/home';
@@ -8,6 +8,7 @@ import {
   filterCategories,
   homeGreeting,
 } from '../mocks/traveler';
+import { filterCuratedByCategory, getCuratedCategory, resolveExploreCategory } from '../utils/curated';
 import { useTravelerProfile } from '../state/useTravelerProfile';
 
 export default function HomeExplore() {
@@ -16,6 +17,14 @@ export default function HomeExplore() {
   const travelerName = profile?.full_name.trim() || 'Traveler';
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+
+  // Category pills filter the Curated slider from the already-loaded local
+  // data — no extra requests, no invented destinations.
+  const visibleDestinations = useMemo(
+    () => filterCuratedByCategory(curatedDestinations, activeFilter),
+    [activeFilter],
+  );
+  const activeCategory = getCuratedCategory(activeFilter);
 
   return (
     <div className="flex flex-col gap-5">
@@ -67,30 +76,48 @@ export default function HomeExplore() {
       <FilterPills items={filterCategories} activeId={activeFilter} onSelect={setActiveFilter} />
 
       <section className="space-y-2">
-        <SectionHeader title="Curated For You" actionLabel="View all" />
-        <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
-          {curatedDestinations.map((d) => (
-            <DestinationCard
-              key={d.id}
-              destination={d}
-              onPlan={() =>
-                navigate('/plan', {
-                  state: {
-                    destination: d.name.split(',')[0].trim(),
-                    reset: true,
-                    source: 'manual',
-                  },
-                })
-              }
-            />
-          ))}
-        </div>
+        <SectionHeader
+          title="Curated For You"
+          actionLabel="View all"
+          onAction={() => navigate(`/curated?category=${activeFilter}`)}
+        />
+        {visibleDestinations.length === 0 ? (
+          <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 text-center shadow-card">
+            <p className="text-sm font-bold text-tourflow-dark">
+              No {activeCategory.label} destinations yet
+            </p>
+            <p className="mt-1 text-xs text-tourflow-textMuted">
+              Check back soon — new handpicked journeys are on the way.
+            </p>
+          </div>
+        ) : (
+          <div className="no-scrollbar -mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-1">
+            {visibleDestinations.map((d) => (
+              <DestinationCard
+                key={d.id}
+                destination={d}
+                onPlan={() =>
+                  navigate('/plan', {
+                    state: {
+                      destination: d.name.split(',')[0].trim(),
+                      reset: true,
+                      source: 'manual',
+                    },
+                  })
+                }
+              />
+            ))}
+          </div>
+        )}
         <p className="truncate text-[11px] text-tourflow-textMuted">Traveler: {travelerName} · {homeGreeting.quickPromptLabel}</p>
       </section>
 
       <section className="space-y-2">
         <SectionHeader title="Explore Categories" />
-        <CategoryGrid items={exploreGridCategories} />
+        <CategoryGrid
+          items={exploreGridCategories}
+          onSelect={(id) => navigate(`/curated?category=${resolveExploreCategory(id)}`)}
+        />
       </section>
 
       <section className="flex items-center gap-3 rounded-2xl bg-tourflow-dark p-4 text-white shadow-card">
