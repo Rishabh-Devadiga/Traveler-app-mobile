@@ -57,6 +57,15 @@ export default function AiLoading() {
   // the second run would either fire a duplicate POST or (with a plain
   // done-flag) drop the first POST's result forever, freezing the UI.
   const inflightRef = useRef<ReturnType<typeof generateServerItinerary> | null>(null);
+  // Single in-flight duplicate check shared across effect re-runs — the same
+  // StrictMode hazard as the POST above. Run #1 starts the race; run #2
+  // attaches its own result handlers to the SAME race instead of requiring a
+  // fresh one, so a remount can neither duplicate the GET nor drop its
+  // result (which previously froze `dup.status` on "checking" forever).
+  const dupRaceRef = useRef<{
+    race: Promise<TravelerTripSummary[] | null>;
+    clearTimer: () => void;
+  } | null>(null);
 
   // Backend is the source of truth when configured AND any destination is set.
   // Any non-empty destination — known or arbitrary — is attempted via the
@@ -101,34 +110,48 @@ export default function AiLoading() {
     const canDupCheck =
       hasTravelerToken() && !!draft.destination && !!draft.startDate && !!draft.endDate;
     if (canDupCheck && dup.status !== 'clear') {
-      if (dup.status === 'idle') {
+      if (!dupRaceRef.current) {
         setDup({ status: 'checking' });
         const DUP_CHECK_TIMEOUT_MS = 3000;
         let dupTimer = 0;
         const timeout = new Promise<null>((resolve) => {
           dupTimer = window.setTimeout(() => resolve(null), DUP_CHECK_TIMEOUT_MS);
         });
-        Promise.race([listTravelerTrips(), timeout]).then(
-          (list) => {
-            window.clearTimeout(dupTimer);
-            if (cancelled) return;
-            // null = timed out → skip the check, continue to creation.
-            if (!Array.isArray(list)) {
-              setDup({ status: 'clear' });
-              return;
-            }
-            const match = findPlanningDuplicate(
-              { destination: draft.destination, startDate: draft.startDate, endDate: draft.endDate },
-              list,
-            );
-            setDup(match ? { status: 'found', trip: match } : { status: 'clear' });
-          },
-          () => {
-            window.clearTimeout(dupTimer);
-            if (!cancelled) setDup({ status: 'clear' });
-          },
-        );
+        const race: Promise<TravelerTripSummary[] | null> = Promise.race([
+          listTravelerTrips(),
+          timeout,
+        ]);
+        dupRaceRef.current = {
+          race,
+          clearTimer: () => window.clearTimeout(dupTimer),
+        };
       }
+      // Attach this run's handlers to the shared race (created above or by
+      // an earlier run): exactly one GET is ever in flight, and whichever
+      // run is still mounted when it settles processes the result.
+      const shared = dupRaceRef.current;
+      shared.race.then(
+        (list) => {
+          shared.clearTimer();
+          dupRaceRef.current = null;
+          if (cancelled) return;
+          // null = timed out → skip the check, continue to creation.
+          if (!Array.isArray(list)) {
+            setDup({ status: 'clear' });
+            return;
+          }
+          const match = findPlanningDuplicate(
+            { destination: draft.destination, startDate: draft.startDate, endDate: draft.endDate },
+            list,
+          );
+          setDup(match ? { status: 'found', trip: match } : { status: 'clear' });
+        },
+        () => {
+          shared.clearTimer();
+          dupRaceRef.current = null;
+          if (!cancelled) setDup({ status: 'clear' });
+        },
+      );
       return () => {
         cancelled = true;
       };
