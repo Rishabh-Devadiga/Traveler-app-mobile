@@ -103,6 +103,39 @@ export interface ItineraryStop {
   /** Check-in/out dates for traveler-picked live stays (absent otherwise). */
   checkInDate?: string;
   checkOutDate?: string;
+  /** Real operator/schedule snapshot for transport stops (null otherwise).
+   *  Every field is provider-supplied; absent means unknown (never invented). */
+  transportDetails?: TransportDetails | null;
+  /** Real booking URL for transport stops (from transportDetails or source). */
+  bookingUrl?: string;
+}
+
+/**
+ * Real transport operator/schedule details (backend `transport_details`
+ * snapshot or `TransportOption` row). Optional throughout: the UI renders
+ * only what is present and never fabricates missing pieces. `booking_url`
+ * is a real provider URL or absent — never a constructed link.
+ */
+export interface TransportDetails {
+  transport_id?: string | null;
+  mode?: string | null;
+  name?: string | null;
+  operator?: string | null;
+  service_number?: string | null;
+  route_from?: string | null;
+  route_to?: string | null;
+  departure_time?: string | null;
+  arrival_time?: string | null;
+  duration_hours?: number | null;
+  stops?: string[];
+  price?: number | null;
+  currency?: string | null;
+  travel_class?: string | null;
+  capacity?: number | null;
+  features?: string[];
+  availability?: string | null;
+  booking_url?: string | null;
+  inventory_source?: string | null;
 }
 
 /** Real catalog accommodation, mapped 1:1 from the backend AccommodationOption. */

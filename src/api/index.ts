@@ -19,6 +19,7 @@ export {
   changeDayAccommodation,
   changeTransport,
   getTransportOptions,
+  getTripTransportOptions,
   swapActivity,
   addActivity,
   deleteActivity,

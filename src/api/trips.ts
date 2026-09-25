@@ -1,4 +1,4 @@
-import type { ItineraryDay, ItineraryStop, StayOption, TripDraft } from '../types';
+import type { ItineraryDay, ItineraryStop, StayOption, TransportDetails, TripDraft } from '../types';
 import { formatINR } from '../utils/format';
 import { durationDaysFromRange, parseISODate } from '../utils/dates';
 import { itineraryInputSignature } from '../utils/generateMockItinerary';
@@ -50,7 +50,7 @@ export interface TripCreateRequest {
   };
 }
 
-/** One row of GET /api/transport — real catalog transport, never fabricated. */
+/** One row of GET /api/transport or GET /api/trips/{id}/transport-options. */
 export interface TransportOption {
   id: string;
   type: string;
@@ -63,6 +63,18 @@ export interface TransportOption {
   capacity: number;
   features: string[];
   provider_name?: string | null;
+  /** Enriched operator/schedule details (provider-supplied only; absent = unknown). */
+  service_number?: string | null;
+  operator_name?: string | null;
+  departure_time?: string | null;
+  arrival_time?: string | null;
+  stops?: string[] | null;
+  travel_class?: string | null;
+  availability_status?: string | null;
+  /** Real provider URL only (never constructed). */
+  booking_url?: string | null;
+  source_url?: string | null;
+  inventory_source?: string | null;
 }
 
 /**
@@ -76,6 +88,19 @@ export async function getTransportOptions(origin: string, destination: string): 
     destination: destination.trim(),
   });
   const items = await apiClient.authGet<unknown>(`/api/transport?${params.toString()}`);
+  if (!Array.isArray(items)) return [];
+  return items.filter((t): t is TransportOption => !!t && typeof t === 'object' && typeof (t as { id?: unknown }).id === 'string');
+}
+
+/**
+ * GET /api/trips/{id}/transport-options — verified transfers for THIS
+ * trip's exact destination row (origin pre-applied, international pairs
+ * flight-only). Every returned ID is guaranteed selectable via
+ * changeTransport — unlike the name-resolved GET /transport listing, which
+ * can return a duplicate-name sibling row's IDs (unswitchable 400s).
+ */
+export async function getTripTransportOptions(tripId: string): Promise<TransportOption[]> {
+  const items = await apiClient.authGet<unknown>(tripPath(tripId, '/transport-options'));
   if (!Array.isArray(items)) return [];
   return items.filter((t): t is TransportOption => !!t && typeof t === 'object' && typeof (t as { id?: unknown }).id === 'string');
 }
@@ -103,6 +128,8 @@ export interface ApiItineraryItem {
   longitude?: number | null;
   source_url?: string | null;
   evidence?: unknown;
+  /** Real operator/schedule snapshot for transport items (null otherwise). */
+  transport_details?: TransportDetails | null;
   walking_intensity?: string | null;
   rest_buffer_minutes?: number | null;
   /** Day-wise stay explanation (hotel stops only; flattened from meta_data.ui). */
@@ -894,6 +921,11 @@ const ITEM_TYPE_LABELS: Record<string, string> = {
 function toStop(item: ApiItineraryItem): ItineraryStop {
   const tags = [ITEM_TYPE_LABELS[item.item_type] ?? item.item_type];
   if (item.duration) tags.push(item.duration);
+  const transportDetails = item.transport_details ?? null;
+  const bookingUrl =
+    transportDetails?.booking_url?.trim() ||
+    item.source_url?.trim() ||
+    undefined;
   return {
     id: item.id,
     time: item.start_time ?? '',
@@ -912,6 +944,8 @@ function toStop(item: ApiItineraryItem): ItineraryStop {
     hotelAssignmentReason: item.hotel_assignment_reason ?? undefined,
     checkInDate: item.meta_data?.check_in_date ?? undefined,
     checkOutDate: item.meta_data?.check_out_date ?? undefined,
+    transportDetails,
+    bookingUrl,
   };
 }
 

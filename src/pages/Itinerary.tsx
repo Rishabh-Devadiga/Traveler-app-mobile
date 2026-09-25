@@ -3,7 +3,7 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
 import TripMap from '../components/TripMap';
 import { FilterPills } from '../components/home';
-import { copilotSuggestions } from '../mocks/traveler';
+import { copilotSuggestions, curatedDestinations } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import {
   addActivity,
@@ -18,11 +18,9 @@ import {
   countStops,
   deleteActivity,
   getPossibleOptions,
-  getTransportOptions,
+  getTripTransportOptions,
   getTrip,
   isCountableStop,
-  matchTripPace,
-  TRIP_PACES,
   isTripConfirmedStatus,
   isTripMarkedConfirmed,
   isUnauthorized,
@@ -33,14 +31,12 @@ import {
   swapActivity,
   toStayOption,
   updateTripDates,
-  updateTripPace,
   writeActiveTripId,
   type ApiTripWithItinerary,
   type TransportOption,
-  type TripPaceId,
 } from '../api';
 import { ApiError, isApiConfigured } from '../api/client';
-import type { ItineraryStop, PossibleOption } from '../types';
+import type { ItineraryStop, PossibleOption, TransportDetails } from '../types';
 import { formatINR } from '../utils/format';
 import { diffNights, parseISODate, tripDateRangeLabel } from '../utils/dates';
 import { formatDistanceKm, haversineKm } from '../utils/distance';
@@ -79,6 +75,90 @@ function stopKind(stop: ItineraryStop): string {
   return stop.tags[0] ?? '';
 }
 
+function transportModeLabel(mode?: string | null): string {
+  const normalized = (mode ?? '').trim().toLowerCase();
+  if (normalized === 'private_cab') return 'Private cab';
+  if (normalized === 'volvo_bus') return 'Volvo bus';
+  if (normalized === 'self_drive') return 'Self-drive';
+  if (!normalized) return 'Transfer';
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+}
+
+/** Normalize a switcher option row into the shared details shape. */
+function detailsFromOption(option: TransportOption): TransportDetails {
+  return {
+    transport_id: option.id,
+    mode: option.type,
+    name: option.name,
+    operator: option.operator_name?.trim() || option.provider_name?.trim() || null,
+    service_number: option.service_number,
+    route_from: option.route_from,
+    route_to: option.route_to,
+    departure_time: option.departure_time,
+    arrival_time: option.arrival_time,
+    duration_hours: option.duration_hours,
+    stops: option.stops ?? [],
+    price: option.price,
+    currency: option.currency,
+    travel_class: option.travel_class,
+    capacity: option.capacity,
+    features: option.features ?? [],
+    availability: option.availability_status,
+    booking_url: option.booking_url?.trim() || option.source_url?.trim() || null,
+    inventory_source: option.inventory_source,
+  };
+}
+
+/** Real booking link — rendered ONLY for genuine provider URLs, never constructed. */
+function BookingLink({ url }: { url?: string | null }) {
+  if (!url || !url.trim()) return null;
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="mt-1.5 inline-block rounded-full bg-tourflow-dark px-3 py-1.5 text-[11px] font-bold text-white"
+    >
+      Book / View booking ↗
+    </a>
+  );
+}
+
+/** Real transfer facts only — every absent field is hidden, never guessed. */
+function TransportDetailBlock({ details }: { details: TransportDetails }) {
+  const lines: string[] = [];
+  const operator = [details.operator, details.service_number].filter(Boolean).join(' · ');
+  if (operator) lines.push(operator);
+  const route = [details.route_from, details.route_to].filter(Boolean).join(' → ');
+  if (route && route !== (details.name ?? '')) lines.push(route);
+  const times = [details.departure_time, details.arrival_time].filter(Boolean).join(' – ');
+  if (times) {
+    lines.push(
+      details.duration_hours ? `${times} · ${transportDurationLabel(details.duration_hours)}` : times,
+    );
+  } else if (typeof details.duration_hours === 'number') {
+    lines.push(transportDurationLabel(details.duration_hours));
+  }
+  if (details.stops && details.stops.length > 0) lines.push(details.stops.join(' · '));
+  const seats = [
+    details.travel_class,
+    typeof details.capacity === 'number' ? `${details.capacity} seats` : null,
+  ].filter(Boolean).join(' · ');
+  if (seats) lines.push(seats);
+  if (details.availability) lines.push(`Availability: ${details.availability}`);
+  if (details.features && details.features.length > 0) lines.push(details.features.slice(0, 3).join(' · '));
+  if (lines.length === 0) return null;
+  return (
+    <ul className="mt-1 space-y-0.5">
+      {lines.map((line) => (
+        <li key={line} className="text-[11px] leading-snug text-tourflow-textMuted">
+          {line}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function transportPriceLabel(option: TransportOption): string {
   if (!(option.price > 0)) return 'Price on request';
   if (!option.currency || option.currency.toUpperCase() === 'INR') return formatINR(option.price);
@@ -90,6 +170,28 @@ function transportDurationLabel(hours: number): string {
   const whole = Math.floor(hours);
   const minutes = Math.round((hours - whole) * 60);
   return minutes > 0 ? `${whole}h ${minutes}m` : `${whole}h`;
+}
+
+/**
+ * Destination-aware hero photo from the existing local catalog.
+ * Matches by id, full name, or short name (before the comma) in either
+ * direction, so "Udaipur" matches "Udaipur, Rajasthan" and vice versa.
+ * Returns undefined when nothing matches — the caller falls back cleanly.
+ * No invented URLs, no hardcoding: works for any destination.
+ */
+function findCuratedDestination(label?: string) {
+  const query = (label ?? '').trim().toLowerCase();
+  if (!query) return undefined;
+  return curatedDestinations.find((d) => {
+    const name = d.name.toLowerCase();
+    const id = d.id.toLowerCase();
+    const short = d.name.split(',')[0].trim().toLowerCase();
+    return (
+      name.includes(query) ||
+      query.includes(id) ||
+      (short ? query.includes(short) || short.includes(query) : false)
+    );
+  });
 }
 
 export default function Itinerary() {
@@ -211,7 +313,10 @@ export default function Itinerary() {
   // from the itinerary's transport item, updated on every switch).
   const transportOrigin = apiTrip?.origin ?? draft.origin;
   const transportDestination = apiTrip?.destination?.name ?? draft.destination;
-  const canSwitchTransport = isLive && !!tripId && !isConfirmed && !!transportOrigin && !!transportDestination;
+  // Switcher availability never depends on the generic name listing: options
+  // come from the trip-scoped endpoint, so any trip with an itinerary can
+  // switch (even origin-less ones with catalog transfers).
+  const canSwitchTransport = isLive && !!tripId && !isConfirmed;
   const selectedTransportId =
     draft.transportId ??
     apiTrip?.itinerary.find((item) => item.item_type === 'transport' && item.transport_id)?.transport_id ??
@@ -219,14 +324,17 @@ export default function Itinerary() {
 
   useEffect(() => {
     if (sheet?.kind !== 'transport') return;
-    if (!transportOrigin || !transportDestination) {
+    // Trip-scoped listing: options belong to THIS trip's destination row,
+    // so every displayed ID is guaranteed selectable via change-transport
+    // (the generic name listing can return a duplicate-name sibling's IDs).
+    if (!tripId) {
       setTransportOptions([]);
       return;
     }
     let cancelled = false;
     setTransportOptions(null);
     setTransportError(null);
-    getTransportOptions(transportOrigin, transportDestination).then(
+    getTripTransportOptions(tripId).then(
       (list) => {
         if (!cancelled) setTransportOptions(list);
       },
@@ -245,7 +353,7 @@ export default function Itinerary() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sheet?.kind === 'transport' ? 'open' : 'closed']);
+  }, [sheet?.kind === 'transport' ? `open:${tripId}` : 'closed']);
   const stayAlternatives = useMemo(
     () => (apiTrip?.accommodation_alternatives ?? []).map(toStayOption),
     [apiTrip],
@@ -333,30 +441,24 @@ export default function Itinerary() {
   const tripTotal = draft.totalCost ?? apiTrip?.total_cost;
   const tripBudget = draft.budgetAmount ?? apiTrip?.total_budget;
   const overBudgetBy = tripTotal !== undefined && tripBudget ? tripTotal - tripBudget : 0;
-  // Pace comes from the trip itself (preselect); change = PUT pace + optimize.
-  const currentPace = isLive && apiTrip ? matchTripPace(apiTrip.pace) : 'balanced';
-
-  const handlePaceChange = async (pace: TripPaceId) => {
-    if (!tripId || pendingKey || pace === currentPace) return;
-    setPendingKey('pace');
-    setActionError(null);
-    try {
-      await updateTripPace(tripId, pace);
-      const updated = await optimizeTrip(tripId);
-      updateDraft(applyServerTrip(updated, draft));
-    } catch (error) {
-      if (redirectOnUnauthorized(error)) return;
-      setActionError(error instanceof Error ? error.message : 'Could not change pace. Please try again.');
-    } finally {
-      setPendingKey(null);
-    }
-  };
   const perDayMock = draft.budgetAmount ? formatINR(draft.budgetAmount / days.length) : '—';
   const perDayLive =
     isLive && draft.totalCost !== undefined ? formatINR(draft.totalCost / liveDayCount) : perDayMock;
   const dateRange =
     draft.startDate && draft.endDate ? tripDateRangeLabel(draft.startDate, draft.endDate) : '';
-  const heroImage = isLive ? apiTrip?.destination?.hero_image_url ?? undefined : undefined;
+  // Hero photo: backend destination photo first (real trip imagery), fallback
+  // to the verified local catalog photo for the destination (e.g. Udaipur →
+  // City Palace on Lake Pichola). No invented URLs, no hardcoding — dynamic
+  // for any destination. No video source exists in the app today, so a photo
+  // is used per the brief.
+  const curatedHero = findCuratedDestination(destinationLabel);
+  const backendHeroImage = apiTrip?.destination?.hero_image_url?.trim() || undefined;
+  const heroImage = backendHeroImage ?? curatedHero?.imageUrl;
+  const heroImageAlt = backendHeroImage
+    ? `${destinationLabel} photo`
+    : (curatedHero?.imageAlt ?? `${destinationLabel} photo`);
+  const costBreakdown = apiTrip?.cost_breakdown;
+  const dayCount = isLive ? liveDayCount : days.length;
   const transportStops = days.flatMap((d) =>
     d.stops.filter((s) => s.tags.includes('Transport')).map((s) => ({ ...s, dayLabel: `Day ${d.day}` })),
   );
@@ -390,7 +492,7 @@ export default function Itinerary() {
     } catch (error) {
       if (redirectOnUnauthorized(error)) return;
       if (error instanceof ApiError && error.status === 422) {
-        setActionError('The backend needs valid trip dates for this change. Adjust your dates and try again.');
+        setActionError('Valid trip dates are needed for this change. Adjust your dates and try again.');
         openDatesSheet();
       } else {
         setActionError(error instanceof Error ? error.message : 'This change failed. Please try again.');
@@ -546,16 +648,23 @@ export default function Itinerary() {
       );
     }
     if (kind === 'Transport') {
-      if (!canSwitchTransport) return null;
+      // The booking link stays visible even after confirmation (the traveler
+      // still needs it to book); switching is pre-confirm only.
+      if (!canSwitchTransport && !stop.bookingUrl) return null;
       return (
-        <button
-          type="button"
-          disabled={busy}
-          onClick={() => setSheet({ kind: 'transport' })}
-          className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
-        >
-          Switch
-        </button>
+        <div className="flex flex-col items-start gap-1.5">
+          <BookingLink url={stop.bookingUrl} />
+          {canSwitchTransport ? (
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => setSheet({ kind: 'transport' })}
+              className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+            >
+              Switch
+            </button>
+          ) : null}
+        </div>
       );
     }
     if (kind === 'Activity' || kind === 'Meal' || kind === 'Leisure') {
@@ -593,7 +702,7 @@ export default function Itinerary() {
         dateRange,
         travelersLabel: `${apiTrip.traveler_count} travelers`,
         budgetLine: `Budget ${formatINR(apiTrip.total_budget)}`,
-        totalLine: `Live total ${formatINR(apiTrip.total_cost)}`,
+        totalLine: `Total ${formatINR(apiTrip.total_cost)}`,
         costLines: [
           { label: 'Transport', value: formatINR(breakdown.transport) },
           { label: 'Stays', value: formatINR(breakdown.accommodation) },
@@ -627,65 +736,78 @@ export default function Itinerary() {
 
   return (
     <div className="flex flex-col gap-4">
-      <section className="relative overflow-hidden rounded-2xl bg-tourflow-dark text-white shadow-card">
+      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark text-white shadow-card">
+        <div className="absolute inset-0 bg-tourflow-dark" aria-hidden="true" />
         {heroImage ? (
-          <>
-            <SafeImage
-              src={heroImage}
-              alt={`${destinationLabel} hero photo`}
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25" aria-hidden="true" />
-          </>
+          <SafeImage
+            src={heroImage}
+            alt={heroImageAlt}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
         ) : null}
-        <div className="relative p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-white/60">
-            {isLive ? 'Live WanderAI Itinerary' : 'Mock Itinerary'} ·{' '}
-            {draft.style ? `${draft.style} pacing` : 'Pacing: Relaxed'}
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25"
+          aria-hidden="true"
+        />
+        <div className="relative flex min-h-[340px] flex-col justify-end p-5 sm:p-6 md:min-h-[420px] md:p-8">
+          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">
+            Your trip
           </p>
-          <h2 className="mt-1 text-xl font-extrabold">{destinationLabel}</h2>
+          <h2 className="mt-1 text-3xl font-extrabold leading-[1.1] tracking-tight md:text-4xl">
+            {destinationLabel}
+          </h2>
           {originLabel ? (
-            <p className="text-xs font-semibold text-white/80">{originLabel} → {destinationLabel}</p>
+            <p className="mt-1.5 text-sm font-semibold text-white/90">
+              {originLabel} → {destinationLabel}
+            </p>
           ) : null}
-          <p className="text-xs text-white/70">
-            {travelersLabel} · {isLive ? liveDayCount : days.length}{' '}
-            {(isLive ? liveDayCount : days.length) === 1 ? 'Day' : 'Days'}
+          <p className="mt-1 text-[13px] leading-relaxed text-white/80">
+            {travelersLabel} · {dayCount} {dayCount === 1 ? 'Day' : 'Days'}
+            {dateRange ? ` · ${dateRange}` : ''} · {totalStops}{' '}
+            {totalStops === 1 ? 'Stop' : 'Stops'}
           </p>
-          {dateRange ? <p className="text-xs text-white/70">{dateRange}</p> : null}
-          <p className="mt-1 text-xs font-bold text-tourflow-primaryBorder">
-            {isLive && draft.totalCost !== undefined
-              ? `Live trip total ${formatINR(draft.totalCost)} (backend)`
-              : draft.budgetLabel
-                ? `${draft.budgetLabel} Total (your budget)`
-                : 'Budget not specified'}
+          <p className="mt-2.5 text-lg font-extrabold leading-none text-white md:text-xl">
+            {tripTotal !== undefined
+              ? formatINR(tripTotal)
+              : (draft.budgetLabel ?? (tripBudget !== undefined ? formatINR(tripBudget) : 'Budget to be confirmed'))}{' '}
+            <span className="align-middle text-xs font-semibold text-white/70">
+              total
+              {tripBudget !== undefined && tripTotal !== undefined && tripBudget !== tripTotal
+                ? ` · Budget ${formatINR(tripBudget)}`
+                : ''}
+            </span>
           </p>
-          <div className="mt-3 grid grid-cols-4 gap-2">
+          {costBreakdown ? (
+            <p className="mt-1.5 text-xs leading-relaxed text-white/70">
+              Transport {formatINR(costBreakdown.transport)} · Stays{' '}
+              {formatINR(costBreakdown.accommodation)} · Activities{' '}
+              {formatINR(costBreakdown.activities)}
+            </p>
+          ) : null}
+          <div className="mt-4 grid grid-cols-4 gap-2">
             {[
               { id: 'travelers', value: draft.travelers ? String(draft.travelers) : '–', label: 'Travelers' },
-              { id: 'days', value: String(isLive ? liveDayCount : days.length), label: 'Days' },
+              { id: 'days', value: String(dayCount), label: 'Days' },
               { id: 'stops', value: String(totalStops), label: 'Stops' },
-              { id: 'perday', value: isLive ? perDayLive : perDayMock, label: isLive ? 'Per day' : 'Per day*' },
+              { id: 'perday', value: isLive ? perDayLive : perDayMock, label: 'Per day' },
             ].map((m) => (
-              <div key={m.id} className="rounded-xl bg-white/10 p-2 text-center backdrop-blur-[1px]">
-                <p className="truncate text-sm font-extrabold">{m.value}</p>
-                <p className="text-[11px] text-white/70">{m.label}</p>
+              <div
+                key={m.id}
+                className="rounded-2xl bg-white/15 p-2.5 text-center shadow-soft backdrop-blur-md"
+              >
+                <p className="truncate text-sm font-extrabold text-white">{m.value}</p>
+                <p className="mt-0.5 text-[11px] font-medium text-white/75">{m.label}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {isLive ? (
-        <p className="rounded-xl bg-tourflow-sageLight px-3 py-2 text-xs font-semibold text-tourflow-sage">
-          ✓ Generated by the WanderAI backend
-          {draft.tripId ? ` · Trip ${draft.tripId.slice(0, 8)}…` : ''} — stays, activities and
-          transport carry live catalog metadata where available.
-        </p>
-      ) : (
+      {!isLive ? (
         <p className="rounded-xl bg-tourflow-primarySoft px-3 py-2 text-xs font-semibold text-tourflow-primary">
-          * Preview only — stays, activities, transport and prices are MOCK placeholders, not real bookings.
+          Preview — sample details, final plan may vary.
         </p>
-      )}
+      ) : null}
 
       {isConfirmed ? (
         <p role="status" className="rounded-xl bg-tourflow-sageLight px-3 py-2.5 text-center text-sm font-extrabold text-tourflow-sage">
@@ -714,10 +836,10 @@ export default function Itinerary() {
         <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
           <p className="text-xs font-bold text-amber-800">
             Heads up: {emptyDays.length === 1 ? `Day ${emptyDays[0]} has` : `Days ${emptyDays.join(', ')} have`} no
-            planned stops yet — this trip predates the full-range guarantee.
+            planned stops yet.
           </p>
           <p className="mt-0.5 text-xs text-amber-700">
-            Adjust your dates and choose Generate again to respread the itinerary across every day.
+            Adjust your dates and generate again to fill every day.
           </p>
           <button
             type="button"
@@ -733,36 +855,6 @@ export default function Itinerary() {
         <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
           {actionError}
         </p>
-      ) : null}
-
-      {isLive && tripId && !isConfirmed ? (
-        <section aria-label="Trip pace" className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Pace</p>
-          <div className="mt-2 flex gap-2" role="radiogroup" aria-label="Trip pace">
-            {TRIP_PACES.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                role="radio"
-                aria-checked={option.id === currentPace}
-                disabled={pendingKey !== null}
-                onClick={() => void handlePaceChange(option.id)}
-                className={`flex-1 rounded-full px-3 py-2 text-xs font-bold transition-colors disabled:opacity-60 ${
-                  option.id === currentPace
-                    ? 'bg-tourflow-primary text-white shadow-float'
-                    : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
-                }`}
-              >
-                {pendingKey === 'pace' && option.id !== currentPace ? '…' : option.label}
-              </button>
-            ))}
-          </div>
-          <p className="mt-1.5 text-xs text-tourflow-textMuted">
-            {pendingKey === 'pace'
-              ? 'Respreading days at the new pace…'
-              : TRIP_PACES.find((o) => o.id === currentPace)?.hint}
-          </p>
-        </section>
       ) : null}
 
       {isLive && apiTrip ? (
@@ -898,15 +990,20 @@ export default function Itinerary() {
               </div>
               {transportOrigin && transportDestination ? (
                 <p className="mt-0.5 text-[11px] text-tourflow-textMuted">
-                  Researched for {transportOrigin} → {transportDestination}
+                  For {transportOrigin} → {transportDestination}
                 </p>
               ) : null}
-              <ul className="mt-1 space-y-1">
+              <ul className="mt-2 space-y-2">
                 {transportStops.map((s) => (
-                  <li key={s.id} className="text-xs text-tourflow-textMuted">
-                    <span className="font-semibold text-tourflow-dark">{s.dayLabel} · </span>
-                    {s.title}
-                    {s.costLabel ? ` — ${s.costLabel}` : ''}
+                  <li key={s.id} className="rounded-xl bg-tourflow-surfaceMuted/60 p-2.5">
+                    <p className="text-xs font-bold text-tourflow-dark">
+                      <span className="font-semibold">{s.dayLabel} · </span>
+                      {s.transportDetails?.mode ? `${transportModeLabel(s.transportDetails.mode)} · ` : ''}
+                      {s.title}
+                      {s.costLabel ? ` — ${s.costLabel}` : ''}
+                    </p>
+                    {s.transportDetails ? <TransportDetailBlock details={s.transportDetails} /> : null}
+                    <BookingLink url={s.bookingUrl} />
                   </li>
                 ))}
               </ul>
@@ -930,12 +1027,10 @@ export default function Itinerary() {
       ) : (
         <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
           <p className="text-xs font-bold">
-            {destinationLabel} local loop · easy pace{isLive ? '' : ' (mock)'}
+            {destinationLabel} local loop · easy pace
           </p>
           <p className="text-[11px] text-tourflow-textMuted">
-            {isLive
-              ? 'Transfers and stays carry backend catalog data where available.'
-              : 'Transfers are placeholders — real routes arrive with maps.'}
+            Transfers and stays will be confirmed with your trip.
           </p>
         </section>
       )}
@@ -946,10 +1041,10 @@ export default function Itinerary() {
             <h3 className="text-base font-bold">Possible Options</h3>
             <p className="text-xs text-tourflow-textMuted">
               {options === null
-                ? 'Checking live alternatives…'
+                ? 'Checking alternatives…'
                 : options.length > 0
-                  ? `${options.length} live alternative${options.length === 1 ? '' : 's'} from the catalog`
-                  : 'No alternative experiences listed for this destination yet.'}
+                  ? `${options.length} alternative${options.length === 1 ? '' : 's'} for this destination`
+                  : 'No alternative experiences for this destination yet.'}
             </p>
           </div>
           {options !== null && options.length > 0 ? (
@@ -1013,7 +1108,7 @@ export default function Itinerary() {
         <Sheet label="Adjust trip dates" onClose={closeSheet}>
           <h3 className="text-base font-extrabold text-tourflow-dark">Adjust Dates</h3>
           <p className="mt-1 text-xs text-tourflow-textMuted">
-            Dates are sent to the backend as ISO datetimes and are required before a trip can be confirmed.
+            Pick your travel dates. Dates are required before a trip can be confirmed.
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <label className="block">
@@ -1137,11 +1232,11 @@ export default function Itinerary() {
           <p className="mt-1 text-xs text-tourflow-textMuted">
             {transportOrigin && transportDestination ? (
               <>
-                Verified options for <strong>{transportOrigin} → {transportDestination}</strong> —
+                Available transfers for <strong>{transportOrigin} → {transportDestination}</strong> —
                 switching replaces your Day-1 transfer.
               </>
             ) : (
-              <>Add an origin and destination to see verified options.</>
+              <>Add an origin and destination to see available transfers.</>
             )}
           </p>
           {transportError ? (
@@ -1155,14 +1250,14 @@ export default function Itinerary() {
               <p className="text-xs text-tourflow-textMuted">Loading transport options…</p>
             ) : transportOptions.length === 0 ? (
               <p className="text-xs text-tourflow-textMuted">
-                No verified options for this route yet — your current transfer stays as planned.
+                No other transfers for this route yet — your current transfer stays as planned.
               </p>
             ) : (
               transportOptions.map((option) => {
                 const selected = selectedTransportId === option.id;
                 const fits =
                   draft.travelers === undefined || (option.capacity || 0) >= draft.travelers;
-                const duration = transportDurationLabel(option.duration_hours);
+                const details = detailsFromOption(option);
                 return (
                   <div
                     key={option.id}
@@ -1170,17 +1265,17 @@ export default function Itinerary() {
                       selected ? 'border-tourflow-primary bg-tourflow-primarySoft/40' : 'border-tourflow-cardBorder'
                     }`}
                   >
-                    <p className="text-sm font-bold text-tourflow-dark">{option.name}</p>
+                    <p className="text-sm font-bold text-tourflow-dark">
+                      {transportModeLabel(option.type)} · {option.name}
+                    </p>
                     <p className="mt-0.5 text-xs text-tourflow-textMuted">
-                      {option.route_from} → {option.route_to}
-                      {duration ? ` · ${duration}` : ''}
-                    </p>
-                    <p className="mt-1 text-[11px] text-tourflow-textMuted">
                       <strong className="text-tourflow-dark">{transportPriceLabel(option)}</strong>
-                      <span> · {option.capacity} seats</span>
-                      {option.provider_name ? <span> · {option.provider_name}</span> : null}
-                      {!fits ? <span className="font-semibold text-red-600"> · Only {option.capacity} seats</span> : null}
+                      {!fits ? (
+                        <span className="font-semibold text-red-600"> · Only {option.capacity} seats</span>
+                      ) : null}
                     </p>
+                    <TransportDetailBlock details={details} />
+                    <BookingLink url={details.booking_url} />
                     <button
                       type="button"
                       disabled={pendingKey !== null || !fits || selected}
@@ -1214,13 +1309,13 @@ export default function Itinerary() {
         <Sheet label="Swap activity" onClose={closeSheet}>
           <h3 className="text-base font-extrabold text-tourflow-dark">Swap activity</h3>
           <p className="mt-1 text-xs text-tourflow-textMuted">
-            Replace “{sheet.stop.title}” with a live catalog alternative.
+            Choose a replacement for “{sheet.stop.title}”.
           </p>
           <div className="mt-3 flex flex-col gap-2">
             {options === null ? (
-              <p className="text-xs text-tourflow-textMuted">Checking live alternatives…</p>
+              <p className="text-xs text-tourflow-textMuted">Checking alternatives…</p>
             ) : options.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">No alternative experiences listed for this destination yet.</p>
+              <p className="text-xs text-tourflow-textMuted">No alternative experiences for this destination yet.</p>
             ) : (
               options.map((option) => (
                 <button
@@ -1275,12 +1370,12 @@ export default function Itinerary() {
       {sheet?.kind === 'add' ? (
         <Sheet label={`Add activity to Day ${dayNumber}`} onClose={closeSheet}>
           <h3 className="text-base font-extrabold text-tourflow-dark">Add activity · Day {dayNumber}</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">Pick a live catalog experience to append to this day.</p>
+          <p className="mt-1 text-xs text-tourflow-textMuted">Choose an experience to add to this day.</p>
           <div className="mt-3 flex flex-col gap-2">
             {options === null ? (
-              <p className="text-xs text-tourflow-textMuted">Checking live alternatives…</p>
+              <p className="text-xs text-tourflow-textMuted">Checking alternatives…</p>
             ) : options.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">No alternative experiences listed for this destination yet.</p>
+              <p className="text-xs text-tourflow-textMuted">No alternative experiences for this destination yet.</p>
             ) : (
               options.map((option) => (
                 <button
