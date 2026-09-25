@@ -28,6 +28,15 @@ import { safeText } from './traveler';
 export interface TripCreateRequest {
   title: string;
   destination_name?: string;
+  /** Starting city (free text, user-typed or parsed; never invented). */
+  origin?: string;
+  /**
+   * Legacy explicit transport selection. Current clients NEVER send this
+   * pre-generation: after Origin + Destination + Dates + Travelers are
+   * confirmed, the backend researches transfers live and Gemini analyzes
+   * them before generating the itinerary. Kept for backward compatibility.
+   */
+  transport_id?: string;
   start_date?: string;
   end_date?: string;
   duration_days?: number;
@@ -39,6 +48,36 @@ export interface TripCreateRequest {
     travel_companions?: string;
     special_requests?: string;
   };
+}
+
+/** One row of GET /api/transport — real catalog transport, never fabricated. */
+export interface TransportOption {
+  id: string;
+  type: string;
+  name: string;
+  route_from: string;
+  route_to: string;
+  duration_hours: number;
+  price: number;
+  currency: string;
+  capacity: number;
+  features: string[];
+  provider_name?: string | null;
+}
+
+/**
+ * GET /api/transport?origin=&destination= — real verified options for an
+ * origin→destination pair. Unknown destinations yield [] (never an error,
+ * never fabricated rows). Capacity is checked client-side from the rows.
+ */
+export async function getTransportOptions(origin: string, destination: string): Promise<TransportOption[]> {
+  const params = new URLSearchParams({
+    origin: origin.trim(),
+    destination: destination.trim(),
+  });
+  const items = await apiClient.authGet<unknown>(`/api/transport?${params.toString()}`);
+  if (!Array.isArray(items)) return [];
+  return items.filter((t): t is TransportOption => !!t && typeof t === 'object' && typeof (t as { id?: unknown }).id === 'string');
 }
 
 /** One row of `_trip_dict(...).itinerary` (routes.py `_trip_dict`, flattened `meta_data.ui`). */
@@ -107,6 +146,8 @@ export interface ApiTripWithItinerary {
   currency: string;
   traveler_count: number;
   pace: string;
+  /** Starting city persisted on the trip (present on trips created with one). */
+  origin?: string | null;
   /** ISO datetimes when the trip carries dates (present on trips created/edited with a range). */
   start_date?: string | null;
   end_date?: string | null;
@@ -258,6 +299,13 @@ export function tripDraftToCreateRequest(draft: TripDraft): TripCreateRequest {
     pace: paceForStyle(draft.style),
   };
   if (destination) body.destination_name = destination;
+  const origin = draft.origin?.trim() ? draft.origin.trim() : undefined;
+  if (origin) body.origin = origin;
+  // Transportation is NOT collected pre-generation: the backend researches
+  // live transfers for the origin→destination pair after these requirements
+  // are confirmed, Gemini analyzes them, and the itinerary includes the
+  // best one (switchable later via changeTransport). draft.transportId is
+  // only ever a post-generation selection, so it is NEVER sent here.
   // Dates are the source of truth: a valid start/end pair ALWAYS overrides a
   // possibly stale `durationDays` (e.g. "3 days" parsed from the prompt while
   // the pickers say 16→21 Oct). Sending both contradicting values lets the
@@ -277,10 +325,16 @@ export function tripDraftToCreateRequest(draft: TripDraft): TripCreateRequest {
   if (draft.budgetAmount !== undefined) body.total_budget = draft.budgetAmount;
   if (draft.travelers !== undefined) body.traveler_count = draft.travelers;
   const travelCompanions = companionsForDraft(draft);
-  if (travelCompanions !== undefined || prompt) {
+  // Other preferences ride along with the prompt: the free-text field plus
+  // the parsed travel style, so the backend itinerary accounts for them.
+  const extraPrefs = [draft.specialRequests?.trim(), draft.style?.trim()].filter(
+    (part): part is string => !!part,
+  );
+  const specialRequests = [prompt, ...extraPrefs].filter(Boolean).join('\n');
+  if (travelCompanions !== undefined || specialRequests) {
     body.preferences = {};
     if (travelCompanions !== undefined) body.preferences.travel_companions = travelCompanions;
-    if (prompt) body.preferences.special_requests = prompt;
+    if (specialRequests) body.preferences.special_requests = specialRequests;
   }
   return body;
 }
@@ -307,10 +361,12 @@ export function getTrip(tripId: string): Promise<ApiTripWithItinerary> {
  */
 export interface TravelerTripSummary {
   id: string;
+  /** Canonical backend key (normalized into `id` by listTravelerTrips). */
   trip_id?: string | null;
   title?: string | null;
   destination_name?: string | null;
   destination?: { name?: string | null } | string | null;
+  origin?: string | null;
   status?: string | null;
   duration_days?: number | null;
   start_date?: string | null;
@@ -415,15 +471,17 @@ function summaryDate(value: string | null | undefined): string {
 
 export interface DuplicateCheckInput {
   destination?: string;
+  origin?: string;
   startDate?: string;
   endDate?: string;
 }
 
 /**
- * Find an existing still-planning trip for the same destination + dates.
- * Confirmed trips are never treated as duplicates (a confirmed booking must
- * not be "reopened" by a new plan). Returns the first match or null.
- * Requires destination AND both dates — without dates there is nothing
+ * Find an existing still-planning trip for the same destination + dates
+ * (+ origin when the new plan names one — same city pair, not just same
+ * destination). Confirmed trips are never treated as duplicates (a confirmed
+ * booking must not be "reopened" by a new plan). Returns the first match or
+ * null. Requires destination AND both dates — without dates there is nothing
  * meaningful to match on, so no dialog is shown.
  */
 export function findPlanningDuplicate(
@@ -432,11 +490,19 @@ export function findPlanningDuplicate(
 ): TravelerTripSummary | null {
   const dest = input.destination?.trim().toLowerCase();
   if (!dest || !input.startDate || !input.endDate) return null;
+  const origin = input.origin?.trim().toLowerCase();
   for (const trip of list) {
     if (safeText(trip.status).trim().toLowerCase() === 'confirmed') continue;
     if (summaryDestinationLower(trip) !== dest) continue;
     if (summaryDate(trip.start_date) !== input.startDate) continue;
     if (summaryDate(trip.end_date) !== input.endDate) continue;
+    // Same city pair, not just same destination: when the new plan names an
+    // origin, only trips carrying that same origin match. Trips without a
+    // stored origin never match an origin-bearing plan (can't confirm).
+    if (origin) {
+      const tripOrigin = safeText(trip.origin).trim().toLowerCase();
+      if (!tripOrigin || tripOrigin !== origin) continue;
+    }
     return trip;
   }
   return null;
@@ -505,6 +571,18 @@ export function changeDayAccommodation(
   return apiClient.authPost<ApiTripWithItinerary>(tripPath(tripId, '/change-day-accommodation'), {
     accommodation_id: accommodationId,
     day_number: dayNumber,
+  });
+}
+
+/**
+ * POST /api/trips/{id}/change-transport — switch the Day-1 transfer to a
+ * different verified option for the same destination (the post-generation
+ * transport switcher). Works with catalog and live-researched rows alike.
+ * Returns the updated trip; callers re-render via applyServerTrip.
+ */
+export function changeTransport(tripId: string, transportId: string): Promise<ApiTripWithItinerary> {
+  return apiClient.authPost<ApiTripWithItinerary>(tripPath(tripId, '/change-transport'), {
+    transport_id: transportId,
   });
 }
 
@@ -757,13 +835,17 @@ export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): P
     itinerarySignature: itineraryInputSignature({
       prompt: draft.prompt,
       destination: draft.destination,
+      origin: draft.origin,
       durationDays: draft.durationDays,
       travelers: draft.travelers,
+      travelerLabel: draft.travelerLabel,
       budgetAmount: draft.budgetAmount,
       budgetLabel: draft.budgetLabel,
       style: draft.style,
       startDate: draft.startDate,
       endDate: draft.endDate,
+      specialRequests: draft.specialRequests,
+      transportId: draft.transportId,
     }),
     tripId: trip.id,
     itinerarySource: 'api',
@@ -780,14 +862,22 @@ export function applyServerTrip(trip: ApiTripWithItinerary, draft: TripDraft): P
  */
 export function seedDraftFromTrip(trip: ApiTripWithItinerary): TripDraft {
   const destination = trip.destination?.name ?? undefined;
+  // Restore the persisted selection from the itinerary itself: the transport
+  // item carrying a catalog id is the source of truth (the response has no
+  // trip-level selected id). Nothing is invented — absent means unselected.
+  const selectedTransportId = trip.itinerary.find(
+    (item) => item.item_type === 'transport' && typeof item.transport_id === 'string' && item.transport_id,
+  )?.transport_id;
   return {
     prompt: trip.title?.trim() || (destination ? `Trip to ${destination}` : 'My WanderAI trip'),
     destination,
+    origin: typeof trip.origin === 'string' && trip.origin.trim() ? trip.origin : undefined,
     durationDays: trip.duration_days,
     travelers: trip.traveler_count,
     startDate: trip.start_date?.slice(0, 10) || undefined,
     endDate: trip.end_date?.slice(0, 10) || undefined,
     budgetAmount: trip.total_budget,
+    transportId: typeof selectedTransportId === 'string' ? selectedTransportId : undefined,
     itinerary: null,
   };
 }

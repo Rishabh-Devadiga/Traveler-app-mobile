@@ -1287,9 +1287,10 @@ export const knownDestinations: Array<{ label: string; pattern: RegExp }> = [
 export const planningSteps = [
   { id: 'p1', label: 'Understanding your trip' },
   { id: 'p2', label: 'Building your preferences' },
-  { id: 'p3', label: 'Finding experiences' },
-  { id: 'p4', label: 'Planning your days' },
-  { id: 'p5', label: 'Preparing your itinerary' },
+  { id: 'p3', label: 'Researching transfers for your route' },
+  { id: 'p4', label: 'Finding experiences' },
+  { id: 'p5', label: 'Planning your days' },
+  { id: 'p6', label: 'Preparing your itinerary' },
 ];
 
 export const loadingMockNote = {

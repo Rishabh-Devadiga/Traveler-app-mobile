@@ -213,6 +213,7 @@ export interface OnboardingSlide {
 /** Deterministic parse result for a natural-language trip prompt. Unknown fields stay undefined. */
 export interface ParsedTripFields {
   destination?: string;
+  origin?: string;
   durationDays?: number;
   travelers?: number;
   travelerLabel?: string;
@@ -230,6 +231,23 @@ export interface TripDraft {
   destination?: string;
   /** Whether the destination was pre-filled from 3D Globe selection or manually entered. */
   destinationSource?: 'globe' | 'manual';
+  /** Starting city (free text, user-typed or parsed; never invented). */
+  origin?: string;
+  /**
+   * Post-generation transport selection: the catalog id of the transfer in
+   * the generated itinerary (restored from the trip's transport item).
+   * NEVER collected before generation — the backend researches transfers
+   * live after the requirements are confirmed. Used only to display/switch.
+   */
+  transportId?: string;
+  /** Display label for the selected transport, built from its real row. */
+  transportLabel?: string;
+  /**
+   * Other preferences (free text, optional): interests, pace, food,
+   * accommodation style — anything beyond the five required checklist
+   * fields. Sent as part of the trip preferences, never parsed.
+   */
+  specialRequests?: string;
   durationDays?: number;
   travelers?: number;
   travelerLabel?: string;

@@ -127,7 +127,30 @@ export default function TripChecklist() {
             id="checklist-destination"
             value={draft.destination ?? ''}
             placeholder="Not specified — e.g. Kashmir"
-            onChange={(e) => updateDraft({ destination: e.target.value.trim() ? e.target.value : undefined })}
+            onChange={(e) =>
+              updateDraft({
+                destination: e.target.value.trim() ? e.target.value : undefined,
+              })
+            }
+            className={`${inputClass} mt-1 border-b border-transparent pb-0.5`}
+          />
+        </article>
+
+        <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Starting From / Origin</p>
+            <FieldHint detected={draft.origin !== undefined} />
+          </div>
+          <label htmlFor="checklist-origin" className="sr-only">Starting city (origin)</label>
+          <input
+            id="checklist-origin"
+            value={draft.origin ?? ''}
+            placeholder="Not specified — e.g. Mumbai"
+            onChange={(e) =>
+              updateDraft({
+                origin: e.target.value.trim() ? e.target.value : undefined,
+              })
+            }
             className={`${inputClass} mt-1 border-b border-transparent pb-0.5`}
           />
         </article>
@@ -219,23 +242,6 @@ export default function TripChecklist() {
 
         <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">
-              Travel Style <span className="font-semibold normal-case text-tourflow-textMuted/70">· Optional</span>
-            </p>
-            <FieldHint detected={draft.style !== undefined} />
-          </div>
-          <label htmlFor="checklist-style" className="sr-only">Travel style</label>
-          <input
-            id="checklist-style"
-            value={draft.style ?? ''}
-            placeholder="Not specified — e.g. Relaxed"
-            onChange={(e) => updateDraft({ style: e.target.value.trim() ? e.target.value : undefined })}
-            className={`${inputClass} mt-1 border-b border-transparent pb-0.5`}
-          />
-        </article>
-
-        <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
-          <div className="flex items-center justify-between gap-2">
             <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Trip Budget (₹)</p>
             <FieldHint detected={draft.budgetAmount !== undefined} />
           </div>
@@ -256,10 +262,32 @@ export default function TripChecklist() {
             </span>
           </div>
         </article>
+        <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Other Preferences</p>
+            <span className="shrink-0 rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-bold text-tourflow-textMuted">
+              Optional
+            </span>
+          </div>
+          <label htmlFor="checklist-preferences" className="sr-only">Other preferences</label>
+          <textarea
+            id="checklist-preferences"
+            value={draft.specialRequests ?? ''}
+            placeholder="Anything else — e.g. heritage & slow evenings, pure veg food, boutique stays"
+            rows={2}
+            onChange={(e) =>
+              updateDraft({
+                specialRequests: e.target.value.trim() ? e.target.value : undefined,
+              })
+            }
+            className="mt-1 w-full resize-none bg-transparent text-sm font-semibold text-tourflow-dark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-b focus:border-tourflow-primary"
+          />
+        </article>
       </div>
 
       <p className="rounded-xl bg-tourflow-sageLight px-3 py-2 text-xs font-semibold text-tourflow-sage">
-        ✓ Values come from your prompt — edit anything before generating. Mock itinerary only, no real prices.
+        ✓ Values come from your prompt — edit anything before generating. Transfers are researched
+        automatically for your route and included in the itinerary — no need to pick transport now.
       </p>
 
       <button
@@ -272,7 +300,7 @@ export default function TripChecklist() {
         }}
         className="w-full rounded-2xl bg-tourflow-primary px-4 py-3.5 text-sm font-bold text-white shadow-float hover:bg-tourflow-primaryHover disabled:opacity-70"
       >
-        {creating ? 'Starting…' : 'Generate Itinerary'}
+        {creating ? 'Starting…' : 'Confirm & Generate Itinerary'}
       </button>
     </div>
   );

@@ -31,6 +31,15 @@ function parseAmount(raw: string): number | undefined {
 }
 
 function detectDestination(prompt: string): string | undefined {
+  // An explicit "X to Y" leg names the destination directly (e.g. "Mumbai
+  // to Mysore" means Mysore, even though Mumbai matches earlier). Prefer the
+  // last resolvable leg target over positional matching.
+  const legDestination = detectLegDestination(prompt);
+  if (legDestination) return legDestination;
+  return detectDestinationFragment(prompt);
+}
+
+function detectDestinationFragment(prompt: string): string | undefined {
   let best: { index: number; label: string } | undefined;
   for (const entry of knownDestinations) {
     const match = entry.pattern.exec(prompt);
@@ -118,6 +127,58 @@ function detectStyle(prompt: string): string | undefined {
   return hits.slice(0, 2).join(' · ');
 }
 
+const ORIGIN_STOPWORDS = new Set(['home', 'here', 'there', 'work', 'office', 'school']);
+const PLACE_WORD = '[A-Z][a-zA-Z]+(?:\\s+[A-Z][a-zA-Z]+){0,2}';
+
+function cleanPlace(raw: string | undefined): string | undefined {
+  if (!raw) return undefined;
+  const value = raw.trim().replace(/\s+/g, ' ');
+  if (!value || ORIGIN_STOPWORDS.has(value.toLowerCase())) return undefined;
+  return value;
+}
+
+function detectOrigin(prompt: string, destination: string | undefined): string | undefined {
+  const destLower = destination?.toLowerCase();
+  const differentFromDestination = (value: string | undefined): string | undefined => {
+    if (!value) return undefined;
+    // Never report the destination itself as the origin.
+    if (destLower && value.toLowerCase() === destLower) return undefined;
+    return value;
+  };
+  // "X to Y" / "X → Y" where Y is the detected destination (or the last pair).
+  const legRe = new RegExp(`(${PLACE_WORD})\\s*(?:to|→|->)\\s*(${PLACE_WORD})`, 'g');
+  let match: RegExpExecArray | null;
+  let fallback: string | undefined;
+  while ((match = legRe.exec(prompt)) !== null) {
+    const from = differentFromDestination(cleanPlace(match[1]));
+    const to = cleanPlace(match[2]);
+    if (!from || !to) continue;
+    if (destination && to.toLowerCase() === destination.toLowerCase()) return from;
+    fallback ??= from;
+  }
+  if (fallback) return fallback;
+  // "from X" / "From X" (capital-F only; the place itself must stay
+  // capitalized so lowercase words like "home" or "next week" never match).
+  const fromRe = new RegExp(`\\b[Ff][Rr][Oo][Mm]\\s+(${PLACE_WORD})`);
+  const fromMatch = fromRe.exec(prompt);
+  return differentFromDestination(cleanPlace(fromMatch?.[1]));
+}
+
+/** Last "X to Y" leg target that resolves to a known place, if any. */
+function detectLegDestination(prompt: string): string | undefined {
+  const legRe = new RegExp(`(${PLACE_WORD})\\s*(?:to|→|->)\\s*(${PLACE_WORD})`, 'g');
+  let match: RegExpExecArray | null;
+  let last: string | undefined;
+  while ((match = legRe.exec(prompt)) !== null) {
+    const to = cleanPlace(match[2]);
+    if (!to) continue;
+    // Reuse full name matching on the fragment so aliases resolve identically.
+    const resolved = detectDestinationFragment(to);
+    if (resolved) last = resolved;
+  }
+  return last;
+}
+
 /**
  * Deterministic lightweight parser for trip prompts (Phase 2 — no AI/backend).
  * Extracts obvious values only; anything unclear stays undefined (never invented).
@@ -125,8 +186,10 @@ function detectStyle(prompt: string): string | undefined {
 export function parseTripPrompt(prompt: string): ParsedTripFields {
   const text = prompt.trim();
   if (!text) return {};
+  const destination = detectDestination(text);
   return {
-    destination: detectDestination(text),
+    destination,
+    origin: detectOrigin(text, destination),
     durationDays: detectDurationDays(text),
     ...detectTravelers(text),
     ...detectBudget(text),

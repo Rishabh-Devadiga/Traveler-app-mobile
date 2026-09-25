@@ -18,6 +18,7 @@ function detectedTagsFor(prompt: string): string[] {
   const parsed = parseTripPrompt(prompt);
   const tags: string[] = [];
   if (parsed.destination) tags.push(parsed.destination);
+  if (parsed.origin) tags.push(`From ${parsed.origin}`);
   if (parsed.durationDays) tags.push(`${parsed.durationDays} Days`);
   if (parsed.travelerLabel) tags.push(parsed.travelerLabel);
   else if (parsed.travelers) tags.push(`${parsed.travelers} Travelers`);

@@ -17,6 +17,8 @@ export {
   TRIP_PACES,
   changeAccommodation,
   changeDayAccommodation,
+  changeTransport,
+  getTransportOptions,
   swapActivity,
   addActivity,
   deleteActivity,
@@ -42,7 +44,7 @@ export {
   toStayOption,
   asApiTrip,
 } from './trips';
-export type { SwapActivityInput, AddActivityInput, EditActivityInput, TravelerTripSummary, DuplicateCheckInput, ApiMapStop, ApiTripMap, TripMapPin, NormalizedTripMap, TripPaceId } from './trips';
+export type { SwapActivityInput, AddActivityInput, EditActivityInput, TransportOption, TravelerTripSummary, DuplicateCheckInput, ApiMapStop, ApiTripMap, TripMapPin, NormalizedTripMap, TripPaceId } from './trips';
 export type {
   TripCreateRequest,
   ApiItineraryItem,

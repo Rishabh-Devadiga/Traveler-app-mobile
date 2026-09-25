@@ -27,8 +27,8 @@ function countCaptured(draft: TripDraft): number {
     draft.destination,
     draft.durationDays,
     draft.travelers,
+    draft.origin,
     draft.budgetAmount,
-    draft.style,
   ].filter((value) => value !== undefined && value !== '').length;
 }
 
@@ -76,6 +76,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
         budgetAmount: prev.budgetAmount ?? parsed.budgetAmount,
         budgetLabel: prev.budgetLabel ?? parsed.budgetLabel,
         style: prev.style ?? parsed.style,
+        origin: prev.origin ?? parsed.origin,
         parsedForPrompt: prev.prompt,
       };
     });
@@ -87,6 +88,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       const result = generateMockItinerary({
         prompt: prev.prompt,
         destination: prev.destination,
+        origin: prev.origin,
         durationDays: prev.durationDays,
         travelers: prev.travelers,
         travelerLabel: prev.travelerLabel,
@@ -95,6 +97,8 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
         style: prev.style,
         startDate: prev.startDate,
         endDate: prev.endDate,
+        specialRequests: prev.specialRequests,
+        transportId: prev.transportId,
       });
       return {
         ...prev,
@@ -102,6 +106,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
         itinerarySignature: itineraryInputSignature({
           prompt: prev.prompt,
           destination: prev.destination,
+          origin: prev.origin,
           durationDays: prev.durationDays,
           travelers: prev.travelers,
           travelerLabel: prev.travelerLabel,
@@ -110,6 +115,8 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
           style: prev.style,
           startDate: prev.startDate,
           endDate: prev.endDate,
+          specialRequests: prev.specialRequests,
+          transportId: prev.transportId,
         }),
         tripId: undefined,
         itinerarySource: 'mock',
@@ -138,6 +145,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
     const days = apiItineraryToDays(trip.itinerary);
     const signature = itineraryInputSignature({      prompt: input.prompt,
       destination: input.destination,
+      origin: input.origin,
       durationDays: input.durationDays,
       travelers: input.travelers,
       travelerLabel: input.travelerLabel,
@@ -146,6 +154,8 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       style: input.style,
       startDate: input.startDate,
       endDate: input.endDate,
+      specialRequests: input.specialRequests,
+      transportId: input.transportId,
     });
     setDraft((prev) => ({
       ...prev,
@@ -173,6 +183,7 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
       ? itineraryInputSignature({
           prompt: draft.prompt,
           destination: draft.destination,
+          origin: draft.origin,
           durationDays: draft.durationDays,
           travelers: draft.travelers,
           travelerLabel: draft.travelerLabel,
@@ -181,6 +192,8 @@ export function TripDraftProvider({ children }: { children: ReactNode }) {
           style: draft.style,
           startDate: draft.startDate,
           endDate: draft.endDate,
+          specialRequests: draft.specialRequests,
+          transportId: draft.transportId,
         })
       : undefined;
     return {

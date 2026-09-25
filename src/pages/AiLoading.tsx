@@ -141,7 +141,12 @@ export default function AiLoading() {
             return;
           }
           const match = findPlanningDuplicate(
-            { destination: draft.destination, startDate: draft.startDate, endDate: draft.endDate },
+            {
+              destination: draft.destination,
+              origin: draft.origin,
+              startDate: draft.startDate,
+              endDate: draft.endDate,
+            },
             list,
           );
           setDup(match ? { status: 'found', trip: match } : { status: 'clear' });

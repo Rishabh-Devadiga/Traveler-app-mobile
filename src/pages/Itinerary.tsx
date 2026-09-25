@@ -11,12 +11,14 @@ import {
   asApiTrip,
   changeAccommodation,
   changeDayAccommodation,
+  changeTransport,
   clearActiveTripId,
   clearTravelerToken,
   confirmTrip,
   countStops,
   deleteActivity,
   getPossibleOptions,
+  getTransportOptions,
   getTrip,
   isCountableStop,
   matchTripPace,
@@ -34,6 +36,7 @@ import {
   updateTripPace,
   writeActiveTripId,
   type ApiTripWithItinerary,
+  type TransportOption,
   type TripPaceId,
 } from '../api';
 import { ApiError, isApiConfigured } from '../api/client';
@@ -49,6 +52,7 @@ type Sheet =
   | { kind: 'swap'; stop: ItineraryStop }
   | { kind: 'add' }
   | { kind: 'remove'; stop: ItineraryStop }
+  | { kind: 'transport' }
   | null;
 
 /** Bottom-sheet shell shared by the itinerary mutation sheets. */
@@ -75,6 +79,19 @@ function stopKind(stop: ItineraryStop): string {
   return stop.tags[0] ?? '';
 }
 
+function transportPriceLabel(option: TransportOption): string {
+  if (!(option.price > 0)) return 'Price on request';
+  if (!option.currency || option.currency.toUpperCase() === 'INR') return formatINR(option.price);
+  return `${option.currency} ${Math.round(option.price).toLocaleString('en-IN')}`;
+}
+
+function transportDurationLabel(hours: number): string {
+  if (!Number.isFinite(hours) || hours <= 0) return '';
+  const whole = Math.floor(hours);
+  const minutes = Math.round((hours - whole) * 60);
+  return minutes > 0 ? `${whole}h ${minutes}m` : `${whole}h`;
+}
+
 export default function Itinerary() {
   const navigate = useNavigate();
   const { tripId: routeTripId } = useParams();
@@ -89,6 +106,10 @@ export default function Itinerary() {
   const [dateEnd, setDateEnd] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  // Post-generation transport switcher: verified options for the trip's
+  // origin→destination pair (researched live at creation, switchable here).
+  const [transportOptions, setTransportOptions] = useState<TransportOption[] | null>(null);
+  const [transportError, setTransportError] = useState<string | null>(null);
 
   // Refresh survival + deep links: the in-memory draft is gone after reload,
   // but the backend trip id persists — reload the trip (including its
@@ -185,6 +206,46 @@ export default function Itinerary() {
     () => (apiTrip?.selected_accommodation ? toStayOption(apiTrip.selected_accommodation) : null),
     [apiTrip],
   );
+  // Transport switcher data: the trip's origin→destination pair names the
+  // researched route; the current selection comes from the draft (restored
+  // from the itinerary's transport item, updated on every switch).
+  const transportOrigin = apiTrip?.origin ?? draft.origin;
+  const transportDestination = apiTrip?.destination?.name ?? draft.destination;
+  const canSwitchTransport = isLive && !!tripId && !isConfirmed && !!transportOrigin && !!transportDestination;
+  const selectedTransportId =
+    draft.transportId ??
+    apiTrip?.itinerary.find((item) => item.item_type === 'transport' && item.transport_id)?.transport_id ??
+    null;
+
+  useEffect(() => {
+    if (sheet?.kind !== 'transport') return;
+    if (!transportOrigin || !transportDestination) {
+      setTransportOptions([]);
+      return;
+    }
+    let cancelled = false;
+    setTransportOptions(null);
+    setTransportError(null);
+    getTransportOptions(transportOrigin, transportDestination).then(
+      (list) => {
+        if (!cancelled) setTransportOptions(list);
+      },
+      (error: unknown) => {
+        if (cancelled) return;
+        if (isUnauthorized(error)) {
+          clearTravelerToken();
+          navigate('/login', { replace: true, state: { from: '/itinerary' } });
+          return;
+        }
+        setTransportOptions([]);
+        setTransportError(error instanceof Error ? error.message : 'Could not load transport options.');
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sheet?.kind === 'transport' ? 'open' : 'closed']);
   const stayAlternatives = useMemo(
     () => (apiTrip?.accommodation_alternatives ?? []).map(toStayOption),
     [apiTrip],
@@ -264,6 +325,7 @@ export default function Itinerary() {
   const emptyDays = isLive ? dayNumbers.filter((n) => (stopsByDay.get(n) ?? []).length === 0) : [];
   // Header + hero always name the trip's real destination.
   const destinationLabel = apiTrip?.destination?.name ?? draft.destination ?? 'Your destination';
+  const originLabel = apiTrip?.origin ?? draft.origin;
   const travelersLabel = draft.travelerLabel ?? (draft.travelers ? `${draft.travelers} travelers` : 'Group');
   const totalStops = days.flatMap((d) => d.stops).filter(isCountableStop).length;
   // Budget honesty: backend totals can exceed the trip budget (old trips) —
@@ -343,6 +405,29 @@ export default function Itinerary() {
     setDateEnd(draft.endDate ?? '');
     setDateError(null);
     setSheet({ kind: 'dates' });
+  };
+
+  /**
+   * Switch the Day-1 transfer to another verified option for the same
+   * origin→destination pair. The signature is recomputed from the updated
+   * selection so the fresh itinerary is NOT treated as stale (otherwise
+   * Itinerary would bounce back to Loading and re-POST a duplicate trip).
+   */
+  const handleTransportSwitch = async (option: TransportOption) => {
+    if (!tripId || pendingKey) return;
+    setPendingKey(`transport:${option.id}`);
+    setActionError(null);
+    try {
+      const updated = await changeTransport(tripId, option.id);
+      const next = { ...draft, transportId: option.id, transportLabel: option.name };
+      updateDraft({ ...applyServerTrip(updated, next), transportId: option.id, transportLabel: option.name });
+      setSheet(null);
+    } catch (error) {
+      if (redirectOnUnauthorized(error)) return;
+      setActionError(error instanceof Error ? error.message : 'Could not switch transportation. Please try again.');
+    } finally {
+      setPendingKey(null);
+    }
   };
 
   const handleDatesSave = async () => {
@@ -460,6 +545,19 @@ export default function Itinerary() {
         </div>
       );
     }
+    if (kind === 'Transport') {
+      if (!canSwitchTransport) return null;
+      return (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => setSheet({ kind: 'transport' })}
+          className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+        >
+          Switch
+        </button>
+      );
+    }
     if (kind === 'Activity' || kind === 'Meal' || kind === 'Leisure') {
       return (
         <>
@@ -546,6 +644,9 @@ export default function Itinerary() {
             {draft.style ? `${draft.style} pacing` : 'Pacing: Relaxed'}
           </p>
           <h2 className="mt-1 text-xl font-extrabold">{destinationLabel}</h2>
+          {originLabel ? (
+            <p className="text-xs font-semibold text-white/80">{originLabel} → {destinationLabel}</p>
+          ) : null}
           <p className="text-xs text-white/70">
             {travelersLabel} · {isLive ? liveDayCount : days.length}{' '}
             {(isLive ? liveDayCount : days.length) === 1 ? 'Day' : 'Days'}
@@ -782,7 +883,24 @@ export default function Itinerary() {
           )}
           {transportStops.length > 0 ? (
             <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
-              <p className="text-xs font-bold">Transfers in this plan</p>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-bold">Transfers in this plan</p>
+                {canSwitchTransport ? (
+                  <button
+                    type="button"
+                    disabled={pendingKey !== null}
+                    onClick={() => setSheet({ kind: 'transport' })}
+                    className="rounded-full border border-tourflow-cardBorder px-3 py-1 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+                  >
+                    Switch
+                  </button>
+                ) : null}
+              </div>
+              {transportOrigin && transportDestination ? (
+                <p className="mt-0.5 text-[11px] text-tourflow-textMuted">
+                  Researched for {transportOrigin} → {transportDestination}
+                </p>
+              ) : null}
               <ul className="mt-1 space-y-1">
                 {transportStops.map((s) => (
                   <li key={s.id} className="text-xs text-tourflow-textMuted">
@@ -999,6 +1117,85 @@ export default function Itinerary() {
                   </div>
                 </div>
               ))
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={closeSheet}
+            disabled={pendingKey !== null}
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+          >
+            Cancel
+          </button>
+        </Sheet>
+      ) : null}
+
+      {/* Switch transportation sheet */}
+      {sheet?.kind === 'transport' ? (
+        <Sheet label="Switch transportation" onClose={closeSheet}>
+          <h3 className="text-base font-extrabold text-tourflow-dark">Switch transportation</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted">
+            {transportOrigin && transportDestination ? (
+              <>
+                Verified options for <strong>{transportOrigin} → {transportDestination}</strong> —
+                switching replaces your Day-1 transfer.
+              </>
+            ) : (
+              <>Add an origin and destination to see verified options.</>
+            )}
+          </p>
+          {transportError ? (
+            <p className="mt-2 text-xs font-semibold text-red-600" role="alert">{transportError}</p>
+          ) : null}
+          {actionError ? (
+            <p className="mt-2 text-xs font-semibold text-red-600" role="alert">{actionError}</p>
+          ) : null}
+          <div className="mt-3 flex flex-col gap-2">
+            {transportOptions === null ? (
+              <p className="text-xs text-tourflow-textMuted">Loading transport options…</p>
+            ) : transportOptions.length === 0 ? (
+              <p className="text-xs text-tourflow-textMuted">
+                No verified options for this route yet — your current transfer stays as planned.
+              </p>
+            ) : (
+              transportOptions.map((option) => {
+                const selected = selectedTransportId === option.id;
+                const fits =
+                  draft.travelers === undefined || (option.capacity || 0) >= draft.travelers;
+                const duration = transportDurationLabel(option.duration_hours);
+                return (
+                  <div
+                    key={option.id}
+                    className={`rounded-2xl border p-3 ${
+                      selected ? 'border-tourflow-primary bg-tourflow-primarySoft/40' : 'border-tourflow-cardBorder'
+                    }`}
+                  >
+                    <p className="text-sm font-bold text-tourflow-dark">{option.name}</p>
+                    <p className="mt-0.5 text-xs text-tourflow-textMuted">
+                      {option.route_from} → {option.route_to}
+                      {duration ? ` · ${duration}` : ''}
+                    </p>
+                    <p className="mt-1 text-[11px] text-tourflow-textMuted">
+                      <strong className="text-tourflow-dark">{transportPriceLabel(option)}</strong>
+                      <span> · {option.capacity} seats</span>
+                      {option.provider_name ? <span> · {option.provider_name}</span> : null}
+                      {!fits ? <span className="font-semibold text-red-600"> · Only {option.capacity} seats</span> : null}
+                    </p>
+                    <button
+                      type="button"
+                      disabled={pendingKey !== null || !fits || selected}
+                      onClick={() => void handleTransportSwitch(option)}
+                      className="mt-2 w-full rounded-full bg-tourflow-primary px-3 py-1.5 text-xs font-bold text-white disabled:opacity-60"
+                    >
+                      {pendingKey === `transport:${option.id}`
+                        ? 'Switching…'
+                        : selected
+                          ? 'Current transfer'
+                          : 'Switch to this'}
+                    </button>
+                  </div>
+                );
+              })
             )}
           </div>
           <button

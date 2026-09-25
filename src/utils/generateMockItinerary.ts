@@ -12,6 +12,10 @@ export interface MockItineraryInput extends ParsedTripFields {
   /** Optional trip dates — covered by the stale-check signature, not mock content. */
   startDate?: string;
   endDate?: string;
+  /** Other preferences — covered by the stale-check signature; mock output is unchanged. */
+  specialRequests?: string;
+  /** Post-generation transport selection — signature only; mock output is unchanged. */
+  transportId?: string;
 }
 
 export interface MockItineraryResult {
@@ -118,11 +122,14 @@ export function itineraryInputSignature(input: MockItineraryInput): string {
   return JSON.stringify([
     input.prompt,
     input.destination ?? '',
+    input.origin ?? '',
     input.durationDays ?? 0,
     input.travelers ?? 0,
     input.budgetAmount ?? 0,
     input.style ?? '',
     input.startDate ?? '',
     input.endDate ?? '',
+    input.specialRequests ?? '',
+    input.transportId ?? '',
   ]);
 }
