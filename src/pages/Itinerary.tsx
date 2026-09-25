@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
-import TripMap from '../components/TripMap';
+// TripMap (+ Leaflet) stays out of the main bundle — loaded only when Map opens.
+const TripMap = lazy(() => import('../components/TripMap'));
 import { FilterPills } from '../components/home';
 import { copilotSuggestions, curatedDestinations } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
@@ -886,7 +887,16 @@ export default function Itinerary() {
       ) : null}
 
       {showMap && isLive && tripId ? (
-        <TripMap tripId={tripId} dayCount={liveDayCount} activeDay={dayNumber} fallbackDays={days} />
+        <Suspense
+          fallback={
+            <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+              <h3 className="text-sm font-bold">Trip Map</h3>
+              <p className="mt-1 text-xs text-tourflow-textMuted">Loading map…</p>
+            </section>
+          }
+        >
+          <TripMap tripId={tripId} dayCount={liveDayCount} activeDay={dayNumber} fallbackDays={days} />
+        </Suspense>
       ) : null}
 
       <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label="Itinerary days">

@@ -785,11 +785,13 @@ export function normalizeTripMap(data: ApiTripMap): NormalizedTripMap {
     const s = raw as ApiMapStop;
     const day = asInt(s.day_number ?? s.day) ?? fallbackDay ?? 0;
     const title = safeText(s.title ?? s.name).trim() || `Stop ${index + 1}`;
-    // Plotted ONLY with truthy has_coordinates AND finite coords — the same
-    // predicate the map draws with, so counts never disagree with pins.
+    // Plotted skip: has_coordinates === false (unmapped note covers them).
+    // Plotted strictly on finite lat/lng — the same predicate the map draws
+    // with, so counts never disagree with pins. Only latitude/longitude are
+    // read as coordinates (stop.lat/stop.coords do not exist).
     const lat = asCoord(s.latitude ?? s.lat);
     const lng = asCoord(s.longitude ?? s.lng ?? s.lon);
-    if (!s.has_coordinates || lat === null || lng === null) {
+    if (s.has_coordinates === false || lat === null || lng === null) {
       unmapped.push({ day, title });
       return;
     }

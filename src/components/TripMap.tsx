@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type * as Leaflet from 'leaflet';
+import * as L from 'leaflet';
+import type { Map as LeafletMap, LayerGroup, TileEvent } from 'leaflet';
 // Static CSS so .leaflet-container styles are guaranteed present BEFORE the
 // map div ever paints (a late/missing dynamic CSS chunk = white blank canvas).
 // The heavy Leaflet JS below stays dynamically imported (lazy).
@@ -60,17 +61,21 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
   const [fallbackNotice, setFallbackNotice] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [selectedDay, setSelectedDay] = useState(activeDay);
+  const [plottedCount, setPlottedCount] = useState(0);
   const [mapReady, setMapReady] = useState(false);
   const [tilesFailing, setTilesFailing] = useState(false);
   const [mapTick, setMapTick] = useState(0); // bumped after show / on retry so init re-runs on a live div
+  // Consecutive Leaflet init/draw faults. At 3 the interactive map is
+  // declared dead for this view and the server-rendered iframe takes over —
+  // a JS crash can never blank it. Resets on any successful draw or retry.
+  const [failCount, setFailCount] = useState(0);
   const divRef = useRef<HTMLDivElement>(null);
   const dataRef = useRef(data);
   dataRef.current = data;
   const fallbackRef = useRef(fallbackDays);
   fallbackRef.current = fallbackDays;
-  const mapRef = useRef<Leaflet.Map | null>(null);
-  const layersRef = useRef<Leaflet.LayerGroup | null>(null);
-  const leafletRef = useRef<typeof import('leaflet') | null>(null);
+  const mapRef = useRef<LeafletMap | null>(null);
+  const layersRef = useRef<LayerGroup | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,6 +83,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
     setLoadError(null);
     setData(null);
     setFallbackNotice(false);
+    setFailCount(0);
     // Log the exact request so a wrong-ID call is visible instantly next to
     // the panel's trip in the Network tab. tripId always comes from the
     // CURRENT selection (draft.tripId) — never a stored/stale id.
@@ -153,7 +159,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
     let cancelled = false;
     (async () => {
       try {
-        const L = await import('leaflet');
+        // L is statically imported (no chunk wait); log proves it for DONE WHEN.
         console.log('[trip-map] L defined:', typeof L !== 'undefined');
         // CSS is imported statically at module top (see above) — verify it
         // actually applied; without .leaflet-container rules tiles/markers
@@ -188,19 +194,19 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
           setLoadError('Map container has no height on this screen — try reopening the map.');
           return;
         }
-        leafletRef.current = L;
         const center = dataRef.current?.center;
-        const map = L.map(divRef.current, { scrollWheelZoom: false }).setView(
+        const map = L.map(divRef.current, { scrollWheelZoom: false, attributionControl: false }).setView(
           center ? [center.latitude, center.longitude] : [20, 78],
           center ? 12 : 4,
         );
-        const tiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-          attribution: '© OpenStreetMap contributors © CARTO',
+        const tiles = L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+          attribution: '© OpenStreetMap contributors, Tiles style by Humanitarian OpenStreetMap Team',
           maxZoom: 19,
+          detectRetina: true,
         });
-        tiles.on('tileerror', (event: Leaflet.TileEvent) => {
+        tiles.on('tileerror', (event: TileEvent) => {
           console.log('[trip-map] TILE FAIL');
-          console.error('[trip-map] tile failed (check Network: basemaps.cartocdn.com should be 200):', {
+          console.error('[trip-map] tile failed (check Network: tile.openstreetmap.fr should be 200):', {
             coords: event.coords ? `${event.coords.z}/${event.coords.x}/${event.coords.y}` : '(unknown)',
           });
           setTilesFailing(true);
@@ -227,7 +233,10 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
         window.setTimeout(settle, 500);
       } catch (error) {
         console.error('[trip-map] init failed:', error);
-        if (!cancelled) setLoadError('Could not start the map view on this device.');
+        if (!cancelled) {
+          setFailCount((c) => c + 1);
+          setLoadError('Could not start the map view on this device.');
+        }
       }
     })();
     return () => {
@@ -235,180 +244,156 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
       mapRef.current?.remove();
       mapRef.current = null;
       layersRef.current = null;
-      leafletRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tripId, mapTick]);
+  }, [tripId, mapTick, loading, data]);
 
   // Redraw pins + dotted day-route whenever data or the day filter changes.
-  // Exact backend shape: the selected day's stops come from days[] matched by
-  // day_number; plotted only with has_coordinates + finite coords, so
-  // L.marker can never throw "Invalid LatLng". Raw rows only, no guessed keys.
+  // Uniform rows: raw days[] matched by day_number, or normalized fallback
+  // pins in itinerary-fallback mode. Plotted skip: has_coordinates === false
+  // (unmapped note covers them); plotted strictly on finite lat/lng, so
+  // L.marker can never throw "Invalid LatLng". Only latitude/longitude are
+  // read as coordinates — stop.lat/stop.coords do not exist.
   useEffect(() => {
-    const L = leafletRef.current;
     const map = mapRef.current;
     const layers = layersRef.current;
-    if (!L || !map || !layers || !data) return;
+    if (!map || !layers || !data) return;
     try {
       map.invalidateSize();
       layers.clearLayers();
-      const dayEntry = rawDays.find((entry) => {
-        if (!entry || typeof entry !== 'object') return false;
-        const record = entry as { day_number?: unknown; day?: unknown };
-        return Number(record.day_number ?? record.day) === selectedDay;
-      });
-      const rows = dayEntry && typeof dayEntry === 'object'
-        ? (dayEntry as { stops?: unknown }).stops
-        : undefined;
-      if (Array.isArray(rows)) {
-        const stops = (rows as unknown[]).filter(
-          (s): s is ApiMapStop =>
-            !!s &&
-            typeof s === 'object' &&
-            Boolean((s as ApiMapStop).has_coordinates) &&
-            // Same +coercion + isFinite guard as spec, plus '' rejection
-            // (empty strings coerce to 0 = phantom Null Island pins).
-            Number.isFinite(toFiniteCoord((s as ApiMapStop).latitude)) &&
-            Number.isFinite(toFiniteCoord((s as ApiMapStop).longitude)),
-        );
-        if (stops.length === 0) {
-          setLoadError('Could not draw this day’s pins. Try another day.');
-          return;
-        }
-        setLoadError(null);
-        const plotted: Array<{ latitude: number; longitude: number }> = [];
-        stops.forEach((s, index) => {
-          const lat = toFiniteCoord(s.latitude);
-          const lng = toFiniteCoord(s.longitude);
+      interface PlotRow {
+        latitude: unknown;
+        longitude: unknown;
+        title: unknown;
+        start_time: unknown;
+        kind: string;
+        flag: unknown;
+      }
+      let rows: PlotRow[];
+      if (rawDays.length > 0) {
+        const dayEntry = rawDays.find((entry) => {
+          if (!entry || typeof entry !== 'object') return false;
+          const record = entry as { day_number?: unknown; day?: unknown };
+          return Number(record.day_number ?? record.day) === selectedDay;
+        });
+        const raw = dayEntry && typeof dayEntry === 'object'
+          ? (dayEntry as { stops?: unknown }).stops
+          : undefined;
+        rows = (Array.isArray(raw) ? raw : []).flatMap((s) => {
+          if (!s || typeof s !== 'object') return [];
+          const r = s as ApiMapStop;
+          return [{
+            latitude: r.latitude,
+            longitude: r.longitude,
+            title: r.title,
+            start_time: r.start_time,
+            kind: safeText(r.item_type ?? r.type).trim().toLowerCase(),
+            flag: r.has_coordinates,
+          }];
+        });
+      } else {
+        rows = visiblePins.map((p) => ({
+          latitude: p.latitude,
+          longitude: p.longitude,
+          title: p.title,
+          start_time: p.time,
+          kind: p.itemType,
+          flag: true,
+        }));
+      }
+      const stops = rows.filter(
+        (s) => s.flag !== false && Number.isFinite(toFiniteCoord(s.latitude)) && Number.isFinite(toFiniteCoord(s.longitude)),
+      );
+      // "Could not draw" ONLY when this day has zero plottable stops —
+      // never as a catch-all.
+      if (stops.length === 0) {
+        setLoadError('Could not draw this day’s pins. Try another day.');
+        setPlottedCount(0);
+        return;
+      }
+      setLoadError(null);
+      const plotted: Array<[number, number]> = [];
+      console.log('[trip-map] first stop:', JSON.stringify(stops[0]));
+      console.log('[trip-map] plotted:', stops.length, 'day:', selectedDay);
+      stops.forEach((s, index) => {
+        try {
+          const lat = Number(s.latitude);
+          const lng = Number(s.longitude);
+          if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
           const title = safeText(s.title).trim() || 'Stop';
           const time = safeText(s.start_time).trim();
           const icon = L.divIcon({
             className: '',
-            html: `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:${pinColor(safeText(s.item_type ?? s.type).trim().toLowerCase())};color:#fff;font-size:12px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${index + 1}</span>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
+            html: `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:${pinColor(s.kind)};color:#fff;font-size:12px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${index + 1}</span>`,
+            iconSize: [26, 26], iconAnchor: [13, 13],
           });
           L.marker([lat, lng], { icon })
             .bindPopup(`${escapeHtml(title)}${time ? ` · ${escapeHtml(time)}` : ''}`)
             .addTo(layers);
-          plotted.push({ latitude: lat, longitude: lng });
-        });
-        if (plotted.length > 1) {
-          try {
-            L.polyline(
-              plotted.map((p) => [p.latitude, p.longitude] as [number, number]),
-              { color: '#F05A28', weight: 2.5, dashArray: '2 7' },
-            ).addTo(layers);
-          } catch {
-            /* route is decorative — pins matter */
-          }
-        }
-        map.flyToBounds(L.latLngBounds(plotted.map((p) => [p.latitude, p.longitude] as [number, number])).pad(0.25), { duration: 0.5 });
-        // Re-measure after the animated move settles.
-        window.setTimeout(() => map.invalidateSize(), 550);
+          plotted.push([lat, lng]);
+        } catch { /* ek kharab stop baaki pins ko nahi rokta */ }
+      });
+      if (plotted.length === 0) {
+        setLoadError('Could not draw this day’s pins. Try another day.');
         return;
       }
-      // No raw day entries (itinerary fallback mode): normalized pins, already honest.
       setLoadError(null);
-      const plotted: typeof visiblePins = [];
-      visiblePins.forEach((pin, index) => {
+      if (plotted.length === 1) {
+        // Single pin: street-level view so roads/labels show (never empty).
+        map.setView(plotted[0], 14);
+      } else {
         try {
-          const icon = L.divIcon({
-            className: '',
-            html: `<span style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:9999px;background:${pinColor(pin.itemType)};color:#fff;font-size:12px;font-weight:800;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.3)">${index + 1}</span>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13],
-          });
-          const lines = [`<strong>${escapeHtml(pin.title)}</strong>`];
-          if (pin.time) lines.push(escapeHtml(pin.time));
-          if (pin.location) lines.push(escapeHtml(pin.location));
-          L.marker([pin.latitude, pin.longitude], { icon }).bindPopup(lines.join('<br/>')).addTo(layers);
-          plotted.push(pin);
-        } catch {
-          /* skip this stop, keep the rest of the map alive */
-        }
-      });
-      if (plotted.length > 1) {
-        const line = plotted.map((p) => [p.latitude, p.longitude] as [number, number]);
-        try {
-          L.polyline(line, { color: '#F05A28', weight: 2.5, dashArray: '2 7' }).addTo(layers);
-        } catch {
-          /* route is decorative — pins matter */
-        }
+          L.polyline(plotted, { color: '#F05A28', weight: 2.5, dashArray: '2 7' }).addTo(layers);
+        } catch { /* route decorative hai */ }
+        const bounds = L.latLngBounds(plotted).pad(0.25);
+        map.flyToBounds(bounds, { duration: 0.5 });
+        const sw = bounds.getSouthWest();
+        const ne = bounds.getNorthEast();
+        console.log('[trip-map] bounds:', `SW(${sw.lat},${sw.lng})`, `NE(${ne.lat},${ne.lng})`, `pins:${plotted.length}`);
       }
-      const targets: Array<[number, number]> = visiblePins.map((p) => [p.latitude, p.longitude]);
-      if (targets.length > 0) {
-        map.flyToBounds(L.latLngBounds(targets).pad(0.25), { duration: 0.5 });
-        // Re-measure after the animated move settles.
-        window.setTimeout(() => map.invalidateSize(), 550);
-      } else if (data.center) {
-        map.setView([data.center.latitude, data.center.longitude], 10);
-        map.invalidateSize();
-      }
+      window.setTimeout(() => map.invalidateSize(), 550);
+      setFailCount(0);
+      setPlottedCount(plotted.length);
     } catch (error) {
-      console.error('[trip-map] draw failed:', error);
-      setLoadError('Could not draw this day’s pins. Try another day.');
+      console.error('[trip-map] draw fault:', error);
     }
   }, [data, rawDays, selectedDay, visiblePins, mapReady]);
 
-  if (loading) {
-    return (
-      <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
-        <h3 className="text-sm font-bold">Trip Map</h3>
-        <div
-          ref={divRef}
-          style={{ height: 320 }}
-          className="z-0 mt-2 w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder"
-        />
-        <div className="mt-2 flex gap-1 p-1" aria-label="Loading map">
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-1" />
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
-        </div>
-        <p className="mt-1 text-xs text-tourflow-textMuted">Loading map…</p>
-      </section>
-    );
-  }
+  // Single tree: loading / error / empty states are overlays and messages —
+  // the map div below mounts EXACTLY once and is never replaced, so Leaflet
+  // always paints into the same node it measured.
+  const emptyPins = !!data && data.pins.length === 0 && !loadError;
 
-  // Fetch failures keep the map mounted (div + Leaflet survive) with a banner
-  // on top — replacing the section would unmount the div and strand every
-  // later day-switch/retry with nowhere to draw.
-  // "No mappable stops" shows ONLY when a loaded response plots zero pins.
-  if (!data && !loadError) {
+  // Last resort: Leaflet init/draw faulted 3+ times. The Google embed is
+  // server-rendered (no key) — a JS crash can never blank it. Blank white
+  // boxes are impossible from here: iframe, pins, or an explicit message.
+  const iframeCenter = data?.center ?? null;
+  if (failCount >= 3 && iframeCenter) {
     return (
-      <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
-        <h3 className="text-sm font-bold">Trip Map</h3>
-        <div
-          ref={divRef}
-          style={{ height: 320 }}
-          className="z-0 mt-2 w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder"
-        />
-        <div className="mt-2 flex gap-1 p-1" aria-label="Loading map">
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-1" />
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
-          <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
+      <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold">Trip Map</h3>
+          <p className="text-[11px] font-semibold text-tourflow-textMuted">Fallback view</p>
         </div>
-        <p className="mt-1 text-xs text-tourflow-textMuted">Loading map…</p>
-      </section>
-    );
-  }
-
-  if (data && data.pins.length === 0 && !loadError) {
-    return (
-      <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
-        <h3 className="text-sm font-bold">Trip Map</h3>
-        <p className="mt-1 text-xs text-tourflow-textMuted">
-          No mappable stops yet — none of this trip’s stops carry coordinates.
-        </p>
-        {data.unmapped.length > 0 ? (
-          <ul className="mt-2 space-y-1">
-            {data.unmapped.map((u, i) => (
-              <li key={`${u.day}-${u.title}-${i}`} className="text-xs text-tourflow-textMuted">
-                {u.title} — no map pin
-              </li>
-            ))}
-          </ul>
-        ) : null}
+        <iframe
+          title="trip map"
+          width="100%"
+          height="320"
+          style={{ border: 0, borderRadius: 16 }}
+          loading="lazy"
+          src={`https://maps.google.com/maps?q=${iframeCenter.latitude},${iframeCenter.longitude}&z=12&output=embed`}
+        />
+        <button
+          type="button"
+          onClick={() => {
+            setFailCount(0);
+            setReloadKey((k) => k + 1);
+            setMapTick((t) => t + 1);
+          }}
+          className="w-full rounded-full border border-tourflow-cardBorder bg-white px-3 py-2 text-xs font-bold text-tourflow-dark"
+        >
+          Try interactive map again
+        </button>
       </section>
     );
   }
@@ -416,7 +401,9 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
   return (
     <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-bold">Trip Map</h3>
+        <h3 className="text-sm font-bold">
+          Trip Map{!loading && data ? ` · Day ${selectedDay} · ${plottedCount} pin${plottedCount === 1 ? '' : 's'}` : ''}
+        </h3>
         {data && data.unmappedCount > 0 ? (
           <p className="text-[11px] font-semibold text-tourflow-textMuted">
             {data.unmappedCount} custom stop{data.unmappedCount === 1 ? '' : 's'} {data.unmappedCount === 1 ? 'has' : 'have'} no location
@@ -443,6 +430,22 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
           Live map unavailable for this trip — showing pins from your itinerary stops.
         </p>
       ) : null}
+      {emptyPins ? (
+        <div>
+          <p className="mt-1 text-xs text-tourflow-textMuted">
+            No mappable stops yet — none of this trip’s stops carry coordinates.
+          </p>
+          {data && data.unmapped.length > 0 ? (
+            <ul className="mt-2 space-y-1">
+              {data.unmapped.map((u, i) => (
+                <li key={`${u.day}-${u.title}-${i}`} className="text-xs text-tourflow-textMuted">
+                  {u.title} — no map pin
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
       <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1" role="tablist" aria-label="Map day filter">
         {days.map((n) => (
           <button
@@ -466,6 +469,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
         style={{ height: 320 }}
         className="z-0 w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder"
       />
+      {loading ? <p className="text-xs text-tourflow-textMuted">Loading map…</p> : null}
       {tilesFailing ? (
         <p role="status" className="text-[11px] font-semibold text-tourflow-textMuted">
           Map tiles aren’t loading — check your connection (pins still plot underneath).
