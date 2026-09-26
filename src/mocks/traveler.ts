@@ -25,7 +25,7 @@ import darjeelingImage from '../assets/destinations/darjeeling.jpg';
 import delhiImage from '../assets/destinations/delhi.jpg';
 import dharamshalaImage from '../assets/destinations/dharamshala.jpg';
 import gangtokImage from '../assets/destinations/gangtok.jpg';
-import goaImage from '../assets/destinations/goa.jpg';
+import goaButterflyBeach from '../assets/destinations/goa-butterfly-beach.jpg';
 import gokarnaImage from '../assets/destinations/gokarna.jpg';
 import hampiImage from '../assets/destinations/hampi.jpg';
 import hyderabadImage from '../assets/destinations/hyderabad.jpg';
@@ -145,9 +145,9 @@ export const curatedDestinations: Destination[] = [
     idealDays: 'Ideal: 3 Days',
     rating: '4.8',
     reviewsLabel: '4.8 (980 WanderAI Reviews)',
-    imageUrl: goaImage,
-    imageAlt: 'Baga Beach, Goa',
-    imageCredit: 'Wikimedia Commons',
+    imageUrl: goaButterflyBeach,
+    imageAlt: 'Butterfly Beach cove, Goa — turquoise water and golden sand',
+    imageCredit: 'Goa Tourism',
     categories: ['beach', 'foodie', 'adventure', 'popular'],
     subThemes: ['Relaxing Beaches', 'Coastal Cuisine'],
     isPopular: true,
@@ -1152,9 +1152,8 @@ export const onboardingSlides: OnboardingSlide[] = [
     id: 'goa',
     name: 'Goa Beach',
     location: 'Goa, India',
-    imageUrl:
-      'https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Goa golden beach sunset',
+    imageUrl: goaButterflyBeach,
+    imageAlt: 'Butterfly Beach cove, Goa — turquoise water and golden sand',
   },
   {
     id: 'kerala',
