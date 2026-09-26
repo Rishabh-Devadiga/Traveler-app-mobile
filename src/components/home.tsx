@@ -1,15 +1,16 @@
 import type { Category, Destination } from '../types';
 import { SafeImage } from './content';
+import { SearchIcon, SparkIcon } from './icons';
 
 export function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-base font-bold tracking-tight text-tourflow-dark">{title}</h2>
+      <h2 className="text-[17px] font-bold tracking-tight text-tourflow-dark">{title}</h2>
       {actionLabel ? (
         <button
           type="button"
           onClick={onAction}
-          className="text-xs font-semibold text-tourflow-primary hover:text-tourflow-primaryHover"
+          className="min-h-[44px] px-2 text-[13px] font-bold text-tourflow-primary hover:text-tourflow-primaryHover"
         >
           {actionLabel}
         </button>
@@ -35,22 +36,24 @@ export function SearchBar({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex items-center gap-2 rounded-full border border-tourflow-cardBorder bg-white p-2 pl-4 shadow-soft"
+      className="flex min-h-[52px] items-center gap-2 rounded-full border border-tourflow-cardBorder bg-white p-2 pl-4 shadow-soft"
       role="search"
     >
-      <span aria-hidden="true">✦</span>
+      <span aria-hidden="true" className="text-tourflow-textMuted">
+        <SearchIcon size={20} />
+      </span>
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        aria-label="Ask WanderAI"
-        className="w-full min-w-0 bg-transparent text-sm text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
+        aria-label="Describe your trip"
+        className="w-full min-w-0 bg-transparent text-[16px] text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
       />
       <button
         type="submit"
-        className="shrink-0 rounded-full bg-tourflow-primary px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-tourflow-primaryHover"
+        className="min-h-[44px] shrink-0 rounded-full bg-tourflow-primary px-5 py-2 text-[14px] font-bold text-white transition-colors hover:bg-tourflow-primaryHover"
       >
-        Ask
+        Plan
       </button>
     </form>
   );
@@ -66,7 +69,7 @@ export function FilterPills({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label="Filter destinations">
+    <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 py-1" role="tablist" aria-label="Filter destinations">
       {items.map((item) => {
         const active = item.id === activeId;
         return (
@@ -76,7 +79,7 @@ export function FilterPills({
             role="tab"
             aria-selected={active}
             onClick={() => onSelect(item.id)}
-            className={`shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
+            className={`min-h-[36px] shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
               active
                 ? 'border-tourflow-primary bg-tourflow-primary text-white'
                 : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary'
@@ -92,7 +95,7 @@ export function FilterPills({
 
 export function DestinationCard({ destination, onPlan, className }: { destination: Destination; onPlan: (id: string) => void; className?: string }) {
   return (
-    <article className={`w-[240px] shrink-0 snap-start overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]${className ? ` ${className}` : ''}`}>
+    <article className={`w-[260px] shrink-0 snap-start overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card sm:w-[274px]${className ? ` ${className}` : ''}`}>
       <div className="relative h-36 w-full overflow-hidden bg-tourflow-surfaceMuted">
         <SafeImage
           src={destination.imageUrl}
@@ -106,24 +109,24 @@ export function DestinationCard({ destination, onPlan, className }: { destinatio
         ) : null}
       </div>
       <div className="flex flex-col gap-1 p-3">
-        <h3 className="truncate text-sm font-bold leading-snug text-tourflow-dark">{destination.name}</h3>
+        <h3 className="clamp-2 min-h-[40px] text-[15px] font-bold leading-snug text-tourflow-dark">{destination.name}</h3>
         {destination.reviewsLabel ? (
-          <p className="truncate text-xs text-tourflow-textMuted">{destination.reviewsLabel}</p>
+          <p className="truncate text-[13px] text-tourflow-textMuted">{destination.reviewsLabel}</p>
         ) : null}
         {destination.subThemes && destination.subThemes.length > 0 ? (
-          <p className="truncate text-[11px] font-medium text-tourflow-textMuted">
+          <p className="truncate text-xs font-medium text-tourflow-textMuted">
             {destination.subThemes.slice(0, 2).join(' · ')}
           </p>
         ) : null}
-        <p className="truncate text-xs font-semibold text-tourflow-dark">
+        <p className="text-[13px] font-semibold text-tourflow-dark">
           {destination.pricePerPerson} · <span className="font-normal">{destination.idealDays}</span>
         </p>
         <button
           type="button"
           onClick={() => onPlan(destination.id)}
-          className="mt-1 w-full truncate rounded-full bg-tourflow-primarySoft px-3 py-1.5 text-xs font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white"
+          className="mt-1 min-h-[44px] w-full rounded-full bg-tourflow-primarySoft px-3 py-2 text-[13px] font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white"
         >
-          Plan {destination.name.split(',')[0].trim()} Journey
+          Plan →
         </button>
       </div>
     </article>
@@ -132,7 +135,7 @@ export function DestinationCard({ destination, onPlan, className }: { destinatio
 
 export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?: (id: string) => void }) {
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="grid grid-cols-4 gap-2">
       {items.map((item) => {
         const content = (
           <>
@@ -147,12 +150,12 @@ export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?
             ) : (
               <span
                 aria-hidden="true"
-                className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-lg shadow-soft"
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-tourflow-primary shadow-soft"
               >
-                ✦
+                <SparkIcon size={22} />
               </span>
             )}
-            <span className="w-full truncate text-[11px] font-semibold leading-tight text-tourflow-dark">{item.label}</span>
+            <span className="clamp-2 w-full text-xs font-semibold leading-tight text-tourflow-dark">{item.label}</span>
           </>
         );
         return onSelect ? (
@@ -161,7 +164,7 @@ export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?
             type="button"
             onClick={() => onSelect(item.id)}
             aria-label={`Explore ${item.label} destinations`}
-            className="flex min-w-0 cursor-pointer flex-col items-center gap-1 rounded-xl text-center transition-transform hover:scale-105 active:scale-95"
+            className="flex min-h-[44px] min-w-0 cursor-pointer flex-col items-center gap-1 rounded-xl px-1 py-2 text-center transition-transform active:scale-95"
           >
             {content}
           </button>

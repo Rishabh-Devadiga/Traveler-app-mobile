@@ -28,6 +28,7 @@ export default {
         soft: '0 4px 20px -2px rgba(20, 32, 24, 0.05), 0 2px 6px -1px rgba(20, 32, 24, 0.03)',
         card: '0 8px 30px rgba(20, 32, 24, 0.06)',
         float: '0 14px 40px -4px rgba(240, 90, 40, 0.22)',
+        sheet: '0 -8px 40px rgba(20, 32, 24, 0.16)',
       },
     },
   },

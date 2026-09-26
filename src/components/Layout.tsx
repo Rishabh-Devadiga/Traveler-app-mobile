@@ -8,31 +8,43 @@ import { asApiTrip } from '../api/trips';
 import { tripDateRangeLabel } from '../utils/dates';
 import { getCuratedCategory, normalizeCuratedCategory } from '../utils/curated';
 
-const titles: Record<string, { title: string; subtitle?: string; wide?: boolean; back?: boolean; flush?: boolean }> = {
-  '/home-explore': { title: 'Home Explore', subtitle: 'Intelligent travel companion' },
+const titles: Record<string, { title: string; subtitle?: string; wide?: boolean; back?: boolean; flush?: boolean; fallback?: string }> = {
+  '/home-explore': { title: 'Home', subtitle: 'Intelligent travel companion' },
   '/curated': {
     title: 'Curated For You',
     subtitle: 'Explore destinations picked for your next journey',
     back: true,
+    fallback: '/home-explore',
   },
   '/globe': {
     title: 'Incredible India',
     subtitle: '3D Travel Globe · 60 Iconic Destinations',
     back: true,
     flush: true,
+    fallback: '/home-explore',
   },
-  '/plan': { title: 'Plan Your Journey', subtitle: 'Step 1 of 3 · AI Conversational Planner', back: true },
+  '/plan': { title: 'Plan Your Journey', subtitle: 'Step 1 of 3 · AI Conversational Planner', back: true, fallback: '/home-explore' },
   '/trips': { title: 'Trips', subtitle: 'Your generated journeys' },
-  '/checklist': { title: 'Trip Checklist', subtitle: 'Step 2 of 3 · 5/5 Captured', back: true },
-  '/loading': { title: 'Crafting Trip', subtitle: 'Live Generation', back: true },
-  '/itinerary': { title: 'Day-by-Day Itinerary', subtitle: 'Udaipur · Oct 18–21', back: true },
+  '/checklist': { title: 'Trip Checklist', subtitle: 'Step 2 of 3 · Review details', back: true, fallback: '/plan' },
+  '/loading': { title: 'Crafting Trip', subtitle: 'Live Generation', back: true, fallback: '/checklist' },
+  '/itinerary': { title: 'Day-by-Day Itinerary', subtitle: 'Your trip', back: true, fallback: '/trips' },
   '/ai-guide': {
-    title: 'WanderAI Guide',
-    subtitle: 'Live Concierge · Manali Day 3/7',
+    title: 'AI Guide',
+    subtitle: 'Trip-aware concierge',
     wide: true,
   },
   '/profile': { title: 'Profile', subtitle: 'WanderAI Sync' },
 };
+
+export function backFallbackFor(pathname: string, hasTripId: boolean): string {
+  if (pathname === '/curated') return '/home-explore';
+  if (pathname === '/globe') return '/home-explore';
+  if (pathname === '/plan') return '/home-explore';
+  if (pathname === '/checklist') return '/plan';
+  if (pathname === '/loading') return '/checklist';
+  if (pathname === '/itinerary') return hasTripId ? '/trips' : '/home-explore';
+  return '/home-explore';
+}
 
 export default function Layout() {
   const { pathname } = useLocation();
@@ -40,19 +52,18 @@ export default function Layout() {
   const navigate = useNavigate();
   const meta = titles[pathname] ?? { title: 'WanderAI' };
   const { profile: travelerProfile } = useTravelerProfile();
-  const { draft } = useTripDraft();
+  const { draft, capturedCount } = useTripDraft();
 
-  // The /curated header follows the ?category= query so one reusable page
-  // serves every Home filter (direct links and refresh safe).
   let title = meta.title;
 
-  // The itinerary header names the trip's real destination (never a stale
-  // hardcoded one) plus the selected date range when set.
   let subtitle = meta.subtitle;
   if (pathname === '/curated') {
     const category = getCuratedCategory(normalizeCuratedCategory(searchParams.get('category')));
     title = category.title;
     subtitle = category.subtitle;
+  }
+  if (pathname === '/checklist') {
+    subtitle = `Step 2 of 3 · ${capturedCount} of 5 captured`;
   }
   if (pathname === '/itinerary') {
     const liveName = asApiTrip(draft.apiTrip)?.destination?.name;
@@ -66,9 +77,23 @@ export default function Layout() {
     const destination = liveName ?? draft.destination;
     const days = draft.durationDays;
     subtitle = destination
-      ? `Live Concierge · ${destination}${days ? ` · ${days} day${days === 1 ? '' : 's'}` : ''}`
-      : 'Live Concierge';
+      ? `Trip-aware concierge · ${destination}${days ? ` · ${days} day${days === 1 ? '' : 's'}` : ''}`
+      : 'Trip-aware concierge';
   }
+
+  const handleBack = () => {
+    const fallback = (meta as { fallback?: string }).fallback ?? backFallbackFor(pathname, Boolean(draft.tripId));
+    try {
+      if (typeof window !== 'undefined' && window.history.length > 1) {
+        navigate(-1);
+        // Safety: if history entry leaves app dead-end, fallback handled by caller routes.
+        return;
+      }
+    } catch {
+      /* fall through to fallback */
+    }
+    navigate(fallback);
+  };
 
   return (
     <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">
@@ -78,15 +103,15 @@ export default function Layout() {
         avatarUrl={travelerProfile ? (avatarUrlFor(travelerProfile) ?? undefined) : undefined}
         avatarInitial={travelerProfile ? profileInitial(travelerProfile) : undefined}
         showBack={meta.back}
-        onBack={() => navigate(-1)}
+        onBack={handleBack}
       />
       <main
         className={`mx-auto w-full flex-1 ${
           meta.flush
             ? 'p-0 max-w-md'
             : meta.wide
-            ? 'max-w-7xl px-4 pb-28 pt-4'
-            : 'max-w-md px-4 pb-28 pt-4'
+            ? 'max-w-7xl px-4 pb-36 pt-4'
+            : 'max-w-md px-4 pb-36 pt-4'
         }`}
       >
         <Outlet />

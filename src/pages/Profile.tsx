@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { ProfileInfoCard, ProfileMenuCard } from '../components/content';
+import AppSheet from '../components/Sheet';
+import { EditIcon } from '../components/icons';
 import { travelerUser } from '../mocks/traveler';
 import { hasTravelerToken, isUnauthorized, travelerLogout } from '../api/auth';
 import {
@@ -56,23 +58,12 @@ function validateTextField(field: TextField, value: string): string | null {
   return null;
 }
 
-/** Shared mobile bottom-sheet shell — same chrome for every Profile sheet. */
-function Sheet({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+/** Shared mobile bottom-sheet shell — same chrome for every Profile sheet (premium). */
+function Sheet({ label, title, subtitle, onClose, children }: { label: string; title?: string; subtitle?: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={label}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-float"
-        onClick={(event) => event.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
+    <AppSheet label={label} title={title} subtitle={subtitle} onClose={onClose}>
+      <div className="sheet-enter">{children}</div>
+    </AppSheet>
   );
 }
 
@@ -523,8 +514,8 @@ export default function Profile() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <section className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+    <div className="flex flex-col gap-5">
+      <section className="flex items-center gap-4 rounded-3xl border border-tourflow-cardBorder bg-white p-5 shadow-card">
         <button
           type="button"
           onClick={() => {
@@ -532,16 +523,13 @@ export default function Profile() {
             setPhotoSheet('actions');
           }}
           aria-label="Change profile photo"
-          className="relative shrink-0 rounded-full outline-none focus-visible:ring-2 focus-visible:ring-tourflow-primary"
+          className="relative flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-full outline-none focus-visible:ring-2 focus-visible:ring-tourflow-primary"
         >
           {showAvatarImg ? (
             <img
               src={displaySrc}
               alt={`${fullName} profile photo`}
               onError={() => {
-                // Optimistic preview died → drop it so the server image (or
-                // initial) takes over; only a server-URL failure arms the
-                // initial fallback.
                 if (optimisticUrl && displaySrc === optimisticUrl) {
                   URL.revokeObjectURL(optimisticUrl);
                   setOptimisticUrl(null);
@@ -549,27 +537,27 @@ export default function Profile() {
                   setImgFailed(true);
                 }
               }}
-              className="h-16 w-16 rounded-full border-2 border-tourflow-primary object-cover"
+              className="h-[72px] w-[72px] rounded-full border-2 border-tourflow-primary object-cover"
             />
           ) : (
             <div
               role="img"
               aria-label={`${fullName} profile avatar`}
-              className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-tourflow-primary bg-tourflow-primarySoft text-2xl font-extrabold text-tourflow-primary"
+              className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-tourflow-primary bg-tourflow-primarySoft text-2xl font-extrabold text-tourflow-primary"
             >
               {initial}
             </div>
           )}
           <span
             aria-hidden="true"
-            className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-tourflow-primary text-xs text-white"
+            className="absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full bg-tourflow-primary text-white"
           >
-            ✎
+            <EditIcon size={14} />
           </span>
         </button>
-        <div className="flex-1">
-          <h2 className="text-base font-extrabold">{fullName}</h2>
-          <p className="text-xs text-tourflow-textMuted">{email}</p>
+        <div className="min-w-0 flex-1">
+          <h2 className="truncate text-[18px] font-extrabold">{fullName}</h2>
+          <p className="truncate text-[13px] text-tourflow-textMuted">{email}</p>
           <p className="mt-1 inline-block rounded-full bg-tourflow-primarySoft px-2 py-0.5 text-[11px] font-bold text-tourflow-primary">
             {trips.length === 1 ? '1 trip' : `${trips.length} trips`}
           </p>

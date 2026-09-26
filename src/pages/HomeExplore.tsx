@@ -1,12 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlobeView from '../components/GlobeView';
+import { SparkIcon } from '../components/icons';
 import { CategoryGrid, DestinationCard, FilterPills, SearchBar, SectionHeader } from '../components/home';
 import {
   curatedDestinations,
   exploreGridCategories,
   filterCategories,
-  homeGreeting,
 } from '../mocks/traveler';
 import { filterCuratedByCategory, getCuratedCategory, resolveExploreCategory } from '../utils/curated';
 import { useTravelerProfile } from '../state/useTravelerProfile';
@@ -28,41 +28,45 @@ export default function HomeExplore() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="relative overflow-hidden rounded-2xl border border-white/80 bg-white p-3 shadow-card">
+      <section className="relative overflow-hidden rounded-3xl bg-[#050B18] shadow-card">
         <div
           onClick={() => navigate('/globe')}
-          className="group relative h-[220px] overflow-hidden rounded-xl bg-gradient-to-b from-[#050B18] via-[#0D172E] to-[#050B18] cursor-pointer"
+          className="group relative h-[240px] cursor-pointer overflow-hidden"
         >
           <GlobeView
             mode="preview"
-            height={220}
+            height={240}
             onClickPreview={() => navigate('/globe')}
           />
-          <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-bold text-white shadow backdrop-blur-sm pointer-events-none">
-            Live Globe · Drag to explore
+          <span className="pointer-events-none absolute left-3 top-3 rounded-full bg-black/60 px-2.5 py-1 text-xs font-bold text-white shadow backdrop-blur-sm">
+            Live Globe · 60 places
           </span>
-          <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full border border-[#D4AF37]/50 bg-[#0D172E]/85 px-2.5 py-1 text-[11px] font-bold text-[#FFD700] shadow backdrop-blur-sm transition-transform duration-150 group-hover:scale-105 pointer-events-none">
-            Full 3D ↗
-          </span>
-        </div>
-        <div className="flex items-center justify-between gap-3 px-1 pb-1 pt-3">
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-bold text-tourflow-dark">Hello, {travelerName}</p>
-            <p className="truncate text-xs text-tourflow-textMuted">Where to next? WanderAI verified stays & routes.</p>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/40 to-transparent p-4 pt-10">
+            <p className="text-[17px] font-extrabold tracking-tight text-white">Hello, {travelerName}</p>
+            <p className="mt-0.5 text-[13px] text-white/80">Where to next? Verified stays & routes.</p>
           </div>
+        </div>
+        <div className="flex gap-2 bg-[#050B18] p-3">
           <button
             type="button"
             onClick={() => navigate('/plan', { state: { reset: true, source: 'manual' } })}
-            className="shrink-0 rounded-full bg-tourflow-dark px-3 py-1.5 text-xs font-bold text-white"
+            className="min-h-[48px] flex-1 rounded-full bg-tourflow-primary px-4 py-2.5 text-[15px] font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
           >
-            Plan
+            Plan a trip
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/globe')}
+            className="min-h-[48px] flex-1 rounded-full border border-white/25 bg-white/10 px-4 py-2.5 text-[15px] font-bold text-white backdrop-blur-md hover:bg-white/20"
+          >
+            Explore 3D
           </button>
         </div>
       </section>
 
       <SearchBar
         value={query}
-        placeholder={homeGreeting.searchPlaceholder}
+        placeholder='Try "5 days in Kerala under ₹50k"'
         onChange={setQuery}
         onSubmit={() =>
           navigate('/plan', {
@@ -73,20 +77,19 @@ export default function HomeExplore() {
         }
       />
 
-      <FilterPills items={filterCategories} activeId={activeFilter} onSelect={setActiveFilter} />
-
       <section className="space-y-2">
         <SectionHeader
           title="Curated For You"
           actionLabel="View all"
           onAction={() => navigate(`/curated?category=${activeFilter}`)}
         />
+        <FilterPills items={filterCategories} activeId={activeFilter} onSelect={setActiveFilter} />
         {visibleDestinations.length === 0 ? (
           <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 text-center shadow-card">
-            <p className="text-sm font-bold text-tourflow-dark">
+            <p className="text-[15px] font-bold text-tourflow-dark">
               No {activeCategory.label} destinations yet
             </p>
-            <p className="mt-1 text-xs text-tourflow-textMuted">
+            <p className="mt-1 text-[13px] text-tourflow-textMuted">
               Check back soon — new handpicked journeys are on the way.
             </p>
           </div>
@@ -109,29 +112,30 @@ export default function HomeExplore() {
             ))}
           </div>
         )}
-        <p className="truncate text-[11px] text-tourflow-textMuted">Traveler: {travelerName} · {homeGreeting.quickPromptLabel}</p>
       </section>
 
       <section className="space-y-2">
-        <SectionHeader title="Explore Categories" />
+        <SectionHeader title="Explore by vibe" />
         <CategoryGrid
-          items={exploreGridCategories}
+          items={exploreGridCategories.slice(0, 4)}
           onSelect={(id) => navigate(`/curated?category=${resolveExploreCategory(id)}`)}
         />
       </section>
 
-      <section className="flex items-center gap-3 rounded-2xl bg-tourflow-dark p-4 text-white shadow-card">
-        <span aria-hidden="true" className="shrink-0 text-2xl">✦</span>
+      <section className="flex items-center gap-3 rounded-3xl bg-tourflow-dark p-4 text-white shadow-card">
+        <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+          <SparkIcon size={22} />
+        </span>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold">Smart Copilot</p>
-          <p className="truncate text-xs text-white/70">Hyper-personalized escapes from your intent in seconds.</p>
+          <p className="text-[15px] font-bold">AI Guide</p>
+          <p className="truncate text-[13px] text-white/70">Trip-aware concierge for your journey.</p>
         </div>
         <button
           type="button"
           onClick={() => navigate('/ai-guide')}
-          className="shrink-0 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover"
+          className="min-h-[44px] shrink-0 rounded-full bg-tourflow-primary px-4 py-2 text-[14px] font-bold text-white hover:bg-tourflow-primaryHover"
         >
-          Ask AI
+          Chat
         </button>
       </section>
     </div>

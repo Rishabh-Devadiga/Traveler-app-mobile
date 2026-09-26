@@ -1,5 +1,7 @@
 import { travelerTripName, type TravelerTripSummary } from '../api/trips';
 import { safeText } from '../api/traveler';
+import AppSheet from './Sheet';
+import { CheckIcon } from './icons';
 
 interface TripPickerProps {
   trips: TravelerTripSummary[];
@@ -28,21 +30,7 @@ export default function TripPicker({
   onClose,
 }: TripPickerProps) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Select your trip"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-float"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <h3 className="text-base font-extrabold text-tourflow-dark">Your Trips</h3>
-        <p className="mt-1 text-xs text-tourflow-textMuted">
-          Only trips owned by you. Header, panel and Guide all follow this selection.
-        </p>
+    <AppSheet label="Select your trip" title="Your Trips" subtitle="Only trips owned by you. Header, panel and Guide all follow this selection." onClose={onClose}>
         {loading ? (
           <div className="flex gap-1 p-3" aria-label="Loading your trips">
             <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-1" />
@@ -51,17 +39,17 @@ export default function TripPicker({
           </div>
         ) : error ? (
           <div role="alert" className="mt-3 rounded-2xl bg-red-50 p-3">
-            <p className="text-xs font-semibold text-red-600">{error}</p>
+            <p className="text-[13px] font-semibold text-red-700">{error}</p>
             <button
               type="button"
               onClick={onRetry}
-              className="mt-2 w-full rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white"
+              className="mt-2 min-h-[44px] w-full rounded-full bg-red-600 px-3 py-1.5 text-[13px] font-bold text-white"
             >
               Try Again
             </button>
           </div>
         ) : trips.length === 0 ? (
-          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-3 text-xs font-semibold text-tourflow-textMuted">
+          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] font-semibold text-tourflow-textMuted">
             No trips yet — plan a journey to create your first one.
           </p>
         ) : (
@@ -74,25 +62,25 @@ export default function TripPicker({
                     type="button"
                     disabled={disabled}
                     onClick={() => onSelect(trip.id)}
-                    className={`flex w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left disabled:opacity-60 ${
+                    className={`flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left disabled:opacity-60 ${
                       selected
                         ? 'border-tourflow-primary bg-tourflow-primarySoft'
                         : 'border-tourflow-cardBorder bg-white'
                     }`}
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-sm font-bold text-tourflow-dark">
+                      <span className="block truncate text-[15px] font-bold text-tourflow-dark">
                         {travelerTripName(trip)}
                       </span>
-                      <span className="block text-xs text-tourflow-textMuted">
+                      <span className="block text-[13px] text-tourflow-textMuted">
                         {[safeText(trip.status), trip.duration_days ? `${trip.duration_days} days` : null]
                           .filter(Boolean)
                           .join(' · ') || `Trip ${trip.id.slice(0, 8)}`}
                       </span>
                     </span>
                     {selected ? (
-                      <span aria-label="Selected" className="shrink-0 text-sm font-extrabold text-tourflow-primary">
-                        ✓
+                      <span aria-label="Selected" className="shrink-0 text-tourflow-primary">
+                        <CheckIcon size={20} />
                       </span>
                     ) : null}
                   </button>
@@ -104,11 +92,10 @@ export default function TripPicker({
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark"
+          className="mt-4 min-h-[48px] w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-[14px] font-bold text-tourflow-dark"
         >
           Done
         </button>
-      </div>
-    </div>
+    </AppSheet>
   );
 }

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
-import { StepRow } from '../components/trip';
-import { loadingMockNote, loadingPreviewImages, loadingScreen, planningSteps } from '../mocks/traveler';
+import { StepRow, Stepper } from '../components/trip';
+import { SparkIcon } from '../components/icons';
+import { loadingMockNote, loadingScreen, planningSteps } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import { tripDateRangeLabel } from '../utils/dates';
 import { isApiConfigured } from '../api/client';
@@ -249,7 +250,6 @@ export default function AiLoading() {
     draft.travelerLabel ?? (draft.travelers ? `${draft.travelers} Travelers` : 'Travelers not set'),
     ...(dateRange ? [dateRange] : []),
   ].join(' · ');
-  const previews = loadingPreviewImages(draft.destination);
   // Backend 422 detail is shown VERBATIM (it carries quota/budget hints like
   // "cheapest workable plan ≈ ₹X") — no generic copy is ever substituted.
 
@@ -324,26 +324,29 @@ export default function AiLoading() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-primary">
-          {loadingScreen.statusLabel}
-        </p>
-        <button
-          type="button"
-          onClick={() => navigate('/plan')}
-          aria-label="Cancel generation"
-          className="flex h-9 w-9 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white"
-        >
-          ✕
-        </button>
+    <div className="flex flex-col gap-5">
+      <div>
+        <Stepper steps={['Intent', 'Details', 'Trip']} current={2} />
+        <div className="mt-3 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wide text-tourflow-primary">
+            {loadingScreen.statusLabel}
+          </p>
+          <button
+            type="button"
+            onClick={() => navigate('/plan')}
+            aria-label="Cancel generation"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-[18px] font-bold"
+          >
+            ×
+          </button>
+        </div>
       </div>
 
-      <h2 className="text-xl font-extrabold tracking-tight">Crafting {destinationLabel} Getaway...</h2>
+      <h2 className="text-[22px] font-extrabold tracking-tight">Crafting {destinationLabel} getaway…</h2>
 
       {missingDestination && !apiError ? (        <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
-          <p className="text-sm font-bold text-red-700">Destination needed for live planning</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="text-[15px] font-bold text-red-700">Destination needed for live planning</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted">
             The backend needs a destination to generate your trip. Type any destination —
             well-known or not, it is discovered dynamically — then continue.
           </p>
@@ -351,14 +354,14 @@ export default function AiLoading() {
             <button
               type="button"
               onClick={() => navigate('/checklist')}
-              className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover"
+              className="min-h-[44px] flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-[14px] font-bold text-white hover:bg-tourflow-primaryHover"
             >
               Back to Checklist
             </button>
             <button
               type="button"
               onClick={() => navigate('/plan')}
-              className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold"
+              className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold"
             >
               Back to Plan
             </button>
@@ -367,7 +370,7 @@ export default function AiLoading() {
       ) : null}
 
       {dup.status === 'checking' && !apiError ? (
-        <p className="rounded-xl bg-tourflow-surfaceMuted px-3 py-2 text-xs font-semibold text-tourflow-textMuted" role="status">
+        <p className="rounded-xl bg-tourflow-surfaceMuted px-3 py-2 text-[13px] font-semibold text-tourflow-textMuted" role="status">
           Checking your existing trips…
         </p>
       ) : null}
@@ -378,8 +381,8 @@ export default function AiLoading() {
           role="alertdialog"
           aria-label="Trip already in progress"
         >
-          <p className="text-sm font-bold">Trip already in progress</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="text-[15px] font-bold">Trip already in progress</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted">
             {travelerTripName(dup.trip)}
             {dup.trip.start_date && dup.trip.end_date
               ? ` · ${tripDateRangeLabel(
@@ -390,7 +393,7 @@ export default function AiLoading() {
             {' '}— continue where you left off, or plan it again from scratch.
           </p>
           {dupError ? (
-            <p className="mt-1 text-xs font-semibold text-red-600" role="alert">{dupError}</p>
+            <p className="mt-1 text-[13px] font-semibold text-red-700" role="alert">{dupError}</p>
           ) : null}
           <div className="mt-3 flex gap-2">
             <button
@@ -416,29 +419,29 @@ export default function AiLoading() {
 
       {apiError ? (
         <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
-          <p className="text-sm font-bold text-red-700">{apiError.split('\n')[0]}</p>
-          <p className="mt-1 whitespace-pre-line text-xs text-tourflow-textMuted">{apiError}</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">Your prompt and checklist edits are preserved.</p>
+          <p className="text-[15px] font-bold text-red-700">{apiError.split('\n')[0]}</p>
+          <p className="mt-1 whitespace-pre-line text-[13px] text-tourflow-textMuted">{apiError}</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted">Your prompt and checklist edits are preserved.</p>
           <div className="mt-3 flex gap-2">
             <button
               type="button"
               onClick={handleRetry}
               disabled={retryingSave}
-              className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+              className="min-h-[44px] flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-[14px] font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
             >
               {retryingSave ? 'Saving…' : 'Try Again'}
             </button>
             <button
               type="button"
               onClick={() => navigate('/checklist')}
-              className="flex-1 rounded-full bg-tourflow-dark px-3 py-2 text-xs font-bold text-white"
+              className="min-h-[44px] flex-1 rounded-full bg-tourflow-dark px-3 py-2 text-[14px] font-bold text-white"
             >
               Adjust Dates
             </button>
             <button
               type="button"
               onClick={() => navigate('/plan')}
-              className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold"
+              className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold"
             >
               Back to Plan
             </button>
@@ -446,26 +449,29 @@ export default function AiLoading() {
         </section>
       ) : null}
 
-      <section className="relative overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white p-6 text-center shadow-card">
+      <section className="relative overflow-hidden rounded-3xl border border-tourflow-cardBorder bg-white p-6 text-center shadow-card">
         <div className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-tourflow-primarySoft blur-3xl" aria-hidden="true" />
         <div className="pointer-events-none absolute -bottom-10 -right-10 h-40 w-40 rounded-full bg-tourflow-sageLight blur-3xl" aria-hidden="true" />
-        <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tourflow-primarySoft" aria-hidden="true">
+        <div className="relative mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-tourflow-primarySoft text-tourflow-primary" aria-hidden="true">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-tourflow-primary/20" />
-          <span className="text-2xl">✦</span>
+          <SparkIcon size={32} />
         </div>
-          <p className="relative mt-3 text-sm font-semibold">WanderAI is curating your days…</p>
-        <p className="relative mt-1 inline-block rounded-full bg-tourflow-surfaceMuted px-3 py-1 text-xs font-bold">
+          <p className="relative mt-3 text-[15px] font-semibold">WanderAI is curating your days…</p>
+        <p className="relative mt-1 inline-block rounded-full bg-tourflow-surfaceMuted px-3 py-1 text-[13px] font-bold">
           {capsule}
         </p>
+        <div className="relative mx-auto mt-3 h-1.5 w-full max-w-xs overflow-hidden rounded-full bg-tourflow-surfaceMuted" role="progressbar" aria-valuenow={completedSteps} aria-valuemin={0} aria-valuemax={planningSteps.length} aria-label="Planning progress">
+          <div className="h-full rounded-full bg-tourflow-primary transition-all" style={{ width: `${(completedSteps / planningSteps.length) * 100}%` }} />
+        </div>
         {useBackend && showSlowNotice && !apiError ? (
-          <p className="relative mt-2 rounded-2xl bg-tourflow-surfaceMuted p-3 text-xs leading-relaxed" role="status">
+          <p className="relative mt-2 rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] leading-relaxed" role="status">
             <span className="font-bold">Still working — </span>
             Your itinerary is taking a little longer than usual. Please keep this screen open.
           </p>
         ) : null}
-        <p className="relative mt-2 text-xs text-tourflow-textMuted">
+        <p className="relative mt-2 text-[13px] text-tourflow-textMuted">
           {draft.style ? `${draft.style} tempo · ` : ''}
-          {useBackend ? 'Live backend generation — no mock data.' : 'Simulated planning — no AI or API calls.'}
+          {useBackend ? 'Live backend generation — verified stays & routes.' : 'Simulated planning — no AI or API calls.'}
         </p>
       </section>
 
@@ -482,27 +488,28 @@ export default function AiLoading() {
         ))}
       </ul>
 
-      <div className="grid grid-cols-2 gap-2">
-        {previews.map((preview, index) => (
-          <article key={`${preview.imageAlt}-${index}`} className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
-            <img src={preview.imageUrl} alt={preview.imageAlt} loading="lazy" className="h-20 w-full object-cover" />
-            <div className="p-2">
-              <p className="truncate text-xs font-bold">{index === 0 ? destinationLabel : 'Mock inspiration'}</p>
-              <p className="text-[11px] text-tourflow-textMuted">Preview · mock</p>
-            </div>
-          </article>
-        ))}
-      </div>
+      {useBackend ? (
+        <div className="flex flex-col gap-2" aria-label="Planning activity">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="skeleton-shimmer h-[52px] rounded-2xl border border-tourflow-cardBorder" aria-hidden="true" />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] leading-relaxed">
+          <span className="font-bold">Preview — sample. </span>
+          Simulated planning — no AI or API calls.
+        </p>
+      )}
 
-      <p className="rounded-2xl bg-tourflow-surfaceMuted p-3 text-xs leading-relaxed">
+      <p className="rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] leading-relaxed">
         <span className="font-bold">Did you know? </span>
         {loadingMockNote.trivia}
       </p>
-      <p className="text-xs text-tourflow-textMuted">{loadingMockNote.weather}</p>
+      <p className="text-[13px] text-tourflow-textMuted">{loadingMockNote.weather}</p>
 
       <div className="flex items-center gap-2">
         <p
-          className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-3 py-2 text-center text-xs font-semibold"
+          className="flex min-h-[44px] flex-1 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white px-3 py-2 text-center text-[13px] font-semibold"
           role="status"
         >
           {completedSteps < planningSteps.length ? (
@@ -517,7 +524,7 @@ export default function AiLoading() {
           type="button"
           onClick={handleViewItinerary}
           disabled={useBackend && completedSteps < planningSteps.length}
-          className="rounded-full bg-tourflow-dark px-4 py-2 text-xs font-bold text-white disabled:opacity-50"
+          className="min-h-[44px] rounded-full bg-tourflow-dark px-5 py-2 text-[14px] font-bold text-white disabled:opacity-50"
         >
           View Itinerary
         </button>

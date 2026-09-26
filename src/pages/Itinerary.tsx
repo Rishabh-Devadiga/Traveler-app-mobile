@@ -1,6 +1,8 @@
 import { Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
+import AppSheet from '../components/Sheet';
+import { BackIcon, PdfIcon } from '../components/icons';
 // TripMap (+ Leaflet) stays out of the main bundle — loaded only when Map opens.
 const TripMap = lazy(() => import('../components/TripMap'));
 import { FilterPills } from '../components/home';
@@ -52,23 +54,12 @@ type Sheet =
   | { kind: 'transport' }
   | null;
 
-/** Bottom-sheet shell shared by the itinerary mutation sheets. */
-function Sheet({ label, onClose, children }: { label: string; onClose: () => void; children: ReactNode }) {
+/** Bottom-sheet shell shared by the itinerary mutation sheets (premium chrome, same behavior). */
+function Sheet({ label, onClose, children }: { label: string; onClose: () => void; children: React.ReactNode }) {
   return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-label={label}
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40"
-      onClick={onClose}
-    >
-      <div
-        className="max-h-[85vh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-white p-5 pb-8 shadow-float"
-        onClick={(event) => event.stopPropagation()}
-      >
-        {children}
-      </div>
-    </div>
+    <AppSheet label={label} onClose={onClose}>
+      <div className="sheet-enter">{children}</div>
+    </AppSheet>
   );
 }
 
@@ -737,29 +728,37 @@ export default function Itinerary() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5 pb-24">
       <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark text-white shadow-card">
         <div className="absolute inset-0 bg-tourflow-dark" aria-hidden="true" />
         {heroImage ? (
           <SafeImage
             src={heroImage}
             alt={heroImageAlt}
-            className="absolute inset-0 h-full w-full object-cover"
+            className="absolute inset-0 h-[220px] w-full object-cover"
           />
         ) : null}
         <div
-          className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/55 to-black/25"
+          className="absolute inset-0 h-[220px] bg-gradient-to-t from-black/90 via-black/55 to-black/25"
           aria-hidden="true"
         />
-        <div className="relative flex min-h-[340px] flex-col justify-end p-5 sm:p-6 md:min-h-[420px] md:p-8">
-          <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-white/70">
-            Your trip
+        <button type="button" onClick={() => navigate(-1)} aria-label="Go back" className="absolute left-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70">
+          <BackIcon size={20} />
+        </button>
+        {isLive && apiTrip ? (
+          <button type="button" onClick={handleDownloadPdf} aria-label="Export trip PDF" className="absolute right-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70">
+            <PdfIcon size={20} />
+          </button>
+        ) : null}
+        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark p-5">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">
+            Your trip · {draft.itinerarySource === 'api' ? 'Live' : 'Preview'}
           </p>
-          <h2 className="mt-1 text-3xl font-extrabold leading-[1.1] tracking-tight md:text-4xl">
+          <h2 className="clamp-2 mt-1 text-[22px] font-extrabold leading-tight tracking-tight">
             {destinationLabel}
           </h2>
           {originLabel ? (
-            <p className="mt-1.5 text-sm font-semibold text-white/90">
+            <p className="mt-1.5 text-[14px] font-semibold text-white/90">
               {originLabel} → {destinationLabel}
             </p>
           ) : null}
@@ -768,11 +767,11 @@ export default function Itinerary() {
             {dateRange ? ` · ${dateRange}` : ''} · {totalStops}{' '}
             {totalStops === 1 ? 'Stop' : 'Stops'}
           </p>
-          <p className="mt-2.5 text-lg font-extrabold leading-none text-white md:text-xl">
+          <p className="mt-2.5 text-[18px] font-extrabold leading-none text-white">
             {tripTotal !== undefined
               ? formatINR(tripTotal)
               : (draft.budgetLabel ?? (tripBudget !== undefined ? formatINR(tripBudget) : 'Budget to be confirmed'))}{' '}
-            <span className="align-middle text-xs font-semibold text-white/70">
+            <span className="align-middle text-[13px] font-semibold text-white/70">
               total
               {tripBudget !== undefined && tripTotal !== undefined && tripBudget !== tripTotal
                 ? ` · Budget ${formatINR(tripBudget)}`
@@ -780,7 +779,7 @@ export default function Itinerary() {
             </span>
           </p>
           {costBreakdown ? (
-            <p className="mt-1.5 text-xs leading-relaxed text-white/70">
+            <p className="mt-1.5 text-[13px] leading-relaxed text-white/70">
               Transport {formatINR(costBreakdown.transport)} · Stays{' '}
               {formatINR(costBreakdown.accommodation)} · Activities{' '}
               {formatINR(costBreakdown.activities)}
@@ -806,7 +805,7 @@ export default function Itinerary() {
       </section>
 
       {!isLive ? (
-        <p className="rounded-xl bg-tourflow-primarySoft px-3 py-2 text-xs font-semibold text-tourflow-primary">
+        <p className="rounded-xl bg-tourflow-primarySoft px-3 py-2 text-[13px] font-semibold text-tourflow-primary">
           Preview — sample details, final plan may vary.
         </p>
       ) : null}
@@ -916,7 +915,7 @@ export default function Itinerary() {
         </Suspense>
       ) : null}
 
-      <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label="Itinerary days">
+      <div className="no-scrollbar sticky top-16 z-10 -mx-4 flex gap-2 overflow-x-auto bg-tourflow-bg/95 px-4 py-2 backdrop-blur-md" role="tablist" aria-label="Itinerary days">
         {dayNumbers.map((n) => (
           <button
             key={n}
@@ -924,7 +923,7 @@ export default function Itinerary() {
             role="tab"
             aria-selected={n === dayNumber}
             onClick={() => setActiveDay(n)}
-            className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+            className={`min-h-[36px] shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
               n === dayNumber
                 ? 'bg-tourflow-primary text-white shadow-float'
                 : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
@@ -933,11 +932,23 @@ export default function Itinerary() {
             Day {n}
           </button>
         ))}
+        {isLive && tripId ? (
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            aria-pressed={showMap}
+            className={`min-h-[36px] shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
+              showMap ? 'bg-tourflow-dark text-white' : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
+            }`}
+          >
+            {showMap ? 'Hide map' : 'Map'}
+          </button>
+        ) : null}
       </div>
 
       <div>
-        <h3 className="text-base font-bold">{dayHeading}</h3>
-        <p className="text-xs text-tourflow-textMuted">{countStops(dayStops)} Stops</p>
+        <h3 className="text-[17px] font-bold">{dayHeading}</h3>
+        <p className="text-[13px] text-tourflow-textMuted">{countStops(dayStops)} Stops</p>
       </div>
 
       {(() => {
@@ -1099,34 +1110,60 @@ export default function Itinerary() {
         isConfirmed ? (
           <p
             role="status"
-            className="w-full rounded-full bg-tourflow-sageLight px-4 py-3 text-center text-sm font-extrabold text-tourflow-sage shadow-card"
+            className="w-full rounded-full bg-tourflow-sageLight px-4 py-3 text-center text-[15px] font-extrabold text-tourflow-sage shadow-card"
           >
-            ✓ Trip Confirmed
+            Trip Confirmed
           </p>
         ) : (
           <button
             type="button"
             onClick={() => void handleConfirm()}
             disabled={pendingKey !== null}
-            className="w-full rounded-full bg-tourflow-primary px-4 py-3 text-sm font-bold text-white shadow-card hover:bg-tourflow-primaryHover disabled:opacity-60"
+            className="min-h-[52px] w-full rounded-full bg-tourflow-primary px-4 py-3 text-[15px] font-bold text-white shadow-card hover:bg-tourflow-primaryHover disabled:opacity-60"
           >
             {pendingKey === 'confirm' ? 'Confirming…' : 'Confirm Trip'}
           </button>
         )
       ) : null}
 
-      <div className="sticky bottom-20 rounded-full border border-tourflow-cardBorder bg-white/95 p-2 shadow-card backdrop-blur">
-        <div className="no-scrollbar flex gap-2 overflow-x-auto px-1">
-          {copilotSuggestions.map((s) => (
+      <div className="no-scrollbar flex gap-2 overflow-x-auto" aria-label="AI suggestions">
+        {copilotSuggestions.map((s) => (
+          <button
+            key={s}
+            type="button"
+            onClick={() => navigate('/ai-guide')}
+            className="min-h-[36px] shrink-0 rounded-full bg-tourflow-surfaceMuted px-3.5 py-1.5 text-[13px] font-semibold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
+          >
+            {s}
+          </button>
+        ))}
+      </div>
+
+      <div className="fixed inset-x-0 bottom-[68px] z-30 border-t border-tourflow-cardBorder bg-white/95 px-4 pb-safe pt-2 backdrop-blur-md">
+        <div className="mx-auto flex max-w-md gap-2">
+          {isLive && apiTrip ? (
             <button
-              key={s}
               type="button"
-              onClick={() => navigate('/ai-guide')}
-              className="shrink-0 rounded-full bg-tourflow-surfaceMuted px-3 py-1.5 text-xs font-semibold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
+              onClick={handleDownloadPdf}
+              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-[14px] font-bold text-tourflow-dark"
             >
-              {s}
+              <PdfIcon size={18} /> Export PDF
             </button>
-          ))}
+          ) : null}
+          {isLive && tripId && !isConfirmed ? (
+            <button
+              type="button"
+              onClick={() => void handleConfirm()}
+              disabled={pendingKey !== null}
+              className="min-h-[48px] flex-1 rounded-full bg-tourflow-primary px-4 py-2.5 text-[14px] font-bold text-white shadow-float hover:bg-tourflow-primaryHover disabled:opacity-60"
+            >
+              {pendingKey === 'confirm' ? 'Confirming…' : 'Confirm trip'}
+            </button>
+          ) : isConfirmed ? (
+            <p role="status" className="flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-tourflow-sageLight px-4 py-2.5 text-[14px] font-extrabold text-tourflow-sage">
+              Confirmed
+            </p>
+          ) : null}
         </div>
       </div>
 
