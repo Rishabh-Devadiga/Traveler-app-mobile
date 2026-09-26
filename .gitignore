@@ -5,6 +5,10 @@ node_modules/
 dist/
 dist-ssr/
 
+# Capacitor native shells (generated via `npx cap add android`; per-machine SDK paths)
+android/
+ios/
+
 # logs
 *.log
 npm-debug.log*
@@ -19,3 +23,6 @@ Thumbs.db
 .env
 .env.local
 .env.*.local
+# Keep the device-build default committed, ignore any other per-machine env file
+!.env.production
+!.env.example

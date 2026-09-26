@@ -1,14 +1,75 @@
 /**
  * Minimal typed HTTP client for the TourFlow backend (Phase 3A).
  *
- * - Base URL comes ONLY from the `VITE_TOURFLOW_API_URL` environment variable.
- * - No localhost fallbacks and no API keys/tokens are hardcoded here.
- *   (The trip endpoints used by the Traveler app are open on the backend —
- *   they depend only on `get_db`, no JWT.)
+ * - Base URL resolution order (first non-empty value wins):
+ *   1. Android/WebView runtime override: `window.__TOURFLOW_API_URL__` or
+ *      `localStorage["tourflow.apiUrl.v1"]` (set via `setApiBaseUrlOverride()`
+ *      or shipped `public/api-config.json`). Required on a physical device
+ *      where the dev PC is reached over LAN, not localhost.
+ *   2. Build-time `VITE_TOURFLOW_API_URL` (or legacy `VITE_API_URL`).
+ * - No localhost fallbacks are hardcoded here and no API keys/tokens live in
+ *   this file. (The trip endpoints used by the Traveler app are open on the
+ *   backend — they depend only on `get_db`, no JWT.)
  * - FastAPI error bodies (`{"detail": ...}`) are surfaced via `ApiError`.
  */
 
 import { getTravelerToken } from './auth';
+
+/** localStorage key for the on-device backend URL override (LAN builds). */
+export const API_URL_OVERRIDE_KEY = 'tourflow.apiUrl.v1';
+
+/** Global override injected before the bundle loads (e.g. per-APK config). */
+declare global {
+  interface Window {
+    __TOURFLOW_API_URL__?: string;
+  }
+}
+
+function normalizeBaseUrl(raw: unknown): string | undefined {
+  if (typeof raw !== 'string') return undefined;
+  const trimmed = raw.trim().replace(/\/+$/, '');
+  return trimmed ? trimmed : undefined;
+}
+
+function readRuntimeOverride(): string | undefined {
+  try {
+    const fromGlobal = normalizeBaseUrl(window.__TOURFLOW_API_URL__);
+    if (fromGlobal) return fromGlobal;
+  } catch {
+    /* window unavailable (SSR/tests) — fall through to build-time env */
+  }
+  try {
+    return normalizeBaseUrl(window.localStorage.getItem(API_URL_OVERRIDE_KEY));
+  } catch {
+    return undefined;
+  }
+}
+
+function readBaseUrl(): string | undefined {
+  // On-device override first so one APK works against any LAN backend without
+  // a rebuild; build-time env remains the default for web/dev.
+  const override = readRuntimeOverride();
+  if (override) return override;
+  // Optional chaining: `import.meta.env` is injected by Vite, but the guard
+  // keeps SSR/tests outside Vite from throwing on access.
+  const raw = import.meta.env?.VITE_TOURFLOW_API_URL || import.meta.env?.VITE_API_URL;
+  return normalizeBaseUrl(raw);
+}
+
+/** Persist an on-device backend URL (takes effect immediately, survives restarts). */
+export function setApiBaseUrlOverride(url: string): void {
+  window.localStorage.setItem(API_URL_OVERRIDE_KEY, normalizeBaseUrl(url) ?? url.trim());
+}
+
+/** Clear the on-device backend URL override (falls back to the built-in URL). */
+export function clearApiBaseUrlOverride(): void {
+  try {
+    window.localStorage.removeItem(API_URL_OVERRIDE_KEY);
+  } catch {
+    /* storage unavailable — override is effectively cleared */
+  }
+}
+
 
 export class ApiError extends Error {
   readonly status: number;
@@ -28,13 +89,14 @@ export class ApiError extends Error {
   }
 }
 
-function readBaseUrl(): string | undefined {
-  // Optional chaining: `import.meta.env` is injected by Vite, but the guard
-  // keeps SSR/tests outside Vite from throwing on access.
-  const raw = import.meta.env?.VITE_TOURFLOW_API_URL || import.meta.env?.VITE_API_URL;
-  if (typeof raw !== 'string') return undefined;
-  const trimmed = raw.trim().replace(/\/+$/, '');
-  return trimmed ? trimmed : undefined;
+function errorMessage(status: number, detail: unknown): string {
+  if (typeof detail === 'string' && detail) return detail;
+  if (Array.isArray(detail)) {
+    const first = detail.find((entry) => typeof entry?.msg === 'string');
+    if (typeof first?.msg === 'string') return first.msg;
+  }
+  if (detail && typeof detail === 'object') return JSON.stringify(detail);
+  return `WanderAI API request failed (status ${status})`;
 }
 
 /** True when the API base URL is configured. The mock flow is used otherwise. */
@@ -50,16 +112,6 @@ export function getApiBaseUrl(): string | undefined {
 /** Verbatim backend error text for a status + parsed body (shared with multipart calls). */
 export function apiErrorMessage(status: number, detail: unknown): string {
   return errorMessage(status, detail);
-}
-
-function errorMessage(status: number, detail: unknown): string {
-  if (typeof detail === 'string' && detail) return detail;
-  if (Array.isArray(detail)) {
-    const first = detail.find((entry) => typeof entry?.msg === 'string');
-    if (typeof first?.msg === 'string') return first.msg;
-  }
-  if (detail && typeof detail === 'object') return JSON.stringify(detail);
-  return `WanderAI API request failed (status ${status})`;
 }
 
 interface RequestOptions {

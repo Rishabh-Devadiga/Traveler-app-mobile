@@ -8,9 +8,16 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "eslint src --ext .ts,.tsx",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "cap:init": "cap init WanderAI-Traveler com.wanderai.traveler --web-dir=dist",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/app": "^6.0.0",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
     "jspdf": "^4.2.1",
     "leaflet": "^1.9.4",
     "react": "^18.3.1",
