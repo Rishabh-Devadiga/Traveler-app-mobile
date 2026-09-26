@@ -26,6 +26,13 @@ import delhiImage from '../assets/destinations/delhi.jpg';
 import dharamshalaImage from '../assets/destinations/dharamshala.jpg';
 import gangtokImage from '../assets/destinations/gangtok.jpg';
 import goaButterflyBeach from '../assets/destinations/goa-butterfly-beach.jpg';
+import heroSlide1 from '../assets/onboarding/hero-1.png';
+import heroSlide2 from '../assets/onboarding/hero-2.png';
+import heroSlide3 from '../assets/onboarding/hero-3.png';
+import heroSlide4 from '../assets/onboarding/hero-4.png';
+import heroSlide5 from '../assets/onboarding/hero-5.png';
+import heroSlide6 from '../assets/onboarding/hero-6.png';
+import heroSlide7 from '../assets/onboarding/hero-7.png';
 import gokarnaImage from '../assets/destinations/gokarna.jpg';
 import hampiImage from '../assets/destinations/hampi.jpg';
 import hyderabadImage from '../assets/destinations/hyderabad.jpg';
@@ -1136,72 +1143,59 @@ export const profileMenuSupport: ProfileMenuItem[] = [
 /**
  * Onboarding cinematic carousel.
  * Converted from `home_explore_illustrated_india_carousel/code.html`.
- * Stitch `lh3.googleusercontent.com/aida` slide URLs are ephemeral, so
- * stable Unsplash equivalents with the same subject matter are used.
+ * Local illustrated hero artwork (src/assets/onboarding/hero-1..7.png),
+ * shown in exact provided order 1→7. Carousel behavior (crossfade,
+ * autoplay, dots, overlay) lives in OnboardingCarousel/Onboarding page.
  */
 export const onboardingSlides: OnboardingSlide[] = [
   {
-    id: 'manali',
-    name: 'Manali, HP',
-    location: 'Himachal Pradesh',
-    imageUrl:
-      'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Manali, Himachal Pradesh scenic alpine valley',
+    id: 'kokan',
+    name: 'Kokan Beach',
+    location: 'Maharashtra',
+    imageUrl: heroSlide1,
+    imageAlt: 'Kokan Beach, Maharashtra scenic coastline',
   },
   {
     id: 'goa',
     name: 'Goa Beach',
     location: 'Goa, India',
-    imageUrl: goaButterflyBeach,
+    imageUrl: heroSlide2,
     imageAlt: 'Butterfly Beach cove, Goa — turquoise water and golden sand',
   },
   {
-    id: 'kerala',
-    name: 'Kerala Backwaters',
-    location: 'Kerala, India',
-    imageUrl:
-      'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Kerala serene backwaters with houseboat',
-  },
-  {
-    id: 'jaisalmer',
-    name: 'Jaisalmer, Rajasthan',
-    location: 'Thar Desert',
-    imageUrl:
-      'https://images.unsplash.com/photo-1477587458883-47145ed94245?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Rajasthan Jaisalmer golden desert dunes',
-  },
-  {
     id: 'kashmir',
-    name: 'Kashmir Valley',
+    name: 'Kashmir',
     location: 'Srinagar, Kashmir',
-    imageUrl:
-      'https://images.unsplash.com/photo-1566837945700-30057527ade0?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Kashmir Dal Lake with shikara boats',
+    imageUrl: heroSlide3,
+    imageAlt: 'Kashmir Valley scenic landscape',
   },
   {
     id: 'ladakh',
     name: 'Ladakh',
     location: 'Leh Ladakh',
-    imageUrl:
-      'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=900&q=60',
+    imageUrl: heroSlide4,
     imageAlt: 'Ladakh high altitude monastery mountains',
+  },
+  {
+    id: 'rajasthan',
+    name: 'Rajasthan',
+    location: 'Thar Desert',
+    imageUrl: heroSlide5,
+    imageAlt: 'Rajasthan golden desert dunes',
+  },
+  {
+    id: 'kerala',
+    name: 'Kerala',
+    location: 'Kerala, India',
+    imageUrl: heroSlide6,
+    imageAlt: 'Kerala serene backwaters with houseboat',
   },
   {
     id: 'uttarakhand',
     name: 'Uttarakhand',
     location: 'Garhwal, Himalayas',
-    imageUrl:
-      'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?auto=format&fit=crop&w=900&q=60',
+    imageUrl: heroSlide7,
     imageAlt: 'Uttarakhand lush mountain river valley',
-  },
-  {
-    id: 'andaman',
-    name: 'Andaman Islands',
-    location: 'Havelock Island',
-    imageUrl:
-      'https://images.unsplash.com/photo-1559128010-7c1ad6e1b6a5?auto=format&fit=crop&w=900&q=60',
-    imageAlt: 'Andaman Islands tropical beach paradise',
   },
 ];
 
