@@ -75,12 +75,18 @@ function readBaseUrl(): string | undefined {
 /** Persist an on-device backend URL (takes effect immediately, survives restarts). */
 export function setApiBaseUrlOverride(url: string): void {
   window.localStorage.setItem(API_URL_OVERRIDE_KEY, normalizeBaseUrl(url) ?? url.trim());
+  try {
+    window.localStorage.setItem('tourflow.apiUrlSource.v1', 'manual');
+  } catch {
+    /* storage unavailable — override itself is already persisted */
+  }
 }
 
 /** Clear the on-device backend URL override (falls back to the built-in URL). */
 export function clearApiBaseUrlOverride(): void {
   try {
     window.localStorage.removeItem(API_URL_OVERRIDE_KEY);
+    window.localStorage.removeItem('tourflow.apiUrlSource.v1');
   } catch {
     /* storage unavailable — override is effectively cleared */
   }
