@@ -1,6 +1,6 @@
 import type { Category, Destination } from '../types';
 import { SafeImage } from './content';
-import { SearchIcon, SparkIcon } from './icons';
+import { MicIcon, SearchIcon, SparkIcon } from './icons';
 
 export function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
   return (
@@ -19,16 +19,32 @@ export function SectionHeader({ title, actionLabel, onAction }: { title: string;
   );
 }
 
+/**
+ * Trip-prompt entry: typed text plus optional voice dictation.
+ *
+ * The mic sits beside the Plan button and is rendered only when the caller
+ * reports speech support (Web Speech available + secure context) — the same
+ * auto-hide rule the removed Intent screen used, so typing always remains the
+ * fallback. While listening the field shows live interim words (the caller
+ * passes `displayWithInterim(...)`) and the mic turns into a stop control.
+ */
 export function SearchBar({
   value,
   placeholder,
   onChange,
   onSubmit,
+  voiceSupported,
+  listening,
+  onVoice,
 }: {
   value: string;
   placeholder: string;
   onChange: (v: string) => void;
   onSubmit: () => void;
+  /** Show the small mic beside Plan (voice/speak input). */
+  voiceSupported?: boolean;
+  listening?: boolean;
+  onVoice?: () => void;
 }) {
   return (
     <form
@@ -49,6 +65,22 @@ export function SearchBar({
         aria-label="Describe your trip"
         className="w-full min-w-0 bg-transparent text-[16px] text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
       />
+      {voiceSupported ? (
+        <button
+          type="button"
+          onClick={onVoice}
+          aria-pressed={listening === true}
+          aria-label={listening ? 'Stop voice input' : 'Speak your trip'}
+          title={listening ? 'Stop listening' : 'Speak instead'}
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors ${
+            listening
+              ? 'border-tourflow-primary bg-tourflow-primarySoft text-tourflow-primary'
+              : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary'
+          }`}
+        >
+          <MicIcon size={20} />
+        </button>
+      ) : null}
       <button
         type="submit"
         className="min-h-[44px] shrink-0 rounded-full bg-tourflow-primary px-5 py-2 text-[14px] font-bold text-white transition-colors hover:bg-tourflow-primaryHover"

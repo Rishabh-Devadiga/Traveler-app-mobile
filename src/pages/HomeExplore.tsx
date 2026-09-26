@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GlobeView from '../components/GlobeView';
 import { SparkIcon } from '../components/icons';
@@ -12,6 +12,13 @@ import { filterCuratedByCategory, getCuratedCategory, resolveExploreCategory } f
 import { useTravelerProfile } from '../state/useTravelerProfile';
 import { useTripDraft } from '../state/useTripDraft';
 import { parseTripPrompt } from '../utils/parseTripPrompt';
+import {
+  appendTranscript,
+  displayWithInterim,
+  isSpeechSupported,
+  speechErrorMessage,
+  startListening,
+} from '../utils/speech';
 
 export default function HomeExplore() {
   const navigate = useNavigate();
@@ -20,6 +27,13 @@ export default function HomeExplore() {
   const travelerName = profile?.full_name.trim() || 'Traveler';
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [formError, setFormError] = useState('');
+  const [voiceNote, setVoiceNote] = useState('');
+  const [listening, setListening] = useState(false);
+  const [interim, setInterim] = useState('');
+  const voiceSupported = useMemo(() => isSpeechSupported(), []);
+  const stopVoiceRef = useRef<(() => void) | null>(null);
+  const voicedRef = useRef('');
 
   // Category pills filter the Curated slider from the already-loaded local
   // data — no extra requests, no invented destinations.
@@ -29,37 +43,111 @@ export default function HomeExplore() {
   );
   const activeCategory = getCuratedCategory(activeFilter);
 
+  // The mic must never keep recording after leaving Home.
+  useEffect(() => () => stopVoiceRef.current?.(), []);
+
   /**
-   * Home prompt entry point.
-   * Reuses the existing TripDraft/state/parser + TripChecklist flow —
-   * this only changes the entry point so a valid Home prompt skips the
-   * redundant PlanJourney freeform step.
-   * - Non-empty prompt → startTrip(prompt, {destination, source manual})
-   *   → navigate directly to /checklist (Checklist runs ensureParsed()).
-   * - Empty prompt → existing /plan manual entry (Freeform Intent stays).
+   * Single Home → planning entry point, shared by the typed "Plan" button, the
+   * mic dictation and the destination cards.
+   *
+   * The Intent screen is gone, so this seeds the shared TripDraft and opens the
+   * existing Checklist directly (Checklist's ensureParsed() fills duration,
+   * travelers, budget, origin and style from the prompt — identical data to the
+   * old flow). A completed trip's residue is cleared first so a stale itinerary
+   * can never leak in, and startTrip's resume fast-path still preserves
+   * in-progress checklist edits when the exact same prompt is resubmitted.
    */
-  const handleHomePromptSubmit = () => {
-    const trimmed = query.trim();
-    if (!trimmed) {
-      navigate('/plan', { state: { reset: true, source: 'manual' } });
-      return;
-    }
-    const parsed = parseTripPrompt(trimmed);
-    // Fresh Home entry: clear any completed-trip residue first (same clean
-    // initial state PlanJourney's manual reset would produce), then seed the
-    // shared TripDraft. Checklist's ensureParsed() fills duration/travelers/
-    // budget/origin/style from the prompt — identical data as the Plan flow.
-    // Stale completed itineraries must never leak into the new draft, and
-    // startTrip's resume fast-path already preserves in-progress checklist
-    // edits when the exact same prompt is resubmitted.
+  const beginTrip = (
+    promptText: string,
+    options?: { destination?: string; source?: 'manual' | 'globe' },
+  ) => {
+    const trimmed = promptText.trim();
+    if (!trimmed) return;
+    const destination = options?.destination ?? parseTripPrompt(trimmed).destination;
     if (draft.itinerary !== null || draft.tripId !== undefined) {
       resetTrip();
     }
     startTrip(trimmed, {
-      destination: parsed.destination,
-      destinationSource: parsed.destination ? 'manual' : undefined,
+      destination,
+      destinationSource: destination ? options?.source ?? 'manual' : undefined,
     });
+    setFormError('');
+    setVoiceNote('');
+    setInterim('');
     navigate('/checklist');
+  };
+
+  /** Plan button / Enter in the search field → Checklist. */
+  const handleHomePromptSubmit = () => {
+    const trimmed = query.trim();
+    if (trimmed) {
+      beginTrip(trimmed);
+      return;
+    }
+    // Empty field: resume an in-progress draft exactly like the Plan tab does.
+    // With nothing in progress there is no prompt to review, so ask for one
+    // instead of bouncing through an empty Checklist.
+    if (draft.prompt.trim() && draft.itinerary === null) {
+      setFormError('');
+      navigate('/checklist');
+      return;
+    }
+    setFormError(
+      'Describe your trip first — e.g. “Trip to Agra” or “4 days in Kashmir for a family of 4 under ₹60,000” — or tap the mic and speak it.',
+    );
+  };
+
+  /**
+   * Mic button beside Plan. Reuses the shared Web Speech wrapper in
+   * src/utils/speech.ts (the same implementation the removed Intent screen
+   * used) — no duplicate voice logic. Interim words stream into the search
+   * field, final words are appended (typed text survives), and when the user
+   * stops talking the dictated trip goes through beginTrip() → Checklist.
+   */
+  const handleVoice = () => {
+    // Tap-to-stop: final chunks already appended stay put.
+    if (listening) {
+      stopVoiceRef.current?.();
+      return;
+    }
+    setFormError('');
+    setVoiceNote('');
+    setInterim('');
+    voicedRef.current = '';
+    const stop = startListening('en-IN', {
+      onInterimText: (text) => setInterim(text),
+      onFinalText: (text) => {
+        setInterim('');
+        voicedRef.current = appendTranscript(voicedRef.current, text);
+        setQuery((previous) => appendTranscript(previous, text));
+      },
+      onSpeechError: (kind) => {
+        setListening(false);
+        setInterim('');
+        stopVoiceRef.current = null;
+        setVoiceNote(speechErrorMessage(kind));
+      },
+      onSpeechEnd: () => {
+        setListening(false);
+        setInterim('');
+        stopVoiceRef.current = null;
+        const said = voicedRef.current;
+        voicedRef.current = '';
+        // Spoken trip request → same seeding/navigation as a typed Plan.
+        if (said.trim()) {
+          beginTrip(said);
+          return;
+        }
+        setVoiceNote('');
+      },
+    });
+    if (!stop) {
+      setVoiceNote('Voice typing needs Chrome/Edge over HTTPS — type karo');
+      return;
+    }
+    stopVoiceRef.current = stop;
+    setListening(true);
+    setVoiceNote('Listening… bolo "plan me a 6-day trip to Udaipur…"');
   };
 
   return (
@@ -83,13 +171,9 @@ export default function HomeExplore() {
           </div>
         </div>
         <div className="flex gap-2 bg-[#050B18] p-3">
-          <button
-            type="button"
-            onClick={() => navigate('/plan', { state: { reset: true, source: 'manual' } })}
-            className="min-h-[48px] flex-1 rounded-full bg-tourflow-primary px-4 py-2.5 text-[15px] font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
-          >
-            Plan a trip
-          </button>
+          {/* The large "Plan a trip" hero button was removed on purpose: planning
+              starts from the search + Plan area below (typed or spoken), which now
+              opens the Checklist directly. */}
           <button
             type="button"
             onClick={() => navigate('/globe')}
@@ -100,12 +184,30 @@ export default function HomeExplore() {
         </div>
       </section>
 
-      <SearchBar
-        value={query}
-        placeholder='Try "5 days in Kerala under ₹50k"'
-        onChange={setQuery}
-        onSubmit={handleHomePromptSubmit}
-      />
+      <div className="flex flex-col gap-2">
+        <SearchBar
+          value={displayWithInterim(query, interim, listening)}
+          placeholder='Try "5 days in Kerala under ₹50k"'
+          onChange={(value) => {
+            setQuery(value);
+            if (value.trim()) setFormError('');
+          }}
+          onSubmit={handleHomePromptSubmit}
+          voiceSupported={voiceSupported}
+          listening={listening}
+          onVoice={handleVoice}
+        />
+        {voiceNote ? (
+          <p className="text-[13px] text-tourflow-sage" role="status">
+            {voiceNote}
+          </p>
+        ) : null}
+        {formError ? (
+          <p className="rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700" role="alert">
+            {formError}
+          </p>
+        ) : null}
+      </div>
 
       <section className="space-y-2">
         <SectionHeader
@@ -129,15 +231,12 @@ export default function HomeExplore() {
               <DestinationCard
                 key={d.id}
                 destination={d}
-                onPlan={() =>
-                  navigate('/plan', {
-                    state: {
-                      destination: d.name.split(',')[0].trim(),
-                      reset: true,
-                      source: 'manual',
-                    },
-                  })
-                }
+                onPlan={() => {
+                  // Same direct entry point as the search "Plan" button: seed the
+                  // shared draft and open the Checklist (no Intent screen between).
+                  const name = d.name.split(',')[0].trim();
+                  beginTrip(`Trip to ${name}`, { destination: name, source: 'manual' });
+                }}
               />
             ))}
           </div>

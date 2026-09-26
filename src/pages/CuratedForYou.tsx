@@ -7,6 +7,7 @@ import {
   getCuratedCategory,
   normalizeCuratedCategory,
 } from '../utils/curated';
+import { useTripDraft } from '../state/useTripDraft';
 
 /**
  * Dedicated "Curated For You" page, reusable per category via
@@ -20,6 +21,7 @@ import {
 export default function CuratedForYou() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const { draft, startTrip, resetTrip } = useTripDraft();
   const categoryId = normalizeCuratedCategory(searchParams.get('category'));
   const category = getCuratedCategory(categoryId);
   const visibleDestinations = useMemo(
@@ -30,13 +32,16 @@ export default function CuratedForYou() {
   const handlePlan = (destinationId: string) => {
     const match = curatedDestinations.find((d) => d.id === destinationId);
     const destination = match ? match.name.split(',')[0].trim() : undefined;
-    navigate('/plan', {
-      state: {
-        destination,
-        reset: true,
-        source: 'manual',
-      },
-    });
+    // The Intent screen is gone, so a card's Plan button seeds the shared draft
+    // and opens the Checklist directly. Without a resolvable destination there is
+    // nothing to pre-fill, so fall back to the Home prompt entry.
+    if (!destination) {
+      navigate('/home-explore');
+      return;
+    }
+    if (draft.itinerary !== null || draft.tripId !== undefined) resetTrip();
+    startTrip(`Trip to ${destination}`, { destination, destinationSource: 'manual' });
+    navigate('/checklist');
   };
 
   return (

@@ -151,9 +151,14 @@ export default function TripChecklist() {
 
   // Redirect guard runs AFTER the hooks above so the hook call order never
   // changes between renders (React rules-of-hooks), including when the draft
-  // is cleared and this page redirects back to Plan.
+  // is cleared and this page redirects to the Home prompt entry.
+  //
+  // Checklist IS the planning entry now (Plan → /checklist) but it still needs a
+  // prompt: without one there is nothing to review or generate, so the traveler
+  // is sent to Home — where the trip request is typed or dictated. Home never
+  // redirects back here, so this cannot loop.
   if (!draft.prompt.trim()) {
-    return <Navigate to="/plan" replace />;
+    return <Navigate to="/home-explore" replace />;
   }
 
   /** "Change Budget" action: reopen the existing budget input in place. */

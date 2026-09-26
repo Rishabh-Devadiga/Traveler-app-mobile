@@ -6,9 +6,11 @@ import DestinationChips from '../components/Globe/DestinationChips';
 import DestinationInfoCard from '../components/Globe/DestinationInfoCard';
 import { DESTINATIONS } from '../data/destinations';
 import type { GlobeRef, GlobeDestination } from '../components/Globe/types';
+import { useTripDraft } from '../state/useTripDraft';
 
 export default function GlobePage() {
   const navigate = useNavigate();
+  const { draft, startTrip, resetTrip } = useTripDraft();
   const globeRef = useRef<GlobeRef>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [rotating, setRotating] = useState(false);
@@ -67,9 +69,17 @@ export default function GlobePage() {
           : destination.name.includes('(')
           ? destination.name.split('(')[0].trim()
           : destination.name;
-      navigate('/plan', { state: { destination: canonicalName, source: 'globe' } });
+      // Intent screen removed: picking a destination on the globe seeds the
+      // shared trip draft (destination marked as globe-sourced) and opens the
+      // Checklist directly — no intermediate prompt screen.
+      if (draft.itinerary !== null || draft.tripId !== undefined) resetTrip();
+      startTrip(`Trip to ${canonicalName}`, {
+        destination: canonicalName,
+        destinationSource: 'globe',
+      });
+      navigate('/checklist');
     },
-    [navigate]
+    [navigate, draft.itinerary, draft.tripId, startTrip, resetTrip]
   );
 
   return (

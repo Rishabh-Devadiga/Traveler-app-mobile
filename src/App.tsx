@@ -7,7 +7,6 @@ import Login from './pages/Login';
 import Trips from './pages/Trips';
 import HomeExplore from './pages/HomeExplore';
 import CuratedForYou from './pages/CuratedForYou';
-import PlanJourney from './pages/PlanJourney';
 import TripChecklist from './pages/TripChecklist';
 import AiLoading from './pages/AiLoading';
 import Itinerary from './pages/Itinerary';
@@ -146,7 +145,10 @@ export default function App() {
           <Route path="/home-explore" element={<HomeExplore />} />
           <Route path="/curated" element={<CuratedForYou />} />
           <Route path="/globe" element={<GlobePage />} />
-          <Route path="/plan" element={<PlanJourney />} />
+          {/* The Intent screen (PlanJourney) was removed from the flow: /plan is
+              kept as a permanent alias into the planning flow so stale links and
+              browser back-history can never dead-end on the catch-all redirect. */}
+          <Route path="/plan" element={<Navigate to="/checklist" replace />} />
           <Route path="/trips" element={<Trips />} />
           <Route path="/checklist" element={<TripChecklist />} />
           <Route path="/loading" element={<AiLoading />} />

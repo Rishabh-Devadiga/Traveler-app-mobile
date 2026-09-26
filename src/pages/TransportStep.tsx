@@ -67,7 +67,9 @@ export default function TransportStep() {
   }, [canQuery, origin, destination, retryKey, navigate]);
 
   if (!draft.prompt.trim()) {
-    return <Navigate to="/plan" replace />;
+    // Planning always starts from a prompt (entered on Home); without one there
+    // is nothing to attach transport to.
+    return <Navigate to="/home-explore" replace />;
   }
 
   const select = (option: TransportOption | null) => {

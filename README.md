@@ -1,3 +1,54 @@
+## Debugging note — CSP blocked the backend call: "Refused to connect to http://127.0.0.1:8000/..." (2026-09-27)
+
+Symptom: the startup session check `GET http://127.0.0.1:8000/api/auth/traveler/me`
+was refused by the browser before any response — console/Network showed
+"Refused to connect to 'http://127.0.0.1:8000/api/auth/traveler/me' because it
+violates the following Content Security Policy directive: "connect-src 'self'
+http://192.168.137.100:8000 http://localhost:8000 https: wss: blob:"". The
+backend and its CORS config were fine; the request never left the browser.
+
+Root cause: `index.html` hardcodes the trusted backend origins in its CSP
+`<meta>` tag, but `src/api/client.ts` resolves the base URL from
+`VITE_TOURFLOW_API_URL` (`.env` → `http://127.0.0.1:8000`). The two had drifted:
+`http://127.0.0.1:8000` was not allow-listed. CSP matches scheme+host+**port**
+exactly, so `'self'` (the dev page on `http://localhost:5173`) does not cover an
+API on `:8000`, and the `https:` scheme wildcard does not cover an `http://`
+origin either → every `fetch()` was blocked and surfaced in the UI as status 0
+("Could not reach the WanderAI API."). The same drift broke backend avatars
+silently, because `img-src` (the `<img src>` built by `avatarUrlFor()` →
+`${base}/api/traveler/avatar/{id}`) listed no loopback API origin at all, so the
+header/profile photo always fell back to the initial letter.
+
+Exact changes:
+- `index.html`: added `http://127.0.0.1:8000` to **both** `connect-src` and
+  `img-src`, plus `http://localhost:8000` to `img-src`. The comment above the
+  meta tag now names the env file each allowed origin comes from.
+- `vite.config.ts`: new `wanderai:csp-api-origin` plugin. It reads the same
+  `VITE_TOURFLOW_API_URL` (or legacy `VITE_API_URL`) the client reads — via
+  `loadEnv()` in `configResolved()` — normalizes it to a valid CSP source
+  (`scheme://host[:port]` only, so a stale `/api` suffix can no longer void the
+  directive) and injects that origin into `connect-src` and `img-src` when it is
+  missing. A build pointed at any other host
+  (`VITE_TOURFLOW_API_URL=http://<lan-ip>:8000 npm run build`) therefore keeps a
+  working CSP with no manual `index.html` edit. Existing entries are never
+  removed or reordered, so the literals in `index.html` stay the always-valid
+  baseline.
+
+How to verify (repeat after any backend host change):
+1. `npm run dev`, open DevTools → Network, reload: `GET /api/auth/traveler/me`
+   must return 200/401 (not "blocked"), and `/api/traveler/avatar/<id>` must
+   render the photo.
+2. DevTools → Elements: the `<meta http-equiv="Content-Security-Policy">` must
+   list the API origin in `connect-src` **and** `img-src`.
+3. `npm run build`: `dist/index.html` must contain the `.env.production` origin;
+   `npm run lint` stays clean.
+
+Caveat: a runtime override (`public/api-config.json` or
+`localStorage["tourflow.apiUrl.v1"]`) can point the app at a host that was not
+known at build time. Such a host has to be added to the `index.html` list, or the
+build re-run with `VITE_TOURFLOW_API_URL` set to it.
+
+
 ## Debugging note — traveler signup/login connection fix (2026-09-26)
 
 Symptom: `http://localhost:5173/login` → Sign Up showed

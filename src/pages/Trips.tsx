@@ -262,7 +262,7 @@ export default function Trips() {
           </p>
           <button
             type="button"
-            onClick={() => navigate('/plan')}
+            onClick={() => navigate('/checklist')}
             className="mt-2 min-h-[48px] rounded-full bg-tourflow-primary px-6 py-2.5 text-[14px] font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
           >
             Plan your first trip

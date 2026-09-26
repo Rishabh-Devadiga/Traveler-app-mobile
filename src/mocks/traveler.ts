@@ -3,7 +3,6 @@ import type {
   Category,
   ChecklistItem,
   Destination,
-  InspirationTrip,
   ItineraryDay,
   ItineraryMetric,
   LoadingStep,
@@ -837,34 +836,8 @@ export const globeDestinations = [
   { name: 'Bali', lat: -8.4, lon: 115.18, color: '#fbbf24' },
 ];
 
-export const planJourney = {
-  stepLabel: 'Step 1 of 3 · AI Conversational Planner',
-  title: 'Tell me where you want to wander',
-  heroLabel: 'Freeform Intent',
-  listeningLabel: 'WanderAI Listening',
-  textareaPlaceholder: 'Describe your dream trip — destination, days, budget…',
-  detectedTags: ['Udaipur', '6 Days', '2 People', '< ₹75,000', 'Relaxed Heritage'],
-  qualityNote: 'Great detail detected — budget, pace and interests captured.',
-  bannerTitle: 'Verified Local Intelligence',
-  bannerSubtitle: 'Lakefront havelis, palace queues and sunset boat windows checked.',
-  inspirationTitle: 'Or try these prompt inspirations',
-  ctaLabel: 'Plan My Journey',
-};
-
-export const inspirationTrips: InspirationTrip[] = [
-  {
-    id: 'goa-weekend',
-    title: 'Goa Weekend Getaway',
-    subtitle: 'Under ₹25,000 · Hidden beaches and cafe trails',
-    prompt: 'Plan a Goa weekend getaway under ₹25,000 with hidden beaches and cafe trails.',
-  },
-  {
-    id: 'manali-5',
-    title: '5 Days in Manali Valley',
-    subtitle: 'Adventure trails, paragliding and old-town cafes',
-    prompt: 'Plan 5 days in Manali Valley with adventure trails, paragliding and old-town cafes.',
-  },
-];
+// `planJourney` (Step 1 of 3 copy) and `inspirationTrips` were removed with the
+// Intent screen (PlanJourney). The Home search bar owns trip-prompt entry now.
 
 export const checklistQuote =
   'Plan me a 6-day trip to Udaipur for 2 people under ₹75,000. I love heritage, local food and slow lake evenings.';

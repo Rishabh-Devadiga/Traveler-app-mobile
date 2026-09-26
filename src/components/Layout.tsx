@@ -23,9 +23,8 @@ const titles: Record<string, { title: string; subtitle?: string; wide?: boolean;
     flush: true,
     fallback: '/home-explore',
   },
-  '/plan': { title: 'Plan Your Journey', subtitle: 'Step 1 of 3 · AI Conversational Planner', back: true, fallback: '/home-explore' },
   '/trips': { title: 'Trips', subtitle: 'Your generated journeys' },
-  '/checklist': { title: 'Trip Checklist', subtitle: 'Step 2 of 3 · Review details', back: true, fallback: '/plan' },
+  '/checklist': { title: 'Trip Checklist', subtitle: 'Step 2 of 3 · Review details', back: true, fallback: '/home-explore' },
   '/loading': { title: 'Crafting Trip', subtitle: 'Live Generation', back: true, fallback: '/checklist' },
   '/itinerary': { title: 'Day-by-Day Itinerary', subtitle: 'Your trip', back: true, fallback: '/trips' },
   '/ai-guide': {
@@ -39,8 +38,9 @@ const titles: Record<string, { title: string; subtitle?: string; wide?: boolean;
 export function backFallbackFor(pathname: string, hasTripId: boolean): string {
   if (pathname === '/curated') return '/home-explore';
   if (pathname === '/globe') return '/home-explore';
-  if (pathname === '/plan') return '/home-explore';
-  if (pathname === '/checklist') return '/plan';
+  // Checklist is the first planning screen now (the Intent page is gone), so
+  // "back" from it goes Home — the place the trip prompt is entered.
+  if (pathname === '/checklist') return '/home-explore';
   if (pathname === '/loading') return '/checklist';
   if (pathname === '/itinerary') return hasTripId ? '/trips' : '/home-explore';
   return '/home-explore';

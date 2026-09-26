@@ -409,7 +409,9 @@ export default function Itinerary() {
     );
   }
   if (!draft.prompt.trim()) {
-    return <Navigate to="/plan" replace />;
+    // No prompt means no planning session — Home is where the trip request is
+    // typed or spoken now that the Intent screen is gone (no /plan hop).
+    return <Navigate to="/home-explore" replace />;
   }
   if (draft.itinerary === null || isItineraryStale) {
     return <Navigate to="/loading" replace />;

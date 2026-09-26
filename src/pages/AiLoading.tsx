@@ -238,7 +238,9 @@ export default function AiLoading() {
   }, [retryKey, apiError, useBackend, dup.status]);
 
   if (!draft.prompt.trim()) {
-    return <Navigate to="/plan" replace />;
+    // No prompt = nothing to generate. Home is the prompt entry point now that
+    // the Intent screen is gone (never /plan, which only redirects).
+    return <Navigate to="/home-explore" replace />;
   }
 
   const destinationLabel = draft.destination ?? 'Your getaway';
@@ -333,7 +335,7 @@ export default function AiLoading() {
           </p>
           <button
             type="button"
-            onClick={() => navigate('/plan')}
+            onClick={() => navigate('/checklist')}
             aria-label="Cancel generation"
             className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-[18px] font-bold"
           >
@@ -360,10 +362,10 @@ export default function AiLoading() {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/plan')}
+              onClick={() => navigate('/home-explore')}
               className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold"
             >
-              Back to Plan
+              Back to Home
             </button>
           </div>
         </section>
@@ -440,10 +442,10 @@ export default function AiLoading() {
             </button>
             <button
               type="button"
-              onClick={() => navigate('/plan')}
+              onClick={() => navigate('/home-explore')}
               className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold"
             >
-              Back to Plan
+              Back to Home
             </button>
           </div>
         </section>

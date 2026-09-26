@@ -464,7 +464,7 @@ export default function AiGuide() {
           {!loadingHistory && tripInfo && !tripInfo.hasActiveTrip ? (
             <button
               type="button"
-              onClick={() => navigate('/plan')}
+              onClick={() => navigate('/checklist')}
               className="mt-1 w-full rounded-full bg-tourflow-surfaceMuted py-1.5 text-xs font-bold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
             >
               Plan a journey
