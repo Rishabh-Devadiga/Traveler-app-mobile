@@ -2,7 +2,7 @@
 
 interface ImportMetaEnv {
   /** Base URL of the TourFlow backend (no trailing path), e.g. http://localhost:8000.
-   * Device/APK builds MUST use the dev PC's LAN URL, e.g. http://192.168.137.100:8000. */
+   * Device/APK builds MUST use the dev PC's LAN URL, e.g. http://192.168.137.100:8001. */
   readonly VITE_TOURFLOW_API_URL?: string;
   /** Legacy alias of VITE_TOURFLOW_API_URL (read as a fallback). */
   readonly VITE_API_URL?: string;

@@ -37,13 +37,17 @@ export interface TripChatState {
   statusNote: string | null;
 }
 
-function tripChatPaths(tripId: string): string[] {
+function tripChatGetPaths(tripId: string): string[] {
   const id = encodeURIComponent(tripId);
   return [
     `/api/trips/${id}/chat`,
-    `/api/trips/${id}/chat/history`,
+  ];
+}
+
+function tripChatPostPaths(tripId: string): string[] {
+  const id = encodeURIComponent(tripId);
+  return [
     `/api/trips/${id}/chat/messages`,
-    `/api/traveler/trips/${id}/chat`,
   ];
 }
 
@@ -132,27 +136,13 @@ function normalizeChatBody(body: unknown): TripChatState {
   };
 }
 
-function isNotEnabledError(error: unknown): boolean {
-  if (!(error instanceof ApiError)) return false;
-  if (error.status === 403 || error.status === 404 || error.status === 422) return true;
-  const detail = typeof error.detail === 'string' ? error.detail.toLowerCase() : '';
-  return detail.includes('not enabled') || detail.includes('not approved') || detail.includes('no chat');
-}
-
-/** GET the traveler<->operator conversation (disabled normalizes, never throws). */
+/** GET the traveler<->operator conversation. */
 export async function getTripChat(tripId: string): Promise<TripChatState> {
   let lastError: unknown = null;
-  for (const path of tripChatPaths(tripId)) {
+  for (const path of tripChatGetPaths(tripId)) {
     try {
       return normalizeChatBody(await apiClient.authGet<unknown>(path));
     } catch (error) {
-      if (isNotEnabledError(error)) {
-        const note =
-          error instanceof ApiError && typeof error.detail === 'string' && error.detail.trim()
-            ? error.detail.trim()
-            : null;
-        return { enabled: false, operatorName: null, messages: [], statusNote: note };
-      }
       lastError = error;
       if (error instanceof ApiError && (error.status === 401 || error.status === 0 || error.status >= 500)) {
         throw error;
@@ -162,15 +152,15 @@ export async function getTripChat(tripId: string): Promise<TripChatState> {
   throw lastError instanceof Error ? lastError : new Error('Could not load the operator chat.');
 }
 
-/** POST a traveler reply — sends ONLY { message }; identity comes from JWT. */
+/** POST a traveler reply — sends ONLY { body }; identity comes from JWT. */
 export async function sendTripChatMessage(tripId: string, message: string): Promise<OperatorChatMessage> {
   const clean = message.trim();
   if (!clean) throw new Error('Type a message first.');
   if (clean.length > 2000) throw new Error('Messages are limited to 2000 characters.');
   let lastError: unknown = null;
-  for (const path of tripChatPaths(tripId)) {
+  for (const path of tripChatPostPaths(tripId)) {
     try {
-      const raw = await apiClient.authPost<unknown>(path, { message: clean });
+      const raw = await apiClient.authPost<unknown>(path, { body: clean });
       const record = asRecord(raw);
       const list = record ? (record.messages as unknown) : null;
       const echoed = Array.isArray(list) && list.length > 0 ? list[list.length - 1] : raw;
