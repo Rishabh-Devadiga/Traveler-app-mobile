@@ -6,6 +6,15 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover"
     />
+    <!-- Capacitor WebView: allow the LAN backend + bundled local files while
+      keeping the page itself XSS-locked. `http://192.168.137.100:8000` covers
+      API + avatar <img> on the APK; https: keeps fonts/maps working on web.
+      Without connect-src http: the APK's fetch() to the HTTP backend is
+      blocked as a CSP violation (in addition to Android cleartext policy). -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self' data: blob:; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: http://192.168.137.100:8000 https:; connect-src 'self' http://192.168.137.100:8000 http://localhost:8000 https: wss: blob:; media-src 'self' data: blob: https:; frame-src 'self' blob:;"
+    />
     <title>WanderAI — Traveler</title>
     <link
       rel="icon"

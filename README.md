@@ -78,3 +78,35 @@ TourFlow AI is a dual-sided travel orchestration platform bridging individual tr
 9. **Assist**: Use the in-app Gemini AI Travel Concierge for immediate local advice, food recommendations, and packing tips.
 10. **Adapt**: Receive immediate alert banners if a disruption occurs, reviewing proposed alternative activities or accommodations.
 11. **Complete & Review**: Submit ratings and feedback to refine future recommendation scoring.
+
+
+## 3. Budget Guidance — Low-Budget Warning
+
+The Checklist screen (Step 2 of 3) warns the traveler, without blocking them, when the
+budget they typed is low for the trip shape they have selected.
+
+- **What the traveler sees**: an amber `role="status"` card under the Trip Budget input —
+  *"You're planning this trip on a low budget"* + *"Your current budget may limit
+  accommodation, transportation, and activity options."*, a suggested planning amount, and a
+  **Change Budget** button that scrolls to and focuses the existing budget input (no restart,
+  no navigation, nothing else in the draft is touched).
+- **How "low" is decided**: `src/utils/budgetAssessment.ts`. There is no backend
+  budget-estimate/minimum-budget endpoint in the TourFlow contract, so the reference rate comes
+  from the curated destination catalog the app already ships
+  (`pricePerPerson` ÷ `idealDays` = per-person-per-day). The threshold is
+  `reference rate × trip days × travelers × 0.7` (`lowFraction`), so it scales with
+  destination, duration and traveler count. **No single hardcoded rupee threshold exists**; a
+  destination that is not in the catalog falls back to the median catalog rate.
+- **Recalculation**: the result is derived from the draft on every render, so raising the budget
+  above the threshold removes the warning immediately, and changing destination, dates/duration
+  or traveler count re-evaluates it automatically. An assessment returns `null` (no warning)
+  when there is no budget or no determinable duration.
+- **It is informational, never an error**: the card uses `role="status"` (not `role="alert"`),
+  amber info styling, and generation is never blocked.
+- **Checks**: `npm run check:budget` runs `scripts/check-budget-assessment.mjs`, which
+  type-strips `src/utils/budgetAssessment.ts` + `src/utils/__checks__/budgetAssessment.check.ts`
+  with the TypeScript compiler already in `node_modules` and executes the scenarios (parse
+  formats, median fallback, low/not-low flips, destination/duration/traveler recalculation,
+  and the no-budget/no-duration no-warning cases). The repo has no test runner, so this script is
+  the temporary harness — migrate the same cases into the project's test framework once one is
+  chosen.

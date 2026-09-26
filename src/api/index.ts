@@ -1,4 +1,5 @@
 export { apiClient, isApiConfigured, getApiBaseUrl, apiErrorMessage, ApiError } from './client';
+export { API_URL_OVERRIDE_KEY, setApiBaseUrlOverride, clearApiBaseUrlOverride } from './client';
 export {
   createTrip,
   getTrip,

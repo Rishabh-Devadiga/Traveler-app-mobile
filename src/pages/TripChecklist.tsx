@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { useTripDraft } from '../state/useTripDraft';
 import { Stepper } from '../components/trip';
 import { CalendarIcon, MapPinIcon, MinusIcon, PlusIcon, UsersIcon, WalletIcon } from '../components/icons';
 import { formatINR } from '../utils/format';
 import { daysNightsLabel, durationDaysFromRange, formatTripDate, tripDateRangeLabel } from '../utils/dates';
+import { assessBudget, buildBudgetReferences } from '../utils/budgetAssessment';
+import { curatedDestinations } from '../mocks/traveler';
 
 const inputClass =
   'w-full rounded-xl border border-tourflow-cardBorder bg-white px-3 py-2.5 text-[16px] font-semibold text-tourflow-dark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary';
@@ -47,10 +49,6 @@ export default function TripChecklist() {
   useEffect(() => {
     ensureParsed();
   }, [ensureParsed]);
-
-  if (!draft.prompt.trim()) {
-    return <Navigate to="/plan" replace />;
-  }
 
   const setCount = (value: string) => {
     const count = Number(value);
@@ -100,7 +98,50 @@ export default function TripChecklist() {
       updateDraft({ budgetAmount: undefined, budgetLabel: undefined });
       return;
     }
-    updateDraft({ budgetAmount: amount, budgetLabel: formatINR(amount) });
+    updateDraft({ budgetAmount: Math.round(amount), budgetLabel: formatINR(Math.round(amount)) });
+  };
+
+  // Low-budget signal: derived purely from the draft (budget, destination,
+  // duration, travelers), so raising the budget — or changing any other input
+  // — automatically clears or re-triggers it on the next render. No local
+  // state is kept, so nothing can go stale and the entered budget plus every
+  // other trip detail is preserved untouched. Hooks stay above the redirect
+  // guard below so hook order is identical on every render.
+  const budgetInputRef = useRef<HTMLInputElement | null>(null);
+  const budgetReferences = useMemo(() => buildBudgetReferences(curatedDestinations), []);
+  const effectiveDurationDays =
+    draft.durationDays ??
+    (draft.startDate && draft.endDate ? durationDaysFromRange(draft.startDate, draft.endDate) : undefined);
+  const budgetAssessment = useMemo(
+    () =>
+      assessBudget({
+        budgetAmount: draft.budgetAmount,
+        destination: draft.destination,
+        durationDays: effectiveDurationDays,
+        travelers: draft.travelers,
+        references: budgetReferences,
+      }),
+    [draft.budgetAmount, draft.destination, draft.travelers, effectiveDurationDays, budgetReferences],
+  );
+  const showLowBudget = budgetAssessment?.isLow === true;
+
+  // Redirect guard runs AFTER the hooks above so the hook call order never
+  // changes between renders (React rules-of-hooks), including when the draft
+  // is cleared and this page redirects back to Plan.
+  if (!draft.prompt.trim()) {
+    return <Navigate to="/plan" replace />;
+  }
+
+  /** "Change Budget" action: reopen the existing budget input in place. */
+  const focusBudgetInput = () => {
+    const el = budgetInputRef.current;
+    if (!el) return;
+    // Runs inside the tap gesture, so mobile keyboards open reliably.
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    window.setTimeout(() => {
+      el.focus({ preventScroll: true });
+      el.select();
+    }, 350);
   };
 
   return (
@@ -248,6 +289,7 @@ export default function TripChecklist() {
           <label htmlFor="checklist-budget" className="sr-only">Trip budget in rupees</label>
           <input
             id="checklist-budget"
+            ref={budgetInputRef}
             type="number"
             min={1}
             inputMode="numeric"
@@ -256,6 +298,26 @@ export default function TripChecklist() {
             onChange={(e) => setBudget(e.target.value)}
             className={inputClass}
           />
+          {showLowBudget && budgetAssessment ? (
+            <div role="status" className="mt-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5">
+              <p className="text-[13px] font-bold text-amber-900">
+                You&apos;re planning this trip on a low budget
+              </p>
+              <p className="mt-0.5 text-[13px] text-amber-800">
+                Your current budget may limit accommodation, transportation, and activity options.
+              </p>
+              <p className="mt-1 text-xs text-amber-700">
+                Similar trips are usually planned around {formatINR(budgetAssessment.suggestedMinimum)}.
+              </p>
+              <button
+                type="button"
+                onClick={focusBudgetInput}
+                className="mt-2 flex min-h-[44px] w-full items-center justify-center rounded-full bg-amber-600 px-4 text-[14px] font-bold text-white hover:bg-amber-700"
+              >
+                Change Budget
+              </button>
+            </div>
+          ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {[30000, 60000, 100000].map((amt) => (
               <button key={amt} type="button" onClick={() => setBudget(String(amt))} className={`min-h-[36px] rounded-full border px-3.5 py-1.5 text-[13px] font-bold ${draft.budgetAmount === amt ? 'border-tourflow-primary bg-tourflow-primary text-white' : 'border-tourflow-cardBorder bg-white text-tourflow-dark'}`}>
