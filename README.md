@@ -1,3 +1,37 @@
+## Debugging note — traveler signup/login connection fix (2026-09-26)
+
+Symptom: `http://localhost:5173/login` → Sign Up showed
+"Could not reach the WanderAI server." with failed `signup` requests.
+
+Root causes found:
+- Frontend `.env` pointed at a stale LAN host AND included an `/api`
+  suffix (`VITE_TOURFLOW_API_URL=http://10.195.62.53:8000/api`), while
+  `src/api/client.ts` builds requests as `` `${baseUrl}${path}` `` with
+  paths that already start with `/api` (e.g. `/api/auth/traveler/signup`).
+  Result: requests went to `/api/api/...` → 404, surfaced as status 0 /
+  "Could not reach the WanderAI server."
+- Backend CORS (`backend/main.py`) allowed `"*"` + port 3001 but not the
+  actual dev origin `http://localhost:5173`, so browser calls from the
+  login page could surface as CORS/network failures.
+- Vite dev server port was not pinned, so the login origin could drift
+  away from the CORS-allowed origin.
+
+Exact changes:
+- `Traveler-app-mobile/.env`:
+  `VITE_TOURFLOW_API_URL=http://127.0.0.1:8000` (host+port only, no `/api`).
+- `Traveler-app-mobile/vite.config.ts`: pinned dev server to port 5173
+  (`strictPort: true`).
+- `WanderAI-Backend/backend/main.py`: replaced `allow_origins=["*", ...]`
+  with explicit dev origins
+  `["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:3001"]`
+  (wildcard removed because `allow_credentials=True` must not pair with it).
+
+Verified: signup 201 → login 200 → `GET /api/auth/traveler/me` 200;
+duplicate signup → 409; wrong password → 401. Error handling in
+`src/pages/Login.tsx` was already correct (0 → connection message,
+409/401/422 shown separately) and was left untouched.
+No mock auth, no bypass, no payload/schema weakening.
+
 # TourFlow AI - Technical Handoff & Local Development Manual
 
 > **Enterprise AI-Powered Personalized & Dynamic Travel Planning Platform**  
