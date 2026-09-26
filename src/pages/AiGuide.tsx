@@ -55,7 +55,6 @@ export default function AiGuide() {
   const [banner, setBanner] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
   const [failedText, setFailedText] = useState<string | null>(null);
-  const [showTripPanel, setShowTripPanel] = useState(false);
   const [myTrips, setMyTrips] = useState<TravelerTripSummary[]>([]);
   const [tripsLoaded, setTripsLoaded] = useState(false);
   const [tripsLoading, setTripsLoading] = useState(false);
@@ -401,14 +400,33 @@ export default function AiGuide() {
   const firstDayStops = draft.itinerary?.[0]?.stops.slice(0, 3) ?? [];
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row">
+    <div className="flex flex-col gap-5 lg:flex-row">
+      <details className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card lg:hidden" open>
+        <summary className="cursor-pointer text-[14px] font-bold text-tourflow-dark">Trip context</summary>
+        <div className="mt-2 flex flex-col gap-2 text-[13px]">
+          <p className="truncate font-bold">{selectorLabel}</p>
+          <p className="text-tourflow-textMuted">{headerSubtitle}</p>
+          {firstDayStops.length > 0 ? (
+            <p className="text-tourflow-textMuted">Today: {firstDayStops[0]?.title}{firstDayStops.length > 1 ? ` +${firstDayStops.length - 1} more` : ''}</p>
+          ) : null}
+          {budgetUsed !== undefined && budgetTotal ? (
+            <p className="font-bold">{fmt(budgetUsed)} <span className="font-normal text-tourflow-textMuted">of {fmt(budgetTotal)}</span></p>
+          ) : null}
+          {bookingsCount !== undefined ? (
+            <p className="text-tourflow-textMuted">{bookingsCount === 0 ? 'No bookings yet.' : `${bookingsCount} booking${bookingsCount === 1 ? '' : 's'}.`}</p>
+          ) : null}
+          <button type="button" onClick={() => setPickerOpen(true)} className="mt-1 min-h-[44px] rounded-full border border-tourflow-cardBorder px-4 py-2 text-[14px] font-bold">
+            Switch trip
+          </button>
+        </div>
+      </details>
       <section className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-3xl border border-tourflow-cardBorder bg-white shadow-card">
-        <div className="flex items-center justify-between border-b border-tourflow-cardBorder p-3">
-          <div>
-            <p className="text-sm font-extrabold">Your AI Travel Guide</p>
-            <p className="text-xs text-tourflow-textMuted">{headerSubtitle}</p>
+        <div className="flex items-center justify-between border-b border-tourflow-cardBorder p-4">
+          <div className="min-w-0">
+            <p className="truncate text-[15px] font-extrabold">AI Guide</p>
+            <p className="truncate text-[13px] text-tourflow-textMuted">{headerSubtitle}</p>
           </div>
-          <span className="inline-flex items-center gap-1 rounded-full bg-tourflow-sageLight px-2.5 py-1 text-[11px] font-bold text-tourflow-sage">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-tourflow-sageLight px-2.5 py-1 text-xs font-bold text-tourflow-sage">
             <span className="h-1.5 w-1.5 rounded-full bg-tourflow-sage animate-pulse-dot" aria-hidden="true" />
             {contextPill}
           </span>
@@ -416,13 +434,13 @@ export default function AiGuide() {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex w-full items-center justify-between gap-2 border-b border-tourflow-cardBorder bg-tourflow-bg px-3 py-2 text-left"
+          className="flex min-h-[52px] w-full items-center justify-between gap-2 border-b border-tourflow-cardBorder bg-tourflow-bg px-4 py-2 text-left"
         >
           <span className="min-w-0">
-            <span className="block text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Trip</span>
-            <span className="block truncate text-sm font-bold text-tourflow-dark">{selectorLabel}</span>
+            <span className="block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Trip</span>
+            <span className="block truncate text-[15px] font-bold text-tourflow-dark">{selectorLabel}</span>
           </span>
-          <span aria-hidden="true" className="shrink-0 text-xs font-bold text-tourflow-primary">
+          <span aria-hidden="true" className="shrink-0 text-[13px] font-bold text-tourflow-primary">
             {selecting ? '…' : 'Change ›'}
           </span>
         </button>
@@ -501,7 +519,7 @@ export default function AiGuide() {
           ) : null}
         </div>
 
-        <div className="space-y-2 border-t border-tourflow-cardBorder p-3">
+        <div className="space-y-2 border-t border-tourflow-cardBorder p-4">
           {suggestions.length > 0 ? (
             <div className={thinking ? 'pointer-events-none opacity-60' : undefined}>
               <SuggestionChips items={suggestions} onPick={(v) => send(v)} />
@@ -520,39 +538,34 @@ export default function AiGuide() {
             <input
               id="guide-input"
               value={draftText}
+              maxLength={2000}
               onChange={(e) => {
                 setDraftText(e.target.value);
                 if (validationError) setValidationError(null);
               }}
-              placeholder="Ask your travel guide anything..."
-              className="w-full rounded-full border border-tourflow-cardBorder bg-tourflow-bg px-4 py-2.5 text-sm outline-none focus:border-tourflow-primary"
+              placeholder="Ask about stays, food, budget…"
+              className="min-h-[52px] w-full rounded-full border border-tourflow-cardBorder bg-tourflow-bg px-4 py-2.5 text-[16px] outline-none focus:border-tourflow-primary"
             />
             <button
               type="submit"
               disabled={thinking}
-              className="shrink-0 rounded-full bg-tourflow-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+              aria-label="Send message"
+              className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-full bg-tourflow-primary text-[16px] font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
             >
-              Send
+              →
             </button>
           </form>
+          <p className="text-right text-xs text-tourflow-textMuted">{draftText.length}/2000</p>
           {validationError ? (
-            <p role="alert" className="text-xs font-semibold text-red-600">
+            <p role="alert" className="text-[13px] font-semibold text-red-700">
               {validationError}
             </p>
           ) : null}
-          <button
-            type="button"
-            onClick={() => setShowTripPanel((v) => !v)}
-            className="w-full rounded-full border border-tourflow-cardBorder py-2 text-xs font-bold lg:hidden"
-            aria-expanded={showTripPanel}
-          >
-            {showTripPanel ? 'Hide trip context' : 'Show trip context'}
-          </button>
         </div>
       </section>
 
       <aside
-        className={`${showTripPanel ? 'flex' : 'hidden'} w-full flex-col gap-3 lg:flex lg:w-80`}
+        className="hidden w-full flex-col gap-3 lg:flex lg:w-80"
         aria-label="Trip context"
       >
         <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">

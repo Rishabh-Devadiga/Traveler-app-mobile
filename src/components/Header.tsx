@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import NotificationsSheet from './NotificationsSheet';
+import { BackIcon, BellIcon } from './icons';
 import { useTripDraft } from '../state/useTripDraft';
 import { ApiError, isApiConfigured } from '../api/client';
 import { clearTravelerToken, hasTravelerToken } from '../api/auth';
@@ -78,15 +79,15 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
   return (
     <header className="sticky top-0 z-40 border-b border-tourflow-cardBorder bg-tourflow-bg/90 pt-safe backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
-        <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center gap-3">
           {showBack ? (
             <button
               type="button"
               aria-label="Go back"
               onClick={onBack}
-              className="flex h-10 w-10 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
             >
-              ←
+              <BackIcon size={22} />
             </button>
           ) : (
             <Link
@@ -109,14 +110,11 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
               </svg>
             </Link>
           )}
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="text-lg font-bold tracking-tight text-tourflow-dark">{title}</h1>
-              <span className="hidden rounded-full border border-tourflow-sageBorder bg-tourflow-sageLight px-2 py-0.5 text-[11px] font-semibold text-tourflow-sage sm:inline-flex">
-                WanderAI
-              </span>
+              <h1 className="truncate text-[17px] font-extrabold tracking-tight text-tourflow-dark">{title}</h1>
             </div>
-            {subtitle ? <p className="text-xs text-tourflow-textMuted">{subtitle}</p> : null}
+            {subtitle ? <p className="truncate text-xs text-tourflow-textMuted">{subtitle}</p> : null}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -124,9 +122,9 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
             type="button"
             aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
             onClick={() => setBellOpen(true)}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
           >
-            <span aria-hidden="true">🔔</span>
+            <BellIcon size={22} />
             {unread > 0 ? (
               <span
                 aria-hidden="true"
@@ -140,7 +138,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
             <Link
               to="/profile"
               aria-label="Open profile"
-              className="h-9 w-9 overflow-hidden rounded-full border border-tourflow-cardBorder bg-tourflow-surfaceMuted"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-tourflow-cardBorder bg-tourflow-surfaceMuted"
             >
               <img
                 src={avatarUrl}

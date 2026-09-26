@@ -20,6 +20,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -74,14 +75,14 @@ export default function Login() {
   return (
     <div className="flex min-h-dvh items-center justify-center bg-tourflow-bg px-4 py-10 text-tourflow-dark">
       <section className="w-full max-w-md rounded-3xl border border-tourflow-cardBorder bg-white p-6 shadow-card">
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">WanderAI</p>
-        <h1 className="mt-1 text-xl font-extrabold">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
-        <p className="mt-1 text-xs text-tourflow-textMuted">
-          {mode === 'login' ? 'Sign in to chat with your AI travel guide.' : 'Sign up to chat with your AI travel guide.'}
+        <p className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">WanderAI · Trip-aware concierge</p>
+        <h1 className="mt-1 text-[22px] font-extrabold">{mode === 'login' ? 'Welcome back' : 'Create your account'}</h1>
+        <p className="mt-1 text-[13px] text-tourflow-textMuted">
+          {mode === 'login' ? 'Sign in to continue planning.' : 'Sign up to save trips and chat with your guide.'}
         </p>
 
         {!isApiConfigured() ? (
-          <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-600">
+          <p role="alert" className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700">
             The WanderAI server is not configured (VITE_TOURFLOW_API_URL). Sign-in needs the backend.
           </p>
         ) : null}
@@ -89,48 +90,51 @@ export default function Login() {
         <form onSubmit={(e) => void submit(e)} className="mt-4 flex flex-col gap-3">
           {mode === 'signup' ? (
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Name</span>
+              <span className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Name</span>
               <input
                 type="text"
                 autoComplete="name"
                 value={name}
                 disabled={busy}
                 onChange={(e) => setName(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
+                className="mt-1 min-h-[52px] w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-[16px] font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
               />
             </label>
           ) : null}
           <label className="block">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Email</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Email</span>
             <input
               type="email"
               autoComplete="email"
               value={email}
               disabled={busy}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
+              className="mt-1 min-h-[52px] w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-[16px] font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
             />
           </label>
           <label className="block">
-            <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Password</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Password</span>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               disabled={busy}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
+              className="mt-1 min-h-[52px] w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-[16px] font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
             />
           </label>
+          <button type="button" onClick={() => setShowPassword((v) => !v)} className="min-h-[44px] self-start px-1 text-[13px] font-bold text-tourflow-primary" aria-pressed={showPassword}>
+            {showPassword ? 'Hide password' : 'Show password'}
+          </button>
           {error ? (
-            <p role="alert" className="text-xs font-semibold text-red-600">
+            <p role="alert" className="text-[13px] font-semibold text-red-700">
               {error}
             </p>
           ) : null}
           <button
             type="submit"
             disabled={busy}
-            className="w-full rounded-full bg-tourflow-primary px-4 py-2.5 text-sm font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
+            className="min-h-[52px] w-full rounded-full bg-tourflow-primary px-4 py-2.5 text-[15px] font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
           >
             {busy ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Sign Up'}
           </button>
@@ -143,9 +147,12 @@ export default function Login() {
             setMode((m) => (m === 'login' ? 'signup' : 'login'));
             setError(null);
           }}
-          className="mt-3 w-full text-center text-xs font-bold text-tourflow-primary disabled:opacity-60"
+          className="mt-3 min-h-[44px] w-full text-center text-[13px] font-bold text-tourflow-primary disabled:opacity-60"
         >
           {mode === 'login' ? 'New here? Create an account' : 'Have an account? Sign in'}
+        </button>
+        <button type="button" onClick={() => navigate('/home-explore')} className="min-h-[44px] w-full text-center text-[13px] font-semibold text-tourflow-textMuted">
+          Back to Explore
         </button>
       </section>
     </div>

@@ -1,4 +1,5 @@
 import type { ChecklistItem, InspirationTrip, LoadingStep } from '../types';
+import { CheckIcon, ChevronRightIcon, MicIcon } from './icons';
 
 export function PromptHero({
   value,
@@ -22,12 +23,12 @@ export function PromptHero({
   voiceSupported: boolean;
 }) {
   return (
-    <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+    <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
       <div className="flex items-center justify-between">
         <span className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Freeform Intent</span>
         <span className="inline-flex items-center gap-1 text-xs font-semibold text-tourflow-sage">
           <span className="h-2 w-2 rounded-full bg-tourflow-sage animate-pulse-dot" aria-hidden="true" />
-          WanderAI Listening
+          WanderAI
         </span>
       </div>
       <label htmlFor="travel-prompt" className="sr-only">
@@ -38,25 +39,27 @@ export function PromptHero({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        rows={4}
-        className="mt-3 w-full resize-none rounded-xl border border-tourflow-cardBorder bg-tourflow-bg p-3 text-sm outline-none focus:border-tourflow-primary"
+        rows={5}
+        className="mt-3 min-h-[120px] w-full resize-none rounded-xl border border-tourflow-cardBorder bg-tourflow-bg p-3 text-[16px] outline-none focus:border-tourflow-primary"
       />
-      <div className="mt-2 flex flex-wrap gap-2">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="rounded-full border border-tourflow-sageBorder bg-tourflow-sageLight px-2.5 py-1 text-[11px] font-semibold text-tourflow-sage"
-          >
-            {tag}
-          </span>
-        ))}
-      </div>
-      {note ? <p className="mt-2 text-xs text-tourflow-textMuted">{note}</p> : null}
+      {tags.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-2" aria-live="polite">
+          {tags.map((tag) => (
+            <span
+              key={tag}
+              className="rounded-full border border-tourflow-sageBorder bg-tourflow-sageLight px-2.5 py-1 text-xs font-semibold text-tourflow-sage"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      ) : null}
+      {note ? <p className="mt-2 text-[13px] text-tourflow-textMuted">{note}</p> : null}
       <div className="mt-3 flex gap-2">
         <button
           type="button"
           onClick={onClear}
-          className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold text-tourflow-dark hover:border-tourflow-primary"
+          className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold text-tourflow-dark hover:border-tourflow-primary"
         >
           Clear
         </button>
@@ -66,8 +69,9 @@ export function PromptHero({
             onClick={onVoice}
             aria-pressed={listening}
             aria-label={listening ? 'Stop listening' : 'Speak instead'}
-            className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-2 text-xs font-bold text-tourflow-dark hover:border-tourflow-primary"
+            className="flex min-h-[44px] flex-1 items-center justify-center gap-2 rounded-full border border-tourflow-cardBorder px-3 py-2 text-[14px] font-bold text-tourflow-dark hover:border-tourflow-primary"
           >
+            <MicIcon size={18} />
             {listening ? 'Listening… Tap to stop' : 'Speak instead'}
           </button>
         ) : null}
@@ -81,10 +85,15 @@ export function InspirationCard({ trip, onUse }: { trip: InspirationTrip; onUse:
     <button
       type="button"
       onClick={() => onUse(trip.prompt)}
-      className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 text-left shadow-soft transition-transform hover:scale-[1.01]"
+      className="flex min-h-[44px] w-full items-center gap-3 rounded-2xl border border-tourflow-cardBorder bg-white p-4 text-left shadow-soft transition-transform active:scale-[0.99]"
     >
-      <p className="text-sm font-bold text-tourflow-dark">{trip.title}</p>
-      <p className="mt-0.5 text-xs text-tourflow-textMuted">{trip.subtitle}</p>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[15px] font-bold text-tourflow-dark">{trip.title}</span>
+        <span className="mt-0.5 block text-[13px] text-tourflow-textMuted">{trip.subtitle}</span>
+      </span>
+      <span aria-hidden="true" className="shrink-0 text-tourflow-primary">
+        <ChevronRightIcon size={20} />
+      </span>
     </button>
   );
 }
@@ -110,10 +119,9 @@ export function ChecklistCard({ item }: { item: ChecklistItem }) {
 }
 
 export function StepRow({ step }: { step: LoadingStep }) {
-  const icon = step.status === 'done' ? '✓' : step.status === 'active' ? '◌' : '○';
   return (
     <li
-      className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${
+      className={`flex min-h-[44px] items-center gap-3 rounded-xl border p-3 text-[14px] ${
         step.status === 'active'
           ? 'border-tourflow-primaryBorder bg-tourflow-primarySoft font-semibold'
           : step.status === 'done'
@@ -121,10 +129,23 @@ export function StepRow({ step }: { step: LoadingStep }) {
             : 'border-tourflow-cardBorder bg-white opacity-60'
       }`}
     >
-      <span aria-hidden="true" className="w-5 text-center">
-        {icon}
+      <span aria-hidden="true" className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-tourflow-surfaceMuted text-tourflow-sage">
+        {step.status === 'done' ? <CheckIcon size={14} /> : step.status === 'active' ? <span className="h-2 w-2 rounded-full bg-tourflow-primary animate-pulse-dot" /> : <span className="h-2 w-2 rounded-full bg-tourflow-cardBorder" />}
       </span>
       <span>{step.label}</span>
     </li>
+  );
+}
+
+export function Stepper({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <ol className="flex items-center gap-1.5" aria-label="Trip planning progress">
+      {steps.map((label, i) => (
+        <li key={label} className="flex flex-1 items-center gap-1.5">
+          <span className={`h-1.5 flex-1 rounded-full ${i <= current ? 'bg-tourflow-primary' : 'bg-tourflow-surfaceMuted'}`} aria-hidden="true" />
+          <span className="sr-only">{label}{i === current ? ' (current)' : ''}</span>
+        </li>
+      ))}
+    </ol>
   );
 }

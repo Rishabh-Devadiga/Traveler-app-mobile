@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { InspirationCard, PromptHero } from '../components/trip';
+import { InspirationCard, PromptHero, Stepper } from '../components/trip';
+import { CloseIcon, MapPinIcon } from '../components/icons';
 import { inspirationTrips, planJourney } from '../mocks/traveler';
 import { useTripDraft } from '../state/useTripDraft';
 import { parseTripPrompt } from '../utils/parseTripPrompt';
@@ -188,20 +189,32 @@ export default function PlanJourney() {
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div>
-        <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-primary">{planJourney.stepLabel}</p>
-        <h2 className="mt-1 text-xl font-extrabold tracking-tight">{planJourney.title}</h2>
+        <Stepper steps={['Intent', 'Details', 'Trip']} current={0} />
+        <p className="mt-3 text-xs font-bold uppercase tracking-wide text-tourflow-primary">Step 1 of 3 · Intent</p>
+        <h2 className="mt-1 text-[22px] font-extrabold tracking-tight">Describe your trip</h2>
+        <p className="mt-1 text-[13px] text-tourflow-textMuted">AI drafts details — you confirm next.</p>
       </div>
 
       {activeDestination ? (
-        <div className="flex items-center justify-between rounded-2xl border border-tourflow-cardBorder bg-white p-3.5 shadow-soft">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Destination</p>
-            <p className="mt-0.5 text-base font-extrabold text-tourflow-dark">{activeDestination}</p>
+        <div className="flex items-center justify-between gap-3 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
+          <div className="flex min-w-0 items-center gap-3">
+            <span aria-hidden="true" className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-tourflow-primarySoft text-tourflow-primary">
+              <MapPinIcon size={20} />
+            </span>
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Destination</p>
+              <p className="truncate text-[16px] font-extrabold text-tourflow-dark">{activeDestination}</p>
+            </div>
           </div>
-          <span className="rounded-full bg-tourflow-sageLight px-2.5 py-1 text-[11px] font-bold text-tourflow-sage">
-            {isFromGlobe ? '✓ Pre-filled from Globe' : '✓ Detected'}
+          <span className="flex shrink-0 items-center gap-2">
+            <span className="rounded-full bg-tourflow-sageLight px-2.5 py-1 text-xs font-bold text-tourflow-sage">
+              {isFromGlobe ? 'Pre-filled from Globe' : 'Detected'}
+            </span>
+            <button type="button" aria-label="Clear destination" onClick={() => { setGlobePrefill(null); setPrompt(''); }} className="flex h-11 w-11 items-center justify-center rounded-full text-tourflow-textMuted hover:bg-tourflow-bg">
+              <CloseIcon size={18} />
+            </button>
           </span>
         </div>
       ) : null}
@@ -220,20 +233,24 @@ export default function PlanJourney() {
         listening={listening}
         voiceSupported={voiceSupported}
       />
-      {voiceNote ? <p className="text-xs text-tourflow-sage" role="status">{voiceNote}</p> : null}
+      {voiceNote ? <p className="text-[13px] text-tourflow-sage" role="status">{voiceNote}</p> : null}
       {error ? (
-        <p className="rounded-xl bg-red-50 px-3 py-2 text-xs font-semibold text-red-700" role="alert">
+        <p className="rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700" role="alert">
           {error}
         </p>
       ) : null}
 
-      <section className="rounded-2xl border border-tourflow-sageBorder bg-tourflow-sageLight p-3">
-        <p className="text-sm font-bold text-tourflow-sage">{planJourney.bannerTitle}</p>
-        <p className="text-xs text-tourflow-dark/80">{planJourney.bannerSubtitle}</p>
-      </section>
+      <details className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
+        <summary className="cursor-pointer text-[14px] font-bold text-tourflow-dark">What makes a good prompt?</summary>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] text-tourflow-textMuted">
+          <li>Destination + days work best.</li>
+          <li>Add travelers and budget when you know them.</li>
+          <li>Mention vibe: relaxed, heritage, food, adventure.</li>
+        </ul>
+      </details>
 
       <section className="space-y-2">
-        <h3 className="text-sm font-bold">{planJourney.inspirationTitle}</h3>
+        <h3 className="text-[15px] font-bold">{planJourney.inspirationTitle}</h3>
         <div className="grid grid-cols-1 gap-2">
           {inspirationTrips.map((trip) => (
             <InspirationCard key={trip.id} trip={trip} onUse={setPrompt} />
@@ -241,13 +258,15 @@ export default function PlanJourney() {
         </div>
       </section>
 
-      <button
-        type="button"
-        onClick={handleContinue}
-        className="w-full rounded-full bg-tourflow-primary px-4 py-3.5 text-sm font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
-      >
-        {planJourney.ctaLabel}
-      </button>
+      <div className="sticky bottom-24 z-10 -mx-4 bg-gradient-to-t from-tourflow-bg via-tourflow-bg to-transparent px-4 pb-2 pt-6">
+        <button
+          type="button"
+          onClick={handleContinue}
+          className="min-h-[52px] w-full rounded-full bg-tourflow-primary px-4 py-3 text-[15px] font-bold text-white shadow-float hover:bg-tourflow-primaryHover"
+        >
+          Continue → Review details
+        </button>
+      </div>
     </div>
   );
 }

@@ -45,13 +45,14 @@ export function SafeImage({
   );
 }
 
-const STOP_TYPE_ICONS: Record<string, string> = {
-  Stay: '🏨',
-  Activity: '🎯',
-  Transport: '🚌',
-  Meal: '🍽️',
-  Leisure: '🌿',
-  Note: '📝',
+
+const STOP_TYPE_ICONS: Record<string, ReactNode> = {
+  Stay: 'Stay',
+  Activity: 'Activity',
+  Transport: 'Transfer',
+  Meal: 'Meal',
+  Leisure: 'Free time',
+  Note: 'Note',
 };
 
 export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer?: ReactNode }) {
@@ -81,35 +82,35 @@ export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer
               isLeisure ? 'bg-tourflow-sageLight text-tourflow-sage' : 'bg-tourflow-surfaceMuted text-tourflow-textMuted'
             }`}
           >
-            <span aria-hidden="true" className="text-xl">
-              {STOP_TYPE_ICONS[typeLabel] ?? '📍'}
+            <span aria-hidden="true" className="text-[13px] font-bold">
+              {STOP_TYPE_ICONS[typeLabel] ?? typeLabel}
             </span>
-            <span className="text-[11px] font-bold uppercase tracking-wide">
+            <span className="text-xs font-bold uppercase tracking-wide">
               {isLeisure ? 'Free time' : typeLabel}
             </span>
           </div>
         )}
-        <div className="p-3">
+        <div className="p-4">
           {timeRange ? (
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{timeRange}</p>
+            <p className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">{timeRange}</p>
           ) : null}
-          <h4 className="mt-0.5 text-sm font-bold text-tourflow-dark">{stop.title}</h4>
-          {stop.location ? <p className="mt-0.5 text-[11px] text-tourflow-textMuted">📍 {stop.location}</p> : null}
-          {stop.description ? <p className="mt-1 text-xs text-tourflow-textMuted">{stop.description}</p> : null}
+          <h4 className="clamp-2 mt-0.5 text-[15px] font-bold text-tourflow-dark">{stop.title}</h4>
+          {stop.location ? <p className="mt-0.5 truncate text-[13px] text-tourflow-textMuted">{stop.location}</p> : null}
+          {stop.description ? <p className="clamp-2 mt-1 text-[14px] text-tourflow-textMuted">{stop.description}</p> : null}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {stop.badge ? (
-              <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-[11px] font-bold text-white">{stop.badge}</span>
+              <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-xs font-bold text-white">{stop.badge}</span>
             ) : null}
             {stop.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold text-tourflow-dark"
+                className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-xs font-semibold text-tourflow-dark"
               >
                 {tag}
               </span>
             ))}
             {stop.costLabel ? (
-              <span className="ml-auto text-[11px] font-bold text-tourflow-sage">{stop.costLabel}</span>
+              <span className="ml-auto text-xs font-bold text-tourflow-sage">{stop.costLabel}</span>
             ) : null}
           </div>
           {footer ? <div className="mt-2 flex flex-wrap gap-2">{footer}</div> : null}
@@ -168,16 +169,16 @@ export function OptionCard({ option }: { option: PossibleOption }) {
         </span>
       </div>
       <div className="p-3">
-        <h4 className="truncate text-sm font-bold text-tourflow-dark">{option.title}</h4>
-        <p className="mt-0.5 truncate text-[11px] text-tourflow-textMuted">📍 {option.location}</p>
+        <h4 className="clamp-2 text-[15px] font-bold text-tourflow-dark">{option.title}</h4>
+        <p className="mt-0.5 truncate text-[13px] text-tourflow-textMuted">{option.location}</p>
         {option.description ? (
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-tourflow-textMuted">{option.description}</p>
+          <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-tourflow-textMuted">{option.description}</p>
         ) : null}
         <div className="mt-2 flex items-center justify-between gap-2">
-          <span className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold capitalize">
+          <span className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-xs font-semibold capitalize">
             {option.walkingIntensity} walk
           </span>
-          <span className="text-xs font-extrabold text-tourflow-dark">{formatINR(option.cost)}</span>
+          <span className="text-[13px] font-extrabold text-tourflow-dark">{formatINR(option.cost)}</span>
         </div>
       </div>
     </article>
@@ -189,7 +190,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
   return (
     <div className={`msg-fade-in flex ${isAi ? 'justify-start' : 'justify-end'}`}>
       <p
-        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed shadow-soft ${
+        className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed shadow-soft ${
           isAi
             ? 'rounded-bl-md border border-tourflow-sageBorder bg-white text-tourflow-dark'
             : 'rounded-br-md bg-tourflow-dark text-white'
@@ -209,7 +210,7 @@ export function SuggestionChips({ items, onPick }: { items: string[]; onPick: (v
           key={item}
           type="button"
           onClick={() => onPick(item)}
-          className="shrink-0 rounded-full border border-tourflow-cardBorder bg-white px-3 py-1.5 text-xs font-semibold text-tourflow-dark hover:border-tourflow-primary hover:text-tourflow-primary"
+          className="min-h-[36px] shrink-0 rounded-full border border-tourflow-cardBorder bg-white px-3.5 py-1.5 text-[13px] font-semibold text-tourflow-dark hover:border-tourflow-primary hover:text-tourflow-primary"
         >
           {item}
         </button>
@@ -255,17 +256,17 @@ export function ProfileInfoCard({ rows, onEdit }: { rows: ProfileInfoRow[]; onEd
           key={row.id}
           className={`flex items-center justify-between gap-3 px-4 py-3 ${index > 0 ? 'border-t border-tourflow-cardBorder' : ''}`}
         >
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">{row.label}</p>
-            <p className="text-sm font-semibold text-tourflow-dark">
-              {row.value} {row.verified ? <span className="text-xs text-tourflow-sage">· Verified</span> : null}
+          <div className="min-w-0">
+            <p className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">{row.label}</p>
+            <p className="truncate text-[15px] font-semibold text-tourflow-dark">
+              {row.value} {row.verified ? <span className="text-[13px] text-tourflow-sage">· Verified</span> : null}
             </p>
           </div>
           <button
             type="button"
             aria-label={`Edit ${row.label}`}
             onClick={onEdit ? () => onEdit(row.id) : undefined}
-            className="text-xs font-bold text-tourflow-primary"
+            className="min-h-[44px] px-2 text-[13px] font-bold text-tourflow-primary"
           >
             Edit
           </button>
@@ -286,13 +287,13 @@ export function ProfileMenuCard({ title, items, onSelect }: { title: string; ite
           key={item.id}
           type="button"
           onClick={onSelect ? () => onSelect(item.id) : undefined}
-          className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-tourflow-bg"
+          className="flex min-h-[52px] w-full items-center justify-between gap-3 px-4 py-3 text-left transition-colors hover:bg-tourflow-bg"
         >
-          <span>
-            <span className="block text-sm font-bold text-tourflow-dark">{item.title}</span>
-            <span className="block text-xs text-tourflow-textMuted">{item.subtitle}</span>
+          <span className="min-w-0">
+            <span className="block truncate text-[15px] font-bold text-tourflow-dark">{item.title}</span>
+            <span className="block truncate text-[13px] text-tourflow-textMuted">{item.subtitle}</span>
           </span>
-          <span aria-hidden="true" className="text-tourflow-textMuted">
+          <span aria-hidden="true" className="shrink-0 text-tourflow-textMuted">
             ›
           </span>
         </button>
@@ -300,3 +301,4 @@ export function ProfileMenuCard({ title, items, onSelect }: { title: string; ite
     </section>
   );
 }
+

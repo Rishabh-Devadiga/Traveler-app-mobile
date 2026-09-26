@@ -59,15 +59,14 @@ export default function Onboarding() {
 
         <div className="relative z-20 flex flex-col items-center px-4 text-center">
           <span className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/20 px-4 py-1.5 text-white shadow-sm backdrop-blur-md">
-            <span aria-hidden="true">✦</span>
-            <span className="text-xs font-bold uppercase tracking-wide">{onboardingCopy.eyebrow}</span>
+            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-tourflow-primary" />
+            <span className="text-xs font-bold uppercase tracking-wide">AI trip planner for India</span>
           </span>
-          <h1 className="mt-1 max-w-xs text-4xl font-extrabold tracking-tight text-white drop-shadow-md">
-            {onboardingCopy.titlePrefix}{' '}
-            <span className="text-tourflow-primary">{onboardingCopy.titleBrand}</span>
+          <h1 className="mt-1 max-w-xs text-[32px] font-extrabold leading-tight tracking-tight text-white drop-shadow-md">
+            Trips planned in minutes, not hours.
           </h1>
-          <p className="mt-2 max-w-[270px] text-sm font-medium leading-relaxed text-white/85 drop-shadow-sm">
-            {onboardingCopy.subtitle}
+          <p className="mt-2 max-w-[270px] text-[14px] font-medium leading-relaxed text-white/85 drop-shadow-sm">
+            Tell us your vibe — verified stays, routes & days, ready to export.
           </p>
           <div className="mt-3.5 flex max-w-xs flex-wrap items-center justify-center gap-2">
             {onboardingCopy.quickTags.map((tag) => (
@@ -128,14 +127,14 @@ export default function Onboarding() {
               <button
                 type="button"
                 onClick={() => navigate('/login')}
-                className="flex flex-1 items-center justify-center rounded-full border border-white/25 bg-white/15 px-6 py-4 text-sm font-bold uppercase tracking-wide text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-white/25 active:scale-[0.98]"
+                className="flex min-h-[48px] flex-1 items-center justify-center rounded-full border border-white/25 bg-white/15 px-6 py-3 text-[14px] font-bold text-white shadow-lg backdrop-blur-md transition-all duration-200 hover:bg-white/25 active:scale-[0.98]"
               >
                 {onboardingCopy.signInLabel}
               </button>
               <button
                 type="button"
                 onClick={() => navigate('/login', { state: { mode: 'signup' } })}
-                className="flex flex-1 items-center justify-center rounded-full bg-tourflow-primary px-6 py-4 text-sm font-bold uppercase tracking-wide text-white shadow-lg transition-all duration-200 hover:opacity-95 active:scale-[0.98]"
+                className="flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-tourflow-primary px-6 py-3 text-[14px] font-bold text-white shadow-lg transition-all duration-200 hover:opacity-95 active:scale-[0.98]"
               >
                 Create Account
               </button>
@@ -145,14 +144,14 @@ export default function Onboarding() {
             <button
               type="button"
               onClick={goHome}
-              className="text-sm text-white/70 transition-colors hover:text-white"
+              className="min-h-[44px] px-2 text-[14px] text-white/70 transition-colors hover:text-white"
             >
               {onboardingCopy.guestLabel}
             </button>
           ) : null}
-          <p className="flex items-center gap-2 text-xs text-white/80 opacity-90">
-            <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-tourflow-primary" />
-            {onboardingCopy.trustNote}
+          <p className="flex items-center gap-2 px-2 text-center text-xs leading-relaxed text-white/80 opacity-90">
+            <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-tourflow-primary" />
+            Verified stays · Real routes · Free to explore
           </p>
         </div>
       </div>
