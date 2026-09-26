@@ -105,79 +105,237 @@ body {
   animation: fadeInMsg 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.splash-wordmark-wrap {
-  filter: drop-shadow(0 10px 22px rgba(235, 120, 18, 0.16));
+/* Premium splash: final composition is the target state.
+   GPU-friendly: transform + opacity only (blur only on wordmark reveal). */
+
+.splash-stage {
+  min-height: min(60vh, 420px);
+  justify-content: center;
 }
 
 .splash-wordmark {
   overflow: visible;
 }
 
-.splash-letter {
-  opacity: 0;
-  transform: translateY(14px);
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  filter: blur(6px);
-  animation: splashLetterIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* STAR INTRO LAYER — tiny sharp 4-point star + halo, dead center above
+   the existing splash. One continuous rhythm:
+   appear (0–0.2s) → slight zoom OUT (0.2–0.45s) → return to original
+   (0.45–0.65s) → rapid zoom IN (0.65–1.15s) → smooth zoom OUT + reveal
+   (1.15–1.65s). Total star track 1.65s. */
+.splash-star-layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: splashStarLayer 1.65s cubic-bezier(0.16, 1, 0.3, 1) 0s both;
+  will-change: transform, opacity;
 }
 
-.splash-scan-full {
+.splash-star-core {
   position: absolute;
-  top: -8%;
-  bottom: -8%;
-  left: 0;
-  width: 3px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  animation: splashStarCore 1.65s cubic-bezier(0.16, 1, 0.3, 1) 0s both;
+  will-change: transform, opacity;
+  filter: drop-shadow(0 0 6px rgba(235, 120, 18, 0.8));
+}
+
+.splash-star-halo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100%;
+  height: 100%;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #ffb27a 0%, #eb7812 55%, #c25e0a 100%);
-  box-shadow:
-    0 0 0 1px rgba(235, 120, 18, 0.25),
-    0 0 18px rgba(235, 120, 18, 0.65),
-    6px 0 22px rgba(235, 120, 18, 0.35);
-  animation: splashScanFull 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.35s both;
-  pointer-events: none;
+  background: radial-gradient(
+    circle,
+    rgba(235, 120, 18, 0.4) 0%,
+    rgba(235, 120, 18, 0.16) 45%,
+    rgba(235, 120, 18, 0) 70%
+  );
+  transform: translate(-50%, -50%);
+  animation: splashStarHalo 1.65s cubic-bezier(0.16, 1, 0.3, 1) 0s both;
+  will-change: transform, opacity;
+}
+
+/* Brand sits UNDER the star: hidden during the star rhythm, revealed as
+   the star recedes (1.15–1.65s), settles to the exact final state. */
+.splash-brand {
+  opacity: 0;
+  transform: scale(0.94);
+  animation:
+    splashBrandReveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) 1.35s both,
+    splashSettle 0.5s cubic-bezier(0.16, 1, 0.3, 1) 1.9s both;
+  will-change: transform, opacity;
+}
+
+/* Inner details keep their stagger INSIDE the brand reveal. */
+.splash-wordmark-reveal {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: splashWordmarkReveal 0.45s cubic-bezier(0.16, 1, 0.3, 1) 1.45s both;
+  will-change: transform, opacity;
+}
+
+.splash-letter {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+}
+
+/* PHASE 4 — staggered brand details. */
+.splash-star-badge {
+  opacity: 0;
+  transform: translateY(8px) scale(0.96);
+  animation: splashBadgeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.6s both;
+  will-change: transform, opacity;
 }
 
 .splash-baseline {
   transform: scaleX(0);
-  animation: splashBaseline 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+  animation: splashBaseline 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.7s forwards;
+  will-change: transform;
 }
 
 .splash-caption {
   opacity: 0;
-  transform: translateY(6px);
-  animation: splashCaption 0.6s ease-out 1.5s forwards;
+  transform: translateY(8px);
+  animation: splashCaption 0.4s cubic-bezier(0.16, 1, 0.3, 1) 1.82s forwards;
+  will-change: transform, opacity;
 }
 
-@keyframes splashLetterIn {
+/* Star layer rhythm (1.65s total):
+   0–12% appear tiny → 12–27% slight zoom OUT → 27–39% return to
+   original → 39–70% rapid zoom IN (main impact) → 70–100% smooth
+   zoom OUT + fade to reveal the brand. */
+@keyframes splashStarLayer {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.35);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  27% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(0.66);
+  }
+  39% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(4.15);
+  }
+  88% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.15);
+  }
+}
+
+/* Core stays sharp while scaling with its layer. */
+@keyframes splashStarCore {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  12% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+/* Halo glows + expands with the main zoom, then dissolves. */
+@keyframes splashStarHalo {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.5);
+  }
+  12% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  27% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(0.82);
+  }
+  39% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(3.15);
+  }
+  88% {
+    opacity: 0.3;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.4);
+  }
+}
+
+@keyframes splashBrandReveal {
   from {
     opacity: 0;
-    transform: translateY(14px);
-    filter: blur(6px);
+    transform: scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes splashWordmarkReveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
-    filter: blur(0);
   }
 }
 
-@keyframes splashScanFull {
-  0% {
-    left: 1%;
-    opacity: 0;
-  }
-  8% {
+@keyframes splashBadgeIn {
+  to {
     opacity: 1;
-  }
-  84% {
-    opacity: 1;
-  }
-  100% {
-    left: 99%;
-    opacity: 0;
+    transform: translateY(0) scale(1);
   }
 }
+
+@keyframes splashSettle {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.004);
+  }
+}
+
+/* Typewriter rules fully removed — replaced by the star-zoom reveal. */
 
 @keyframes splashBaseline {
   from {
@@ -195,6 +353,13 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .splash-star-layer {
+    width: 38px;
+    height: 38px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse-dot,
   .typing-dot-1,
@@ -206,9 +371,15 @@ body {
     animation: none !important;
     transition: none !important;
   }
+  .splash-stage,
+  .splash-star-layer,
+  .splash-star-core,
+  .splash-star-halo,
+  .splash-brand,
   .splash-wordmark,
+  .splash-wordmark-reveal,
   .splash-letter,
-  .splash-scan-full,
+  .splash-star-badge,
   .splash-baseline,
   .splash-caption {
     animation-duration: 0.01ms !important;
