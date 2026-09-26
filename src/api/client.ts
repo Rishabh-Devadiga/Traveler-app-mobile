@@ -1,12 +1,15 @@
 /**
  * Minimal typed HTTP client for the TourFlow backend (Phase 3A).
  *
- * - Base URL resolution order (first non-empty value wins):
- *   1. Android/WebView runtime override: `window.__TOURFLOW_API_URL__` or
+ * - Base URL resolution order:
+ *   1. Desktop browser on localhost/127.0.0.1: build-time
+ *      `VITE_TOURFLOW_API_URL` (or legacy `VITE_API_URL`) wins, so a stale
+ *      phone-testing LAN override can never break PC dev.
+ *   2. On LAN/device hosts: Android/WebView runtime override:
+ *      `window.__TOURFLOW_API_URL__` or
  *      `localStorage["tourflow.apiUrl.v1"]` (set via `setApiBaseUrlOverride()`
- *      or shipped `public/api-config.json`). Required on a physical device
- *      where the dev PC is reached over LAN, not localhost.
- *   2. Build-time `VITE_TOURFLOW_API_URL` (or legacy `VITE_API_URL`).
+ *      or shipped `public/api-config.json`).
+ *   3. Build-time `VITE_TOURFLOW_API_URL` (or legacy `VITE_API_URL`).
  * - No localhost fallbacks are hardcoded here and no API keys/tokens live in
  *   this file. (The trip endpoints used by the Traveler app are open on the
  *   backend — they depend only on `get_db`, no JWT.)
@@ -46,6 +49,19 @@ function readRuntimeOverride(): string | undefined {
 }
 
 function readBaseUrl(): string | undefined {
+  // Desktop browser served from localhost/127.0.0.1: build-time env wins so a
+  // stale on-device LAN override can never poison PC dev (status 0 on every
+  // call). On real devices / LAN hosts the stored override still wins.
+  try {
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1' || host === '[::1]') {
+      const raw = import.meta.env?.VITE_TOURFLOW_API_URL || import.meta.env?.VITE_API_URL;
+      const fromEnv = normalizeBaseUrl(raw);
+      if (fromEnv) return fromEnv;
+    }
+  } catch {
+    /* window unavailable (SSR/tests) — fall through to override-first order */
+  }
   // On-device override first so one APK works against any LAN backend without
   // a rebuild; build-time env remains the default for web/dev.
   const override = readRuntimeOverride();

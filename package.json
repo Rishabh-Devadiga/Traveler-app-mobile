@@ -9,6 +9,8 @@
     "build": "tsc && vite build",
     "lint": "eslint src --ext .ts,.tsx",
     "check:budget": "node scripts/check-budget-assessment.mjs",
+    "check:counter": "node scripts/check-traveler-counter.mjs",
+    "check:intent": "node scripts/check-trip-intent.mjs",
     "preview": "vite preview",
     "cap:init": "cap init WanderAI-Traveler com.wanderai.traveler --web-dir=dist",
     "android:sync": "npm run build && npx cap sync android",

@@ -7,6 +7,7 @@ import { formatINR } from '../utils/format';
 import { daysNightsLabel, durationDaysFromRange, formatTripDate, tripDateRangeLabel } from '../utils/dates';
 import { assessBudget, buildBudgetReferences } from '../utils/budgetAssessment';
 import { curatedDestinations } from '../mocks/traveler';
+import { isRecognizedOriginLabel, matchCatalogPlace } from '../utils/destinationCatalog';
 
 const inputClass =
   'w-full rounded-xl border border-tourflow-cardBorder bg-white px-3 py-2.5 text-[16px] font-semibold text-tourflow-dark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary';
@@ -125,6 +126,29 @@ export default function TripChecklist() {
   );
   const showLowBudget = budgetAssessment?.isLow === true;
 
+  // Catalog validation (generic — the catalog is the single source of truth).
+  // Anything the user typed that is NOT in the supported catalog surfaces an
+  // inline "not found" state instead of silently flowing to trip generation.
+  // `suspected*` carries the invalid cue text ("XYZABC") so the banner names
+  // it even though the destination field itself stays empty.
+  const destinationKnown = !draft.destination || matchCatalogPlace(draft.destination) !== undefined;
+  // Origins accept the wider origin-city gazetteer (Pune etc. need not be a
+  // catalog destination); the parser module owns that shared rule.
+  const originKnown = !draft.origin || matchCatalogPlace(draft.origin) !== undefined || isRecognizedOriginLabel(draft.origin);
+  const invalidDestinationName = !destinationKnown
+    ? draft.destination
+    : !draft.destination && draft.suspectedDestination
+      ? draft.suspectedDestination
+      : undefined;
+  const invalidOriginName = !originKnown
+    ? draft.origin
+    : !draft.origin && draft.suspectedOrigin
+      ? draft.suspectedOrigin
+      : undefined;
+  const multiNote = draft.alternateDestinations && draft.alternateDestinations.length > 0
+    ? draft.alternateDestinations
+    : undefined;
+
   // Redirect guard runs AFTER the hooks above so the hook call order never
   // changes between renders (React rules-of-hooks), including when the draft
   // is cleared and this page redirects back to Plan.
@@ -171,6 +195,13 @@ export default function TripChecklist() {
         “{draft.prompt}”
       </blockquote>
 
+      {multiNote ? (
+        <p className="rounded-2xl bg-amber-50 px-3 py-2 text-[13px] font-semibold text-amber-900" role="status">
+          You mentioned more than one destination ({[draft.destination, ...multiNote].filter(Boolean).join(' + ')}).
+          This trip supports one destination at a time — continuing with {draft.destination ?? 'the first one'}. Edit the prompt to change it.
+        </p>
+      ) : null}
+
       <div className="flex flex-col gap-2">
         <RowShell icon={<MapPinIcon size={18} />} label="Destination" hint={<FieldHint detected={draft.destination !== undefined} />}>
           <label htmlFor="checklist-destination" className="sr-only">Destination</label>
@@ -185,6 +216,11 @@ export default function TripChecklist() {
             }
             className={inputClass}
           />
+          {invalidDestinationName ? (
+            <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700" role="alert">
+              Destination not found — we couldn&apos;t find &apos;{invalidDestinationName}&apos; in our supported destinations. Please enter another destination.
+            </p>
+          ) : null}
         </RowShell>
 
         <RowShell icon={<MapPinIcon size={18} />} label="Starting From" hint={<FieldHint detected={draft.origin !== undefined} />}>
@@ -200,11 +236,16 @@ export default function TripChecklist() {
             }
             className={inputClass}
           />
+          {invalidOriginName ? (
+            <p className="mt-2 rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700" role="alert">
+              Starting location not recognized — &apos;{invalidOriginName}&apos; wasn&apos;t recognized. Please check it or pick a valid city.
+            </p>
+          ) : null}
         </RowShell>
 
         <RowShell icon={<UsersIcon size={18} />} label="Travelers" hint={<FieldHint detected={draft.travelers !== undefined} />}>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Fewer travelers" onClick={() => setCount(String((draft.travelers ?? 2) - 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
+            <button type="button" aria-label="Fewer travelers" onClick={() => setCount(String((draft.travelers ?? 0) - 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
               <MinusIcon size={18} />
             </button>
             <label htmlFor="checklist-travelers" className="sr-only">Number of travelers</label>
@@ -219,7 +260,7 @@ export default function TripChecklist() {
               onChange={(e) => setCount(e.target.value)}
               className={`${inputClass} text-center`}
             />
-            <button type="button" aria-label="More travelers" onClick={() => setCount(String((draft.travelers ?? 1) + 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
+            <button type="button" aria-label="More travelers" onClick={() => setCount(String((draft.travelers ?? 0) + 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
               <PlusIcon size={18} />
             </button>
           </div>
@@ -352,9 +393,14 @@ export default function TripChecklist() {
       </p>
 
       <div className="sticky bottom-24 z-10 -mx-4 bg-gradient-to-t from-tourflow-bg via-tourflow-bg to-transparent px-4 pb-2 pt-6">
+        {invalidDestinationName ? (
+          <p className="mb-2 rounded-xl bg-red-50 px-3 py-2 text-[13px] font-semibold text-red-700" role="alert">
+            Please fix the destination above before generating.
+          </p>
+        ) : null}
         <button
           type="button"
-          disabled={creating}
+          disabled={creating || invalidDestinationName !== undefined || (draft.destination !== undefined && !destinationKnown)}
           onClick={() => {
             if (creating) return;
             setCreating(true);

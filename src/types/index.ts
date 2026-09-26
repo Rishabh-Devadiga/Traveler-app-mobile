@@ -248,6 +248,16 @@ export interface ParsedTripFields {
   destination?: string;
   origin?: string;
   durationDays?: number;
+  /** ISO `YYYY-MM-DD` start date parsed from natural language (if confident). */
+  startDate?: string;
+  /** ISO `YYYY-MM-DD` end date (explicit range or start + duration). */
+  endDate?: string;
+  /** Capitalized destination-cue phrase NOT in the catalog (invalid-dest UX). */
+  suspectedDestination?: string;
+  /** Capitalized origin-cue phrase NOT recognized (invalid-origin UX). */
+  suspectedOrigin?: string;
+  /** Extra distinct catalog destinations beyond the primary (clarification). */
+  alternateDestinations?: string[];
   travelers?: number;
   travelerLabel?: string;
   budgetAmount?: number;
@@ -291,6 +301,12 @@ export interface TripDraft {
   startDate?: string;
   /** Trip end date as `YYYY-MM-DD` (optional, set via the Checklist date picker). */
   endDate?: string;
+  /** Invalid-destination cue text from the prompt (validation UX; never sent). */
+  suspectedDestination?: string;
+  /** Unrecognized origin-cue text from the prompt (validation UX; never sent). */
+  suspectedOrigin?: string;
+  /** Extra distinct destinations in the prompt (multi-dest clarification). */
+  alternateDestinations?: string[];
   /** Prompt text the derived fields were parsed from (edits preserved while this matches). */
   parsedForPrompt?: string;
   /** Deterministically generated mock itinerary (null until Loading completes). */

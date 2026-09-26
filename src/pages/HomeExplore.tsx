@@ -10,10 +10,13 @@ import {
 } from '../mocks/traveler';
 import { filterCuratedByCategory, getCuratedCategory, resolveExploreCategory } from '../utils/curated';
 import { useTravelerProfile } from '../state/useTravelerProfile';
+import { useTripDraft } from '../state/useTripDraft';
+import { parseTripPrompt } from '../utils/parseTripPrompt';
 
 export default function HomeExplore() {
   const navigate = useNavigate();
   const { profile } = useTravelerProfile();
+  const { startTrip, resetTrip, draft } = useTripDraft();
   const travelerName = profile?.full_name.trim() || 'Traveler';
   const [query, setQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
@@ -25,6 +28,39 @@ export default function HomeExplore() {
     [activeFilter],
   );
   const activeCategory = getCuratedCategory(activeFilter);
+
+  /**
+   * Home prompt entry point.
+   * Reuses the existing TripDraft/state/parser + TripChecklist flow —
+   * this only changes the entry point so a valid Home prompt skips the
+   * redundant PlanJourney freeform step.
+   * - Non-empty prompt → startTrip(prompt, {destination, source manual})
+   *   → navigate directly to /checklist (Checklist runs ensureParsed()).
+   * - Empty prompt → existing /plan manual entry (Freeform Intent stays).
+   */
+  const handleHomePromptSubmit = () => {
+    const trimmed = query.trim();
+    if (!trimmed) {
+      navigate('/plan', { state: { reset: true, source: 'manual' } });
+      return;
+    }
+    const parsed = parseTripPrompt(trimmed);
+    // Fresh Home entry: clear any completed-trip residue first (same clean
+    // initial state PlanJourney's manual reset would produce), then seed the
+    // shared TripDraft. Checklist's ensureParsed() fills duration/travelers/
+    // budget/origin/style from the prompt — identical data as the Plan flow.
+    // Stale completed itineraries must never leak into the new draft, and
+    // startTrip's resume fast-path already preserves in-progress checklist
+    // edits when the exact same prompt is resubmitted.
+    if (draft.itinerary !== null || draft.tripId !== undefined) {
+      resetTrip();
+    }
+    startTrip(trimmed, {
+      destination: parsed.destination,
+      destinationSource: parsed.destination ? 'manual' : undefined,
+    });
+    navigate('/checklist');
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -68,13 +104,7 @@ export default function HomeExplore() {
         value={query}
         placeholder='Try "5 days in Kerala under ₹50k"'
         onChange={setQuery}
-        onSubmit={() =>
-          navigate('/plan', {
-            state: query.trim()
-              ? { prompt: query.trim(), reset: true, source: 'manual' }
-              : { reset: true, source: 'manual' },
-          })
-        }
+        onSubmit={handleHomePromptSubmit}
       />
 
       <section className="space-y-2">

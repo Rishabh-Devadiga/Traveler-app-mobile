@@ -24,14 +24,47 @@ interface ApiConfigFile {
 
 /**
  * Load the shipped backend URL before the session check runs.
- * `public/api-config.json` is copied verbatim to `dist/` by Vite, so the APK
- * ships the LAN backend (http://192.168.137.100:8000) instead of localhost —
- * which on a physical device would point at the phone itself. A stored
- * localStorage override wins when present (see `API_URL_OVERRIDE_KEY`); the
- * build-time env is the final fallback. Route tree below is untouched.
+ * `public/api-config.json` is copied verbatim to `dist/` by Vite and exists
+ * for on-device (APK/WebView) builds, where localhost would point at the
+ * phone itself so a LAN backend URL is required. On desktop browsers
+ * (localhost / 127.0.0.1 hostnames) localhost is correct and any stale
+ * LAN override from an earlier session must NOT win — otherwise the PC
+ * browser targets a phone-only hotspot IP and every call fails with
+ * status 0 ("Could not reach the WanderAI backend"). Precedence:
+ *  1. Desktop browser served from localhost/127.0.0.1 -> build-time env
+ *     (VITE_TOURFLOW_API_URL), ignoring stale LAN overrides.
+ *  2. A stored localStorage override wins otherwise (explicit user choice).
+ *  3. Shipped api-config.json LAN URL applies on non-localhost hosts only.
+ *  4. Build-time env is the final fallback. Route tree below is untouched.
  */
+/** True when the page is served from a desktop loopback host (Vite dev). */
+function isLoopbackHost(): boolean {
+  try {
+    const host = window.location.hostname;
+    return host === 'localhost' || host === '127.0.0.1' || host === '[::1]';
+  } catch {
+    return false;
+  }
+}
+
 function applyShippedApiConfig(config: ApiConfigFile | null): void {
   if (typeof window === 'undefined') return;
+  // Desktop dev browser: always prefer the build-time localhost URL. Clear
+  // any stale LAN override so a previous phone-testing session can never
+  // poison this browser's backend target.
+  if (isLoopbackHost()) {
+    try {
+      window.localStorage.removeItem(API_URL_OVERRIDE_KEY);
+    } catch {
+      /* storage unavailable — runtime read falls through to build-time env */
+    }
+    try {
+      delete window.__TOURFLOW_API_URL__;
+    } catch {
+      /* non-configurable — read order already prefers build-time env here */
+    }
+    return;
+  }
   try {
     if (window.localStorage.getItem(API_URL_OVERRIDE_KEY)) return;
   } catch {
