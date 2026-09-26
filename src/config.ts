@@ -29,3 +29,6 @@ export function getSupportConfig(): SupportConfig {
     secondary: readEnv('VITE_SUPPORT_PHONE_SECONDARY'),
   };
 }
+
+// Re-export AI provider configuration
+export * from './config/aiProviders';
