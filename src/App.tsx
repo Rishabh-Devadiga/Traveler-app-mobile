@@ -26,6 +26,12 @@ const API_URL_SOURCE_KEY = 'tourflow.apiUrlSource.v1';
 /**
  * Load the shipped backend URL before the session check runs.
  *
+ * `public/api-config.json` is copied verbatim to `dist/` by Vite, so the APK
+ * ships the LAN backend (http://192.168.137.100:8001) instead of localhost —
+ * which on a physical device would point at the phone itself. A stored
+ * localStorage override wins when present (see `API_URL_OVERRIDE_KEY`); the
+ * build-time env is the final fallback.
+ *
  * Desktop Vite development:
  * - localhost/127.0.0.1 should use the local backend.
  * - stale LAN overrides from previous mobile testing must not win.
@@ -83,10 +89,15 @@ function applyShippedApiConfig(config: ApiConfigFile | null): void {
       return;
     }
 
-    // Refresh stale shipped configuration.
+    // Refresh stale shipped configuration: overwrite a stale override (e.g. a
+    // prior session where api-config.json pointed at a different port) so the
+    // shipped api-config.json wins.
     window.localStorage.setItem(API_URL_OVERRIDE_KEY, apiUrl);
     window.localStorage.setItem(API_URL_SOURCE_KEY, 'shipped');
   } catch {
+    /* localStorage unavailable — runtime override cannot be refreshed */
+  }
+  if (apiUrl) {
     try {
       if (apiUrl) {
         window.__TOURFLOW_API_URL__ = apiUrl;

@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useMemo, useState, type ReactNode } from 're
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { OptionCard, SafeImage, StayCard, TimelineStopCard } from '../components/content';
 import AppSheet from '../components/Sheet';
+import OperatorChatSheet from '../components/OperatorChatSheet';
 import { BackIcon, PdfIcon } from '../components/icons';
 // TripMap (+ Leaflet) stays out of the main bundle — loaded only when Map opens.
 const TripMap = lazy(() => import('../components/TripMap'));
@@ -200,6 +201,7 @@ export default function Itinerary() {
   const [dateEnd, setDateEnd] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [showChat, setShowChat] = useState(false);
   const [dismissedWarningsFor, setDismissedWarningsFor] = useState<string | null>(null);
   // Post-generation transport switcher: verified options for the trip's
   // origin→destination pair (researched live at creation, switchable here).
@@ -877,29 +879,41 @@ export default function Itinerary() {
       ) : null}
 
       {isLive && apiTrip ? (
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={handleDownloadPdf}
+              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+            >
+              ⬇ Download PDF
+            </button>
+            <button
+              type="button"
+              onClick={openDatesSheet}
+              disabled={pendingKey !== null}
+              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary disabled:opacity-60"
+            >
+              Adjust Dates
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowMap((v) => !v)}
+              aria-expanded={showMap}
+              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+            >
+              {showMap ? 'Hide Map' : '🗺 Map'}
+            </button>
+          </div>
           <button
             type="button"
-            onClick={handleDownloadPdf}
-            className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+            onClick={() => setShowChat(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-tourflow-primary bg-tourflow-primarySoft px-4 py-2.5 text-sm font-bold text-tourflow-primary shadow-soft transition-colors hover:bg-tourflow-primary hover:text-white"
           >
-            ⬇ Download PDF
-          </button>
-          <button
-            type="button"
-            onClick={openDatesSheet}
-            disabled={pendingKey !== null}
-            className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary disabled:opacity-60"
-          >
-            Adjust Dates
-          </button>
-          <button
-            type="button"
-            onClick={() => setShowMap((v) => !v)}
-            aria-expanded={showMap}
-            className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
-          >
-            {showMap ? 'Hide Map' : '🗺 Map'}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+            </svg>
+            Chat with Operator
           </button>
         </div>
       ) : null}
@@ -1233,6 +1247,19 @@ export default function Itinerary() {
             </button>
           </div>
         </Sheet>
+      ) : null}
+
+      {/* Chat with Operator panel */}
+      {showChat ? (
+        <OperatorChatSheet
+          tripId={tripId ?? ''}
+          destinationLabel={destinationLabel}
+          onClose={() => setShowChat(false)}
+          onAuthFail={() => {
+            clearTravelerToken();
+            navigate('/login', { replace: true, state: { from: '/itinerary' } });
+          }}
+        />
       ) : null}
 
       {/* Change stay sheet */}
