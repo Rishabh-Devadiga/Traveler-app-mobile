@@ -416,8 +416,8 @@ export default function AiLoading() {
 
       {apiError ? (
         <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
-          <p className="text-sm font-bold text-red-700">Trip creation failed</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">{apiError}</p>
+          <p className="text-sm font-bold text-red-700">{apiError.split('\n')[0]}</p>
+          <p className="mt-1 whitespace-pre-line text-xs text-tourflow-textMuted">{apiError}</p>
           <p className="mt-1 text-xs text-tourflow-textMuted">Your prompt and checklist edits are preserved.</p>
           <div className="mt-3 flex gap-2">
             <button
@@ -427,6 +427,13 @@ export default function AiLoading() {
               className="flex-1 rounded-full bg-tourflow-primary px-3 py-2 text-xs font-bold text-white hover:bg-tourflow-primaryHover disabled:opacity-60"
             >
               {retryingSave ? 'Saving…' : 'Try Again'}
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/checklist')}
+              className="flex-1 rounded-full bg-tourflow-dark px-3 py-2 text-xs font-bold text-white"
+            >
+              Adjust Dates
             </button>
             <button
               type="button"

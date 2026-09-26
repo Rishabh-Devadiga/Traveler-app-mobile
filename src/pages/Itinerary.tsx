@@ -209,6 +209,7 @@ export default function Itinerary() {
   const [dateEnd, setDateEnd] = useState('');
   const [dateError, setDateError] = useState<string | null>(null);
   const [showMap, setShowMap] = useState(false);
+  const [dismissedWarningsFor, setDismissedWarningsFor] = useState<string | null>(null);
   // Post-generation transport switcher: verified options for the trip's
   // origin→destination pair (researched live at creation, switchable here).
   const [transportOptions, setTransportOptions] = useState<TransportOption[] | null>(null);
@@ -808,6 +809,22 @@ export default function Itinerary() {
         <p className="rounded-xl bg-tourflow-primarySoft px-3 py-2 text-xs font-semibold text-tourflow-primary">
           Preview — sample details, final plan may vary.
         </p>
+      ) : null}
+
+      {isLive && apiTrip && Array.isArray(apiTrip.warnings) && apiTrip.warnings.some((w) => typeof w === 'string' && w.trim()) && dismissedWarningsFor !== apiTrip.id ? (
+        <div className="flex items-start gap-2 rounded-xl border border-tourflow-cardBorder bg-white px-3 py-2 shadow-soft" role="status">
+          <p className="flex-1 text-xs text-tourflow-textMuted">
+            {apiTrip.warnings.filter((w): w is string => typeof w === 'string' && w.trim() !== '').join(' ')}
+          </p>
+          <button
+            type="button"
+            onClick={() => setDismissedWarningsFor(apiTrip.id)}
+            aria-label="Dismiss notice"
+            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-tourflow-textMuted hover:text-tourflow-dark"
+          >
+            ✕
+          </button>
+        </div>
       ) : null}
 
       {isConfirmed ? (

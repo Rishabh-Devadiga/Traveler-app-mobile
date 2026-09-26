@@ -200,6 +200,8 @@ export interface ApiTripWithItinerary {
   selected_accommodation: ApiStayOption | null;
   accommodation_alternatives: ApiStayOption[];
   daily_accommodations: Array<{ day_number: number; hotel: ApiStayOption }>;
+  /** Gentle trip-level notices from a successful response (e.g. dateless-trip hints) — display only. */
+  warnings?: string[];
   /** Additive per-day route summaries (absent on trips saved before they existed). */
   route_days?: RouteDaySummary[];
 }
