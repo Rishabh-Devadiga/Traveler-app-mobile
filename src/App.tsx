@@ -52,6 +52,29 @@ export default function App() {
   // It overlays the first paint, plays the W scan once, then unmounts.
   const [showSplash, setShowSplash] = useState(true);
   const handleSplashDone = useCallback(() => setShowSplash(false), []);
+  // Gate the traveler session check until the shipped api-config.json resolves
+  // so the very first backend call already uses the on-device LAN URL.
+  const [configReady, setConfigReady] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    // Same-directory fetch works over http(s), file://, and capacitor://.
+    fetch('./api-config.json', { cache: 'no-store' })
+      .then((res) => (res.ok ? res.json().catch(() => null) : null))
+      .then((config: ApiConfigFile | null) => {
+        if (!cancelled) {
+          applyShippedApiConfig(config);
+          setConfigReady(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setConfigReady(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Restore the traveler session at startup: validate the stored JWT via
   // GET /api/auth/traveler/me. A 401 clears the expired token (handled
   // inside restoreTravelerSession); other failures keep the session.
