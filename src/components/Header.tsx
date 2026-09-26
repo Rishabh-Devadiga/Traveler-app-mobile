@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import NotificationsSheet from './NotificationsSheet';
-import { BackIcon, BellIcon } from './icons';
+import { BackIcon, BellIcon, MoonIcon, SunIcon } from './icons';
 import { useTripDraft } from '../state/useTripDraft';
+import { useTheme } from '../state/useTheme';
 import { ApiError, isApiConfigured } from '../api/client';
 import { clearTravelerToken, hasTravelerToken } from '../api/auth';
 import { applyServerTrip, fetchPersistedTrip, getUnreadCount, seedDraftFromTrip, writeActiveTripId } from '../api';
@@ -24,6 +25,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const { updateDraft } = useTripDraft();
+  const { theme, toggleTheme } = useTheme();
   useEffect(() => {
     setImgFailed(false);
   }, [avatarUrl]);
@@ -77,7 +79,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
   };
 
   return (
-    <header className="sticky top-0 z-40 border-b border-tourflow-cardBorder bg-tourflow-bg/90 pt-safe backdrop-blur-md">
+    <header className="sticky top-0 z-40 border-b border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-bg/90 dark:bg-tourflow-bgDark/90 pt-safe backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-md items-center justify-between px-4">
         <div className="flex min-w-0 items-center gap-3">
           {showBack ? (
@@ -85,7 +87,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
               type="button"
               aria-label="Go back"
               onClick={onBack}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-tourflow-dark dark:text-tourflow-darkDark transition-colors hover:bg-tourflow-surfaceMuted dark:hover:bg-tourflow-surfaceMutedDark"
             >
               <BackIcon size={22} />
             </button>
@@ -112,17 +114,25 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
           )}
           <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="truncate text-[17px] font-extrabold tracking-tight text-tourflow-dark">{title}</h1>
+              <h1 className="truncate text-[17px] font-extrabold tracking-tight text-tourflow-dark dark:text-tourflow-darkDark">{title}</h1>
             </div>
-            {subtitle ? <p className="truncate text-xs text-tourflow-textMuted">{subtitle}</p> : null}
+            {subtitle ? <p className="truncate text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{subtitle}</p> : null}
           </div>
         </div>
         <div className="flex items-center gap-2">
           <button
             type="button"
+            aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+            onClick={toggleTheme}
+            className="flex h-11 w-11 items-center justify-center rounded-full text-tourflow-dark dark:text-tourflow-darkDark transition-colors hover:bg-tourflow-surfaceMuted dark:hover:bg-tourflow-surfaceMutedDark"
+          >
+            {theme === 'dark' ? <SunIcon size={22} /> : <MoonIcon size={22} />}
+          </button>
+          <button
+            type="button"
             aria-label={unread > 0 ? `Notifications, ${unread} unread` : 'Notifications'}
             onClick={() => setBellOpen(true)}
-            className="relative flex h-11 w-11 items-center justify-center rounded-full text-tourflow-dark transition-colors hover:bg-tourflow-surfaceMuted"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full text-tourflow-dark dark:text-tourflow-darkDark transition-colors hover:bg-tourflow-surfaceMuted dark:hover:bg-tourflow-surfaceMutedDark"
           >
             <BellIcon size={22} />
             {unread > 0 ? (
@@ -138,7 +148,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
             <Link
               to="/profile"
               aria-label="Open profile"
-              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-tourflow-cardBorder bg-tourflow-surfaceMuted"
+              className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark"
             >
               <img
                 src={avatarUrl}
@@ -151,7 +161,7 @@ export default function Header({ title, subtitle, avatarUrl, avatarInitial, show
             <Link
               to="/profile"
               aria-label="Open profile"
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-tourflow-cardBorder bg-tourflow-primarySoft text-sm font-extrabold text-tourflow-primary"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark text-sm font-extrabold text-tourflow-primary"
             >
               {avatarInitial}
             </Link>

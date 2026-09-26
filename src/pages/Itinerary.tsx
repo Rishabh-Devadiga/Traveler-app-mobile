@@ -110,7 +110,7 @@ function BookingLink({ url }: { url?: string | null }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-1.5 inline-block rounded-full bg-tourflow-dark px-3 py-1.5 text-[11px] font-bold text-white"
+      className="mt-1.5 inline-block rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1.5 text-[11px] font-bold text-white"
     >
       Book / View booking ↗
     </a>
@@ -144,7 +144,7 @@ function TransportDetailBlock({ details }: { details: TransportDetails }) {
   return (
     <ul className="mt-1 space-y-0.5">
       {lines.map((line) => (
-        <li key={line} className="text-[11px] leading-snug text-tourflow-textMuted">
+        <li key={line} className="text-[11px] leading-snug text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           {line}
         </li>
       ))}
@@ -393,11 +393,11 @@ export default function Itinerary() {
           <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
           <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
         </div>
-        <p className="text-xs text-tourflow-textMuted">Reloading your trip…</p>
+        <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Reloading your trip…</p>
         {restoreError ? (
-          <div role="alert" className="rounded-2xl border border-red-200 bg-white p-4 shadow-card">
+          <div role="alert" className="rounded-2xl border border-red-200 bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
             <p className="text-sm font-bold text-red-700">Couldn’t reload your trip</p>
-            <p className="mt-1 text-xs text-tourflow-textMuted">{restoreError}</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{restoreError}</p>
             <button
               type="button"
               onClick={() => setRestoreKey((k) => k + 1)}
@@ -628,16 +628,16 @@ export default function Itinerary() {
       return (
         <div className="flex flex-col items-start gap-1.5">
           {stop.hotelAssignmentReason ? (
-            <p className="text-[11px] leading-snug text-tourflow-textMuted">{stop.hotelAssignmentReason}</p>
+            <p className="text-[11px] leading-snug text-tourflow-textMuted dark:text-tourflow-textMutedDark">{stop.hotelAssignmentReason}</p>
           ) : null}
           {stayDates ? (
-            <p className="text-[11px] font-semibold text-tourflow-textMuted">{stayDates}</p>
+            <p className="text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">{stayDates}</p>
           ) : null}
           <button
             type="button"
             disabled={busy}
             onClick={() => setSheet({ kind: 'stay', stopId: stop.id, dayNumber })}
-            className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+            className="rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
           >
             Change stay
           </button>
@@ -656,7 +656,7 @@ export default function Itinerary() {
               type="button"
               disabled={busy}
               onClick={() => setSheet({ kind: 'transport' })}
-              className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+              className="rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
             >
               Switch
             </button>
@@ -671,7 +671,7 @@ export default function Itinerary() {
             type="button"
             disabled={busy}
             onClick={() => setSheet({ kind: 'swap', stop })}
-            className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+            className="rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1.5 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
           >
             Swap
           </button>
@@ -679,7 +679,7 @@ export default function Itinerary() {
             type="button"
             disabled={busy}
             onClick={() => setSheet({ kind: 'remove', stop })}
-            className="rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-[11px] font-bold text-red-600 disabled:opacity-60"
+            className="rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1.5 text-[11px] font-bold text-red-600 disabled:opacity-60"
           >
             Remove
           </button>
@@ -733,8 +733,8 @@ export default function Itinerary() {
 
   return (
     <div className="flex flex-col gap-5 pb-24">
-      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark text-white shadow-card">
-        <div className="absolute inset-0 bg-tourflow-dark" aria-hidden="true" />
+      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark dark:bg-tourflow-darkDark text-white shadow-card">
+        <div className="absolute inset-0 bg-tourflow-dark dark:bg-tourflow-darkDark" aria-hidden="true" />
         {heroImage ? (
           <SafeImage
             src={heroImage}
@@ -754,7 +754,7 @@ export default function Itinerary() {
             <PdfIcon size={20} />
           </button>
         ) : null}
-        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark p-5">
+        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark dark:bg-tourflow-darkDark p-5">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">
             Your trip · {draft.itinerarySource === 'api' ? 'Live' : 'Preview'}
           </p>
@@ -809,21 +809,21 @@ export default function Itinerary() {
       </section>
 
       {!isLive ? (
-        <p className="rounded-xl bg-tourflow-primarySoft px-3 py-2 text-[13px] font-semibold text-tourflow-primary">
+        <p className="rounded-xl bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark px-3 py-2 text-[13px] font-semibold text-tourflow-primary">
           Preview — sample details, final plan may vary.
         </p>
       ) : null}
 
       {isLive && apiTrip && Array.isArray(apiTrip.warnings) && apiTrip.warnings.some((w) => typeof w === 'string' && w.trim()) && dismissedWarningsFor !== apiTrip.id ? (
-        <div className="flex items-start gap-2 rounded-xl border border-tourflow-cardBorder bg-white px-3 py-2 shadow-soft" role="status">
-          <p className="flex-1 text-xs text-tourflow-textMuted">
+        <div className="flex items-start gap-2 rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-3 py-2 shadow-soft" role="status">
+          <p className="flex-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {apiTrip.warnings.filter((w): w is string => typeof w === 'string' && w.trim() !== '').join(' ')}
           </p>
           <button
             type="button"
             onClick={() => setDismissedWarningsFor(apiTrip.id)}
             aria-label="Dismiss notice"
-            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-tourflow-textMuted hover:text-tourflow-dark"
+            className="shrink-0 rounded-full px-2 py-0.5 text-xs font-bold text-tourflow-textMuted dark:text-tourflow-textMutedDark hover:text-tourflow-dark dark:text-tourflow-darkDark"
           >
             ✕
           </button>
@@ -831,7 +831,7 @@ export default function Itinerary() {
       ) : null}
 
       {isConfirmed ? (
-        <p role="status" className="rounded-xl bg-tourflow-sageLight px-3 py-2.5 text-center text-sm font-extrabold text-tourflow-sage">
+        <p role="status" className="rounded-xl bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-3 py-2.5 text-center text-sm font-extrabold text-tourflow-sage">
           ✓ Trip confirmed — you’re all set!
         </p>
       ) : null}
@@ -865,7 +865,7 @@ export default function Itinerary() {
           <button
             type="button"
             onClick={openDatesSheet}
-            className="mt-2 rounded-full bg-tourflow-dark px-3 py-1.5 text-xs font-bold text-white"
+            className="mt-2 rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1.5 text-xs font-bold text-white"
           >
             Adjust Dates
           </button>
@@ -884,7 +884,7 @@ export default function Itinerary() {
             <button
               type="button"
               onClick={handleDownloadPdf}
-              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+              className="flex-1 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark shadow-soft hover:border-tourflow-primary"
             >
               ⬇ Download PDF
             </button>
@@ -892,7 +892,7 @@ export default function Itinerary() {
               type="button"
               onClick={openDatesSheet}
               disabled={pendingKey !== null}
-              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary disabled:opacity-60"
+              className="flex-1 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark shadow-soft hover:border-tourflow-primary disabled:opacity-60"
             >
               Adjust Dates
             </button>
@@ -900,7 +900,7 @@ export default function Itinerary() {
               type="button"
               onClick={() => setShowMap((v) => !v)}
               aria-expanded={showMap}
-              className="flex-1 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark shadow-soft hover:border-tourflow-primary"
+              className="flex-1 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark shadow-soft hover:border-tourflow-primary"
             >
               {showMap ? 'Hide Map' : '🗺 Map'}
             </button>
@@ -908,7 +908,7 @@ export default function Itinerary() {
           <button
             type="button"
             onClick={() => setShowChat(true)}
-            className="flex w-full items-center justify-center gap-2 rounded-full border border-tourflow-primary bg-tourflow-primarySoft px-4 py-2.5 text-sm font-bold text-tourflow-primary shadow-soft transition-colors hover:bg-tourflow-primary hover:text-white"
+            className="flex w-full items-center justify-center gap-2 rounded-full border border-tourflow-primary bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark px-4 py-2.5 text-sm font-bold text-tourflow-primary shadow-soft transition-colors hover:bg-tourflow-primary hover:text-white"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -921,9 +921,9 @@ export default function Itinerary() {
       {showMap && isLive && tripId ? (
         <Suspense
           fallback={
-            <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+            <section aria-label="Trip map" className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
               <h3 className="text-sm font-bold">Trip Map</h3>
-              <p className="mt-1 text-xs text-tourflow-textMuted">Loading map…</p>
+              <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Loading map…</p>
             </section>
           }
         >
@@ -931,7 +931,7 @@ export default function Itinerary() {
         </Suspense>
       ) : null}
 
-      <div className="no-scrollbar sticky top-16 z-10 -mx-4 flex gap-2 overflow-x-auto bg-tourflow-bg/95 px-4 py-2 backdrop-blur-md" role="tablist" aria-label="Itinerary days">
+      <div className="no-scrollbar sticky top-16 z-10 -mx-4 flex gap-2 overflow-x-auto bg-tourflow-bg/95 dark:bg-tourflow-bgDark/95 px-4 py-2 backdrop-blur-md" role="tablist" aria-label="Itinerary days">
         {dayNumbers.map((n) => (
           <button
             key={n}
@@ -942,7 +942,7 @@ export default function Itinerary() {
             className={`min-h-[36px] shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
               n === dayNumber
                 ? 'bg-tourflow-primary text-white shadow-float'
-                : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
+                : 'border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'
             }`}
           >
             Day {n}
@@ -954,7 +954,7 @@ export default function Itinerary() {
             onClick={() => setShowMap((v) => !v)}
             aria-pressed={showMap}
             className={`min-h-[36px] shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
-              showMap ? 'bg-tourflow-dark text-white' : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
+              showMap ? 'bg-tourflow-dark dark:bg-tourflow-darkDark text-white' : 'border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'
             }`}
           >
             {showMap ? 'Hide map' : 'Map'}
@@ -964,7 +964,7 @@ export default function Itinerary() {
 
       <div>
         <h3 className="text-[17px] font-bold">{dayHeading}</h3>
-        <p className="text-[13px] text-tourflow-textMuted">{countStops(dayStops)} Stops</p>
+        <p className="text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{countStops(dayStops)} Stops</p>
       </div>
 
       {(() => {
@@ -981,18 +981,18 @@ export default function Itinerary() {
           routeDay.explanation != null;
         if (!showBlock) return null;
         return (
-          <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+          <div className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 shadow-soft">
             {routeDay.status != null ? (
-              <p className="text-xs font-bold text-tourflow-dark">Route status: {routeDay.status}</p>
+              <p className="text-xs font-bold text-tourflow-dark dark:text-tourflow-darkDark">Route status: {routeDay.status}</p>
             ) : null}
             {travelLine !== null ? (
-              <p className="mt-0.5 text-xs text-tourflow-textMuted">{travelLine}</p>
+              <p className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{travelLine}</p>
             ) : null}
             {routeDay.explanation != null ? (
-              <p className="mt-0.5 text-xs text-tourflow-textMuted">{routeDay.explanation}</p>
+              <p className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{routeDay.explanation}</p>
             ) : null}
             {(routeDay.warnings ?? []).map((warning, index) => (
-              <p key={`${index}-${warning.slice(0, 48)}`} className="mt-0.5 text-xs text-tourflow-textMuted">
+              <p key={`${index}-${warning.slice(0, 48)}`} className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                 ⚠ {warning}
               </p>
             ))}
@@ -1011,7 +1011,7 @@ export default function Itinerary() {
           type="button"
           onClick={() => setSheet({ kind: 'add' })}
           disabled={pendingKey !== null}
-          className="w-full rounded-full border border-dashed border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-primary disabled:opacity-60"
+          className="w-full rounded-full border border-dashed border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-primary disabled:opacity-60"
         >
           + Add activity to Day {dayNumber}
         </button>
@@ -1023,12 +1023,12 @@ export default function Itinerary() {
           {stay ? (
             <StayCard stay={stay} />
           ) : (
-            <p className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 text-xs text-tourflow-textMuted shadow-soft">
+            <p className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark shadow-soft">
               No stay suggestion for this trip yet — accommodation is unavailable rather than shown as a guess.
             </p>
           )}
           {transportStops.length > 0 ? (
-            <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+            <div className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 shadow-soft">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-bold">Transfers in this plan</p>
                 {canSwitchTransport ? (
@@ -1036,21 +1036,21 @@ export default function Itinerary() {
                     type="button"
                     disabled={pendingKey !== null}
                     onClick={() => setSheet({ kind: 'transport' })}
-                    className="rounded-full border border-tourflow-cardBorder px-3 py-1 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
+                    className="rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1 text-[11px] font-bold text-tourflow-primary disabled:opacity-60"
                   >
                     Switch
                   </button>
                 ) : null}
               </div>
               {transportOrigin && transportDestination ? (
-                <p className="mt-0.5 text-[11px] text-tourflow-textMuted">
+                <p className="mt-0.5 text-[11px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                   For {transportOrigin} → {transportDestination}
                 </p>
               ) : null}
               <ul className="mt-2 space-y-2">
                 {transportStops.map((s) => (
                   <li key={s.id} className="rounded-xl bg-tourflow-surfaceMuted/60 p-2.5">
-                    <p className="text-xs font-bold text-tourflow-dark">
+                    <p className="text-xs font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                       <span className="font-semibold">{s.dayLabel} · </span>
                       {s.transportDetails?.mode ? `${transportModeLabel(s.transportDetails.mode)} · ` : ''}
                       {s.title}
@@ -1064,12 +1064,12 @@ export default function Itinerary() {
             </div>
           ) : null}
           {hotelStops.length > 0 ? (
-            <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+            <div className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 shadow-soft">
               <p className="text-xs font-bold">Stay check-ins in this plan</p>
               <ul className="mt-1 space-y-1">
                 {hotelStops.map((s) => (
-                  <li key={s.id} className="text-xs text-tourflow-textMuted">
-                    <span className="font-semibold text-tourflow-dark">{s.dayLabel} · </span>
+                  <li key={s.id} className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
+                    <span className="font-semibold text-tourflow-dark dark:text-tourflow-darkDark">{s.dayLabel} · </span>
                     {s.title}
                     {s.costLabel ? ` — ${s.costLabel}` : ''}
                   </li>
@@ -1079,11 +1079,11 @@ export default function Itinerary() {
           ) : null}
         </section>
       ) : (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-3 shadow-soft">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 shadow-soft">
           <p className="text-xs font-bold">
             {destinationLabel} local loop · easy pace
           </p>
-          <p className="text-[11px] text-tourflow-textMuted">
+          <p className="text-[11px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Transfers and stays will be confirmed with your trip.
           </p>
         </section>
@@ -1093,7 +1093,7 @@ export default function Itinerary() {
         <section aria-label="Possible options" className="flex flex-col gap-2">
           <div>
             <h3 className="text-base font-bold">Possible Options</h3>
-            <p className="text-xs text-tourflow-textMuted">
+            <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               {options === null
                 ? 'Checking alternatives…'
                 : options.length > 0
@@ -1126,7 +1126,7 @@ export default function Itinerary() {
         isConfirmed ? (
           <p
             role="status"
-            className="w-full rounded-full bg-tourflow-sageLight px-4 py-3 text-center text-[15px] font-extrabold text-tourflow-sage shadow-card"
+            className="w-full rounded-full bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-4 py-3 text-center text-[15px] font-extrabold text-tourflow-sage shadow-card"
           >
             Trip Confirmed
           </p>
@@ -1148,20 +1148,20 @@ export default function Itinerary() {
             key={s}
             type="button"
             onClick={() => navigate('/ai-guide')}
-            className="min-h-[36px] shrink-0 rounded-full bg-tourflow-surfaceMuted px-3.5 py-1.5 text-[13px] font-semibold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
+            className="min-h-[36px] shrink-0 rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark px-3.5 py-1.5 text-[13px] font-semibold hover:bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark hover:text-tourflow-primary"
           >
             {s}
           </button>
         ))}
       </div>
 
-      <div className="fixed inset-x-0 bottom-[68px] z-30 border-t border-tourflow-cardBorder bg-white/95 px-4 pb-safe pt-2 backdrop-blur-md">
+      <div className="fixed inset-x-0 bottom-[68px] z-30 border-t border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white/95 dark:bg-tourflow-surfaceDark/95 px-4 pb-safe pt-2 backdrop-blur-md">
         <div className="mx-auto flex max-w-md gap-2">
           {isLive && apiTrip ? (
             <button
               type="button"
               onClick={handleDownloadPdf}
-              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full border border-tourflow-cardBorder bg-white px-4 py-2.5 text-[14px] font-bold text-tourflow-dark"
+              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-[14px] font-bold text-tourflow-dark dark:text-tourflow-darkDark"
             >
               <PdfIcon size={18} /> Export PDF
             </button>
@@ -1176,7 +1176,7 @@ export default function Itinerary() {
               {pendingKey === 'confirm' ? 'Confirming…' : 'Confirm trip'}
             </button>
           ) : isConfirmed ? (
-            <p role="status" className="flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-tourflow-sageLight px-4 py-2.5 text-[14px] font-extrabold text-tourflow-sage">
+            <p role="status" className="flex min-h-[48px] flex-1 items-center justify-center rounded-full bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-4 py-2.5 text-[14px] font-extrabold text-tourflow-sage">
               Confirmed
             </p>
           ) : null}
@@ -1186,30 +1186,30 @@ export default function Itinerary() {
       {/* Adjust Dates sheet */}
       {sheet?.kind === 'dates' ? (
         <Sheet label="Adjust trip dates" onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Adjust Dates</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Adjust Dates</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Pick your travel dates. Dates are required before a trip can be confirmed.
           </p>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Start</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">Start</span>
               <input
                 type="date"
                 value={dateStart}
                 disabled={pendingKey !== null}
                 onChange={(e) => setDateStart(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
+                className="mt-1 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
               />
             </label>
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">End</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">End</span>
               <input
                 type="date"
                 value={dateEnd}
                 min={dateStart || undefined}
                 disabled={pendingKey !== null}
                 onChange={(e) => setDateEnd(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
+                className="mt-1 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-2.5 text-sm font-semibold outline-none focus:border-tourflow-primary disabled:opacity-60"
               />
             </label>
           </div>
@@ -1224,7 +1224,7 @@ export default function Itinerary() {
                 type="button"
                 onClick={closeSheet}
                 disabled={pendingKey !== null}
-                className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+                className="flex-1 rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
               >
                 Cancel
               </button>
@@ -1241,7 +1241,7 @@ export default function Itinerary() {
               type="button"
               onClick={() => void handleRegenerate()}
               disabled={pendingKey !== null}
-              className="w-full rounded-xl bg-tourflow-dark px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+              className="w-full rounded-xl bg-tourflow-dark dark:bg-tourflow-darkDark px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
             >
               {pendingKey === 'regenerate' ? 'Regenerating…' : 'Save & Generate Again'}
             </button>
@@ -1265,19 +1265,19 @@ export default function Itinerary() {
       {/* Change stay sheet */}
       {sheet?.kind === 'stay' ? (
         <Sheet label="Change stay" onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Change stay</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Change stay</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Pick an alternative for the entire trip or for Day {sheet.dayNumber} only.
             {staySheetAnchor ? ` Nearest first for Day ${sheet.dayNumber}.` : null}
           </p>
           <div className="mt-3 flex flex-col gap-2">
             {sortedStayAlternatives.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">No alternative stays for this trip.</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No alternative stays for this trip.</p>
             ) : (
               sortedStayAlternatives.map(({ alt, km }) => (
-                <div key={alt.id} className="rounded-2xl border border-tourflow-cardBorder p-3">
-                  <p className="text-sm font-bold text-tourflow-dark">{alt.name}</p>
-                  <p className="text-xs text-tourflow-textMuted">
+                <div key={alt.id} className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark p-3">
+                  <p className="text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{alt.name}</p>
+                  <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                     {formatINR(alt.totalPrice)} total · {alt.badge.replace(/_/g, ' ')}
                     {formatDistanceKm(km) ? ` · ${formatDistanceKm(km)} away` : null}
                   </p>
@@ -1298,7 +1298,7 @@ export default function Itinerary() {
                           changeDayAccommodation(id, alt.id, sheet.dayNumber),
                         )
                       }
-                      className="flex-1 rounded-full border border-tourflow-cardBorder px-3 py-1.5 text-xs font-bold disabled:opacity-60"
+                      className="flex-1 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-1.5 text-xs font-bold disabled:opacity-60"
                     >
                       {pendingKey === `stay:${alt.id}:day` ? 'Saving…' : `Day ${sheet.dayNumber} only`}
                     </button>
@@ -1311,7 +1311,7 @@ export default function Itinerary() {
             type="button"
             onClick={closeSheet}
             disabled={pendingKey !== null}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Cancel
           </button>
@@ -1321,8 +1321,8 @@ export default function Itinerary() {
       {/* Switch transportation sheet */}
       {sheet?.kind === 'transport' ? (
         <Sheet label="Switch transportation" onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Switch transportation</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Switch transportation</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {transportOrigin && transportDestination ? (
               <>
                 Available transfers for <strong>{transportOrigin} → {transportDestination}</strong> —
@@ -1340,9 +1340,9 @@ export default function Itinerary() {
           ) : null}
           <div className="mt-3 flex flex-col gap-2">
             {transportOptions === null ? (
-              <p className="text-xs text-tourflow-textMuted">Loading transport options…</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Loading transport options…</p>
             ) : transportOptions.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                 No other transfers for this route yet — your current transfer stays as planned.
               </p>
             ) : (
@@ -1355,14 +1355,14 @@ export default function Itinerary() {
                   <div
                     key={option.id}
                     className={`rounded-2xl border p-3 ${
-                      selected ? 'border-tourflow-primary bg-tourflow-primarySoft/40' : 'border-tourflow-cardBorder'
+                      selected ? 'border-tourflow-primary bg-tourflow-primarySoft/40' : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark'
                     }`}
                   >
-                    <p className="text-sm font-bold text-tourflow-dark">
+                    <p className="text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                       {transportModeLabel(option.type)} · {option.name}
                     </p>
-                    <p className="mt-0.5 text-xs text-tourflow-textMuted">
-                      <strong className="text-tourflow-dark">{transportPriceLabel(option)}</strong>
+                    <p className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
+                      <strong className="text-tourflow-dark dark:text-tourflow-darkDark">{transportPriceLabel(option)}</strong>
                       {!fits ? (
                         <span className="font-semibold text-red-600"> · Only {option.capacity} seats</span>
                       ) : null}
@@ -1390,7 +1390,7 @@ export default function Itinerary() {
             type="button"
             onClick={closeSheet}
             disabled={pendingKey !== null}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Cancel
           </button>
@@ -1400,15 +1400,15 @@ export default function Itinerary() {
       {/* Swap activity sheet */}
       {sheet?.kind === 'swap' ? (
         <Sheet label="Swap activity" onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Swap activity</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Swap activity</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Choose a replacement for “{sheet.stop.title}”.
           </p>
           <div className="mt-3 flex flex-col gap-2">
             {options === null ? (
-              <p className="text-xs text-tourflow-textMuted">Checking alternatives…</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Checking alternatives…</p>
             ) : options.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">No alternative experiences for this destination yet.</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No alternative experiences for this destination yet.</p>
             ) : (
               options.map((option) => (
                 <button
@@ -1426,18 +1426,18 @@ export default function Itinerary() {
                       }),
                     )
                   }
-                  className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder p-2 text-left hover:border-tourflow-primary disabled:opacity-60"
+                  className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark p-2 text-left hover:border-tourflow-primary disabled:opacity-60"
                 >
                   {option.imageUrl ? (
                     <img src={option.imageUrl} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
                   ) : (
-                    <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-tourflow-surfaceMuted">
+                    <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark">
                       🎯
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-tourflow-dark">{option.title}</span>
-                    <span className="block text-xs text-tourflow-textMuted">
+                    <span className="block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{option.title}</span>
+                    <span className="block text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                       {option.duration} · {formatINR(option.cost)}
                     </span>
                   </span>
@@ -1452,7 +1452,7 @@ export default function Itinerary() {
             type="button"
             onClick={closeSheet}
             disabled={pendingKey !== null}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Cancel
           </button>
@@ -1462,13 +1462,13 @@ export default function Itinerary() {
       {/* Add activity sheet */}
       {sheet?.kind === 'add' ? (
         <Sheet label={`Add activity to Day ${dayNumber}`} onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Add activity · Day {dayNumber}</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">Choose an experience to add to this day.</p>
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Add activity · Day {dayNumber}</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Choose an experience to add to this day.</p>
           <div className="mt-3 flex flex-col gap-2">
             {options === null ? (
-              <p className="text-xs text-tourflow-textMuted">Checking alternatives…</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Checking alternatives…</p>
             ) : options.length === 0 ? (
-              <p className="text-xs text-tourflow-textMuted">No alternative experiences for this destination yet.</p>
+              <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No alternative experiences for this destination yet.</p>
             ) : (
               options.map((option) => (
                 <button
@@ -1486,18 +1486,18 @@ export default function Itinerary() {
                       }),
                     )
                   }
-                  className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder p-2 text-left hover:border-tourflow-primary disabled:opacity-60"
+                  className="flex items-center gap-3 rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark p-2 text-left hover:border-tourflow-primary disabled:opacity-60"
                 >
                   {option.imageUrl ? (
                     <img src={option.imageUrl} alt="" loading="lazy" className="h-12 w-12 shrink-0 rounded-xl object-cover" />
                   ) : (
-                    <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-tourflow-surfaceMuted">
+                    <span aria-hidden="true" className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark">
                       🎯
                     </span>
                   )}
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-bold text-tourflow-dark">{option.title}</span>
-                    <span className="block text-xs text-tourflow-textMuted">
+                    <span className="block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{option.title}</span>
+                    <span className="block text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                       {option.duration} · {formatINR(option.cost)}
                     </span>
                   </span>
@@ -1512,7 +1512,7 @@ export default function Itinerary() {
             type="button"
             onClick={closeSheet}
             disabled={pendingKey !== null}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Cancel
           </button>
@@ -1522,8 +1522,8 @@ export default function Itinerary() {
       {/* Remove activity confirmation */}
       {sheet?.kind === 'remove' ? (
         <Sheet label="Remove activity" onClose={closeSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Remove this stop?</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Remove this stop?</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             “{sheet.stop.title}” will be removed from Day {dayNumber}. This can’t be undone.
           </p>
           <div className="mt-4 flex gap-2">
@@ -1531,7 +1531,7 @@ export default function Itinerary() {
               type="button"
               onClick={closeSheet}
               disabled={pendingKey !== null}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+              className="flex-1 rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
             >
               Cancel
             </button>

@@ -401,32 +401,32 @@ export default function AiGuide() {
 
   return (
     <div className="flex flex-col gap-5 lg:flex-row">
-      <details className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card lg:hidden" open>
-        <summary className="cursor-pointer text-[14px] font-bold text-tourflow-dark">Trip context</summary>
+      <details className="rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card lg:hidden" open>
+        <summary className="cursor-pointer text-[14px] font-bold text-tourflow-dark dark:text-tourflow-darkDark">Trip context</summary>
         <div className="mt-2 flex flex-col gap-2 text-[13px]">
           <p className="truncate font-bold">{selectorLabel}</p>
-          <p className="text-tourflow-textMuted">{headerSubtitle}</p>
+          <p className="text-tourflow-textMuted dark:text-tourflow-textMutedDark">{headerSubtitle}</p>
           {firstDayStops.length > 0 ? (
-            <p className="text-tourflow-textMuted">Today: {firstDayStops[0]?.title}{firstDayStops.length > 1 ? ` +${firstDayStops.length - 1} more` : ''}</p>
+            <p className="text-tourflow-textMuted dark:text-tourflow-textMutedDark">Today: {firstDayStops[0]?.title}{firstDayStops.length > 1 ? ` +${firstDayStops.length - 1} more` : ''}</p>
           ) : null}
           {budgetUsed !== undefined && budgetTotal ? (
-            <p className="font-bold">{fmt(budgetUsed)} <span className="font-normal text-tourflow-textMuted">of {fmt(budgetTotal)}</span></p>
+            <p className="font-bold">{fmt(budgetUsed)} <span className="font-normal text-tourflow-textMuted dark:text-tourflow-textMutedDark">of {fmt(budgetTotal)}</span></p>
           ) : null}
           {bookingsCount !== undefined ? (
-            <p className="text-tourflow-textMuted">{bookingsCount === 0 ? 'No bookings yet.' : `${bookingsCount} booking${bookingsCount === 1 ? '' : 's'}.`}</p>
+            <p className="text-tourflow-textMuted dark:text-tourflow-textMutedDark">{bookingsCount === 0 ? 'No bookings yet.' : `${bookingsCount} booking${bookingsCount === 1 ? '' : 's'}.`}</p>
           ) : null}
-          <button type="button" onClick={() => setPickerOpen(true)} className="mt-1 min-h-[44px] rounded-full border border-tourflow-cardBorder px-4 py-2 text-[14px] font-bold">
+          <button type="button" onClick={() => setPickerOpen(true)} className="mt-1 min-h-[44px] rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-4 py-2 text-[14px] font-bold">
             Switch trip
           </button>
         </div>
       </details>
-      <section className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-3xl border border-tourflow-cardBorder bg-white shadow-card">
-        <div className="flex items-center justify-between border-b border-tourflow-cardBorder p-4">
+      <section className="flex min-h-[60vh] flex-1 flex-col overflow-hidden rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark shadow-card">
+        <div className="flex items-center justify-between border-b border-tourflow-cardBorder dark:border-tourflow-cardBorderDark p-4">
           <div className="min-w-0">
             <p className="truncate text-[15px] font-extrabold">AI Guide</p>
-            <p className="truncate text-[13px] text-tourflow-textMuted">{headerSubtitle}</p>
+            <p className="truncate text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{headerSubtitle}</p>
           </div>
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-tourflow-sageLight px-2.5 py-1 text-xs font-bold text-tourflow-sage">
+          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-2.5 py-1 text-xs font-bold text-tourflow-sage">
             <span className="h-1.5 w-1.5 rounded-full bg-tourflow-sage animate-pulse-dot" aria-hidden="true" />
             {contextPill}
           </span>
@@ -434,11 +434,11 @@ export default function AiGuide() {
         <button
           type="button"
           onClick={() => setPickerOpen(true)}
-          className="flex min-h-[52px] w-full items-center justify-between gap-2 border-b border-tourflow-cardBorder bg-tourflow-bg px-4 py-2 text-left"
+          className="flex min-h-[52px] w-full items-center justify-between gap-2 border-b border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-bg dark:bg-tourflow-bgDark px-4 py-2 text-left"
         >
           <span className="min-w-0">
-            <span className="block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">Trip</span>
-            <span className="block truncate text-[15px] font-bold text-tourflow-dark">{selectorLabel}</span>
+            <span className="block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">Trip</span>
+            <span className="block truncate text-[15px] font-bold text-tourflow-dark dark:text-tourflow-darkDark">{selectorLabel}</span>
           </span>
           <span aria-hidden="true" className="shrink-0 text-[13px] font-bold text-tourflow-primary">
             {selecting ? '…' : 'Change ›'}
@@ -465,7 +465,7 @@ export default function AiGuide() {
             <button
               type="button"
               onClick={() => navigate('/checklist')}
-              className="mt-1 w-full rounded-full bg-tourflow-surfaceMuted py-1.5 text-xs font-bold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
+              className="mt-1 w-full rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark py-1.5 text-xs font-bold hover:bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark hover:text-tourflow-primary"
             >
               Plan a journey
             </button>
@@ -478,7 +478,7 @@ export default function AiGuide() {
                   <button
                     type="button"
                     onClick={() => setPickerOpen(true)}
-                    className="rounded-full bg-tourflow-dark px-3 py-1 text-[11px] font-bold text-white"
+                    className="rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1 text-[11px] font-bold text-white"
                   >
                     Select trip
                   </button>
@@ -519,7 +519,7 @@ export default function AiGuide() {
           ) : null}
         </div>
 
-        <div className="space-y-2 border-t border-tourflow-cardBorder p-4">
+        <div className="space-y-2 border-t border-tourflow-cardBorder dark:border-tourflow-cardBorderDark p-4">
           {suggestions.length > 0 ? (
             <div className={thinking ? 'pointer-events-none opacity-60' : undefined}>
               <SuggestionChips items={suggestions} onPick={(v) => send(v)} />
@@ -544,7 +544,7 @@ export default function AiGuide() {
                 if (validationError) setValidationError(null);
               }}
               placeholder="Ask about stays, food, budget…"
-              className="min-h-[52px] w-full rounded-full border border-tourflow-cardBorder bg-tourflow-bg px-4 py-2.5 text-[16px] outline-none focus:border-tourflow-primary"
+              className="min-h-[52px] w-full rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-bg dark:bg-tourflow-bgDark px-4 py-2.5 text-[16px] outline-none focus:border-tourflow-primary"
             />
             <button
               type="submit"
@@ -555,7 +555,7 @@ export default function AiGuide() {
               →
             </button>
           </form>
-          <p className="text-right text-xs text-tourflow-textMuted">{draftText.length}/2000</p>
+          <p className="text-right text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{draftText.length}/2000</p>
           {validationError ? (
             <p role="alert" className="text-[13px] font-semibold text-red-700">
               {validationError}
@@ -568,18 +568,18 @@ export default function AiGuide() {
         className="hidden w-full flex-col gap-3 lg:flex lg:w-80"
         aria-label="Trip context"
       >
-        <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Your Trip</p>
+        <section className="rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
+          <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">Your Trip</p>
           <h3 className="mt-1 text-base font-extrabold">{tripTitle}</h3>
-          <p className="text-xs text-tourflow-textMuted">
+          <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {tripMeta.length > 0 ? tripMeta.join(' · ') : 'Select or create a trip to see it here.'}
           </p>
           {apiTrip?.selected_accommodation ? (
-            <p className="mt-1 text-xs text-tourflow-textMuted">Stay: {apiTrip.selected_accommodation.name}</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Stay: {apiTrip.selected_accommodation.name}</p>
           ) : null}
         </section>
 
-        <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <h3 className="text-sm font-bold">Today&apos;s Plan</h3>
           {firstDayStops.length > 0 ? (
             <ul className="mt-2 space-y-2">
@@ -594,47 +594,47 @@ export default function AiGuide() {
               ))}
             </ul>
           ) : (
-            <p className="mt-1 text-xs text-tourflow-textMuted">No plan yet — create a trip to see your day here.</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No plan yet — create a trip to see your day here.</p>
           )}
         </section>
 
-        <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <h3 className="text-sm font-bold">Trip Budget Pulse</h3>
           {budgetUsed !== undefined && budgetTotal ? (
             <>
               <p className="mt-1 text-lg font-extrabold">
                 {fmt(budgetUsed)}{' '}
-                <span className="text-xs font-normal text-tourflow-textMuted">of {fmt(budgetTotal)}</span>
+                <span className="text-xs font-normal text-tourflow-textMuted dark:text-tourflow-textMutedDark">of {fmt(budgetTotal)}</span>
               </p>
               {useCard && cardRemaining !== undefined ? (
-                <p className="mt-0.5 text-xs text-tourflow-textMuted">Remaining: {fmt(cardRemaining)}</p>
+                <p className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Remaining: {fmt(cardRemaining)}</p>
               ) : null}
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-tourflow-surfaceMuted" aria-hidden="true">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark" aria-hidden="true">
                 <div className="h-full rounded-full bg-tourflow-sage" style={{ width: `${budgetPercent ?? 0}%` }} />
               </div>
               <button
                 type="button"
                 onClick={() => send('How much have I spent?')}
-                className="mt-2 w-full rounded-full bg-tourflow-surfaceMuted py-1.5 text-xs font-bold hover:bg-tourflow-primarySoft hover:text-tourflow-primary"
+                className="mt-2 w-full rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark py-1.5 text-xs font-bold hover:bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark hover:text-tourflow-primary"
               >
                 Audit spend
               </button>
             </>
           ) : (
-            <p className="mt-1 text-xs text-tourflow-textMuted">No budget tracked yet for this trip.</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No budget tracked yet for this trip.</p>
           )}
         </section>
 
-        <section className="rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <h3 className="text-sm font-bold">Bookings</h3>
           {bookingsCount !== undefined ? (
-            <p className="mt-1 text-xs text-tourflow-textMuted">
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               {bookingsCount === 0
                 ? 'No bookings recorded for this trip yet.'
                 : `${bookingsCount} booking${bookingsCount === 1 ? '' : 's'} linked to this trip.`}
             </p>
           ) : (
-            <p className="mt-1 text-xs text-tourflow-textMuted">No bookings linked yet.</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No bookings linked yet.</p>
           )}
         </section>
       </aside>

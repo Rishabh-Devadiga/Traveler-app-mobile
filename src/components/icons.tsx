@@ -122,4 +122,10 @@ export function SendIcon(props: IconProps) {
 export function ShareIcon(props: IconProps) {
   return (<Base {...props}><circle cx="6.5" cy="12" r="2.5" /><circle cx="17" cy="5.5" r="2.5" /><circle cx="17" cy="18.5" r="2.5" /><path d="m8.7 10.8 6-4M8.7 13.2l6 4" /></Base>);
 }
+export function MoonIcon(props: IconProps) {
+  return (<Base {...props}><path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z" /></Base>);
+}
+export function SunIcon(props: IconProps) {
+  return (<Base {...props}><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></Base>);
+}
 

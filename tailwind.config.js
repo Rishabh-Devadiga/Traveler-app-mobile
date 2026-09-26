@@ -1,6 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{ts,tsx}'],
+  darkMode: 'class',
   theme: {
     extend: {
       fontFamily: {
@@ -10,18 +11,28 @@ export default {
       colors: {
         tourflow: {
           bg: '#F4F7F4',
+          bgDark: '#0E1512',
           surface: '#FFFFFF',
+          surfaceDark: '#1A2420',
           surfaceMuted: '#EAF1EA',
+          surfaceMutedDark: '#242E2A',
           primary: '#F05A28',
           primaryHover: '#D94918',
           primarySoft: '#FFF0EA',
+          primarySoftDark: '#2A1A12',
           primaryBorder: '#FED7AA',
+          primaryBorderDark: '#3D2A1E',
           sage: '#3B6E4A',
           sageLight: '#E8F3EB',
+          sageLightDark: '#1E2E24',
           sageBorder: '#C6DEC9',
+          sageBorderDark: '#2E4034',
           dark: '#142018',
+          darkDark: '#F0F5F2',
           textMuted: '#5C6E61',
+          textMutedDark: '#8A9E91',
           cardBorder: '#E1ECE3',
+          cardBorderDark: '#2A3530',
         },
       },
       boxShadow: {

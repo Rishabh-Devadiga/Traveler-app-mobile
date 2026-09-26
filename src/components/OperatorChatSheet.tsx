@@ -115,9 +115,9 @@ export default function OperatorChatSheet({ tripId, destinationLabel, onClose, o
   return (
     <AppSheet label="Chat with operator" title="Chat with Operator" onClose={onClose}>
       <div className="flex max-h-[60vh] flex-col gap-3">
-        <p className="text-[13px] text-tourflow-textMuted">{destinationLabel}</p>
+        <p className="text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{destinationLabel}</p>
         {loading ? (
-          <p className="text-sm text-tourflow-textMuted" role="status">Loading conversation…</p>
+          <p className="text-sm text-tourflow-textMuted dark:text-tourflow-textMutedDark" role="status">Loading conversation…</p>
         ) : error ? (
           <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3 py-2">
             <p className="text-xs font-semibold text-red-600">{error}</p>
@@ -130,20 +130,20 @@ export default function OperatorChatSheet({ tripId, destinationLabel, onClose, o
             </button>
           </div>
         ) : messages.length === 0 ? (
-          <p className="text-sm text-tourflow-textMuted">No messages yet — say hello.</p>
+          <p className="text-sm text-tourflow-textMuted dark:text-tourflow-textMutedDark">No messages yet — say hello.</p>
         ) : (
           <div ref={scrollRef} className="flex max-h-[42vh] flex-col gap-2 overflow-y-auto" aria-live="polite">
             {messages.map((m) => (
               <div key={`${m.id}-${m.text}`} className={`flex ${m.mine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] shadow-soft ${m.mine ? 'rounded-br-md bg-tourflow-dark text-white' : 'rounded-bl-md border border-tourflow-cardBorder bg-white text-tourflow-dark'}`}>
+                <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] shadow-soft ${m.mine ? 'rounded-br-md bg-tourflow-dark text-white dark:bg-tourflow-darkDark' : 'rounded-bl-md border border-tourflow-cardBorder bg-white text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'}`}>
                   {!m.mine ? (
-                    <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                       {m.sender === 'system' ? 'System' : operatorName ?? 'Operator'}
                     </p>
                   ) : null}
                   <p className="leading-relaxed">{m.text}</p>
                   {formatChatTime(m.createdAt) ? (
-                    <p className={`mt-1 text-[10px] ${m.mine ? 'text-white/70' : 'text-tourflow-textMuted'}`}>
+                    <p className={`mt-1 text-[10px] ${m.mine ? 'text-white/70' : 'text-tourflow-textMuted dark:text-tourflow-textMutedDark'}`}>
                       {formatChatTime(m.createdAt)}
                     </p>
                   ) : null}
@@ -164,7 +164,7 @@ export default function OperatorChatSheet({ tripId, destinationLabel, onClose, o
               if (e.key === 'Enter') void send();
             }}
             placeholder="Message your operator…"
-            className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-4 text-[14px] outline-none"
+            className="min-h-[44px] flex-1 rounded-full border border-tourflow-cardBorder px-4 text-[14px] outline-none dark:border-tourflow-cardBorderDark"
           />
           <button
             type="button"

@@ -30,9 +30,9 @@ export default class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBo
       const dev = import.meta.env?.DEV === true;
       return (
         <div className="flex flex-col gap-4" role="alert" aria-label={this.props.fallbackLabel ?? 'Page error'}>
-          <div className="rounded-2xl border border-red-200 bg-white p-4 shadow-card">
+          <div className="rounded-2xl border border-red-200 bg-white p-4 shadow-card dark:bg-tourflow-surfaceDark">
             <p className="text-sm font-bold text-red-700">Something went wrong here</p>
-            <p className="mt-1 text-xs text-tourflow-textMuted">
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               This page hit an unexpected error. Your data is safe — try again.
             </p>
             {dev ? (

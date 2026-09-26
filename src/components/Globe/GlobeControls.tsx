@@ -8,7 +8,7 @@ export default function GlobeControls({
   onToggleRotate,
   onReset,
 }: GlobeControlsProps) {
-  const btn = 'flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-white/20 bg-white/10 text-white shadow-lg backdrop-blur-md transition-all duration-150 hover:bg-white/20 active:scale-95';
+  const btn = 'flex h-11 w-11 items-center justify-center rounded-full border-[1.5px] border-white/20 bg-white/10 dark:bg-tourflow-surfaceDark/10 text-white shadow-lg backdrop-blur-md transition-all duration-150 hover:bg-white/20 dark:hover:bg-tourflow-surfaceDark/20 active:scale-95';
   return (
     <div
       className="absolute right-3 top-1/4 z-20 flex select-none flex-col items-center gap-2.5"

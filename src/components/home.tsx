@@ -5,7 +5,7 @@ import { MicIcon, SearchIcon, SparkIcon } from './icons';
 export function SectionHeader({ title, actionLabel, onAction }: { title: string; actionLabel?: string; onAction?: () => void }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-[17px] font-bold tracking-tight text-tourflow-dark">{title}</h2>
+      <h2 className="text-[17px] font-bold tracking-tight text-tourflow-dark dark:text-tourflow-darkDark">{title}</h2>
       {actionLabel ? (
         <button
           type="button"
@@ -52,10 +52,10 @@ export function SearchBar({
         e.preventDefault();
         onSubmit();
       }}
-      className="flex min-h-[52px] items-center gap-2 rounded-full border border-tourflow-cardBorder bg-white p-2 pl-4 shadow-soft"
+      className="flex min-h-[52px] items-center gap-2 rounded-full border border-tourflow-cardBorder bg-white p-2 pl-4 shadow-soft dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark"
       role="search"
     >
-      <span aria-hidden="true" className="text-tourflow-textMuted">
+      <span aria-hidden="true" className="text-tourflow-textMuted dark:text-tourflow-textMutedDark">
         <SearchIcon size={20} />
       </span>
       <input
@@ -63,7 +63,7 @@ export function SearchBar({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         aria-label="Describe your trip"
-        className="w-full min-w-0 bg-transparent text-[16px] text-tourflow-dark outline-none placeholder:text-tourflow-textMuted"
+        className="w-full min-w-0 bg-transparent text-[16px] text-tourflow-dark outline-none placeholder:text-tourflow-textMuted dark:text-tourflow-darkDark dark:placeholder:text-tourflow-textMutedDark"
       />
       {voiceSupported ? (
         <button
@@ -74,8 +74,8 @@ export function SearchBar({
           title={listening ? 'Stop listening' : 'Speak instead'}
           className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full border transition-colors ${
             listening
-              ? 'border-tourflow-primary bg-tourflow-primarySoft text-tourflow-primary'
-              : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary'
+              ? 'border-tourflow-primary bg-tourflow-primarySoft text-tourflow-primary dark:bg-tourflow-primarySoftDark'
+              : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'
           }`}
         >
           <MicIcon size={20} />
@@ -114,7 +114,7 @@ export function FilterPills({
             className={`min-h-[36px] shrink-0 rounded-full border px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
               active
                 ? 'border-tourflow-primary bg-tourflow-primary text-white'
-                : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary'
+                : 'border-tourflow-cardBorder bg-white text-tourflow-dark hover:border-tourflow-primary dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'
             }`}
           >
             {item.label}
@@ -128,7 +128,7 @@ export function FilterPills({
 export function DestinationCard({ destination, onPlan, className }: { destination: Destination; onPlan: (id: string) => void; className?: string }) {
   return (
     <article
-      className={`relative flex h-[344px] w-[260px] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl border border-tourflow-cardBorder shadow-card sm:w-[274px]${className ? ` ${className}` : ''}`}
+      className={`relative flex h-[344px] w-[260px] shrink-0 snap-start flex-col justify-end overflow-hidden rounded-2xl border border-tourflow-cardBorder shadow-card sm:w-[274px] dark:border-tourflow-cardBorderDark${className ? ` ${className}` : ''}`}
     >
       {/* ONE continuous photo: same destination image behind the ENTIRE card. */}
       <SafeImage
@@ -152,7 +152,7 @@ export function DestinationCard({ destination, onPlan, className }: { destinatio
         }}
       />
       {destination.tag ? (
-        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white">
+        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white dark:bg-tourflow-darkDark/85">
           {destination.tag}
         </span>
       ) : null}
@@ -173,7 +173,7 @@ export function DestinationCard({ destination, onPlan, className }: { destinatio
           <button
             type="button"
             onClick={() => onPlan(destination.id)}
-            className="mt-1 min-h-[44px] w-full rounded-full bg-tourflow-primarySoft px-3 py-2 text-[13px] font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white"
+            className="mt-1 min-h-[44px] w-full rounded-full bg-tourflow-primarySoft px-3 py-2 text-[13px] font-bold text-tourflow-primary transition-colors hover:bg-tourflow-primary hover:text-white dark:bg-tourflow-primarySoftDark"
           >
             Plan →
           </button>
@@ -189,7 +189,7 @@ export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?
         const content = (
           <>
             {item.imageUrl ? (
-              <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft">
+              <span className="h-14 w-14 overflow-hidden rounded-full border border-tourflow-cardBorder shadow-soft dark:border-tourflow-cardBorderDark">
                 <SafeImage
                   src={item.imageUrl}
                   alt={item.imageAlt ?? `${item.label} photo`}
@@ -199,12 +199,12 @@ export function CategoryGrid({ items, onSelect }: { items: Category[]; onSelect?
             ) : (
               <span
                 aria-hidden="true"
-                className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-tourflow-primary shadow-soft"
+                className="flex h-14 w-14 items-center justify-center rounded-full border border-tourflow-cardBorder bg-white text-tourflow-primary shadow-soft dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark"
               >
                 <SparkIcon size={22} />
               </span>
             )}
-            <span className="clamp-2 w-full text-xs font-semibold leading-tight text-tourflow-dark">{item.label}</span>
+            <span className="clamp-2 w-full text-xs font-semibold leading-tight text-tourflow-dark dark:text-tourflow-darkDark">{item.label}</span>
           </>
         );
         return onSelect ? (

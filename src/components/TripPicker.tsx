@@ -49,7 +49,7 @@ export default function TripPicker({
             </button>
           </div>
         ) : trips.length === 0 ? (
-          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] font-semibold text-tourflow-textMuted">
+          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-3 text-[13px] font-semibold text-tourflow-textMuted dark:bg-tourflow-surfaceMutedDark dark:text-tourflow-textMutedDark">
             No trips yet — plan a journey to create your first one.
           </p>
         ) : (
@@ -64,15 +64,15 @@ export default function TripPicker({
                     onClick={() => onSelect(trip.id)}
                     className={`flex min-h-[52px] w-full items-center justify-between gap-3 rounded-2xl border px-4 py-3 text-left disabled:opacity-60 ${
                       selected
-                        ? 'border-tourflow-primary bg-tourflow-primarySoft'
-                        : 'border-tourflow-cardBorder bg-white'
+                        ? 'border-tourflow-primary bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark'
+                        : 'border-tourflow-cardBorder bg-white dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark'
                     }`}
                   >
                     <span className="min-w-0">
-                      <span className="block truncate text-[15px] font-bold text-tourflow-dark">
+                      <span className="block truncate text-[15px] font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                         {travelerTripName(trip)}
                       </span>
-                      <span className="block text-[13px] text-tourflow-textMuted">
+                      <span className="block text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                         {[safeText(trip.status), trip.duration_days ? `${trip.duration_days} days` : null]
                           .filter(Boolean)
                           .join(' · ') || `Trip ${trip.id.slice(0, 8)}`}
@@ -92,7 +92,7 @@ export default function TripPicker({
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 min-h-[48px] w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-[14px] font-bold text-tourflow-dark"
+          className="mt-4 min-h-[48px] w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-[14px] font-bold text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark"
         >
           Done
         </button>

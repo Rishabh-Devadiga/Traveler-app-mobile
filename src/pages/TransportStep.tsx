@@ -93,7 +93,7 @@ export default function TransportStep() {
           Step 3 of 4 · Transportation
         </p>
         <h2 className="mt-1 text-xl font-extrabold tracking-tight">How will you get there?</h2>
-        <p className="mt-1 text-xs text-tourflow-textMuted">
+        <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           {origin && destination ? (
             <>
               Real verified options for <strong>{origin} → {destination}</strong>
@@ -107,22 +107,22 @@ export default function TransportStep() {
       </div>
 
       {!configured ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-sm font-bold">Transport options need the WanderAI backend</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Set VITE_TOURFLOW_API_URL to load them. You can still continue without selecting.
           </p>
         </section>
       ) : !canQuery ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-sm font-bold">Route not specified yet</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Go back to the checklist and add your starting city{!destination ? ' and destination' : ''}.
           </p>
           <button
             type="button"
             onClick={() => navigate('/checklist')}
-            className="mt-3 w-full rounded-full border border-tourflow-cardBorder px-4 py-2.5 text-sm font-bold"
+            className="mt-3 w-full rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-4 py-2.5 text-sm font-bold"
           >
             Back to Checklist
           </button>
@@ -134,9 +134,9 @@ export default function TransportStep() {
           <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
         </div>
       ) : error ? (
-        <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
+        <section className="rounded-2xl border border-red-200 bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card" role="alert">
           <p className="text-sm font-bold text-red-700">Could not load transport options</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">{error}</p>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{error}</p>
           <button
             type="button"
             onClick={() => setRetryKey((key) => key + 1)}
@@ -146,9 +146,9 @@ export default function TransportStep() {
           </button>
         </section>
       ) : options.length === 0 ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-sm font-bold">No verified options for this route yet</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Nothing in the verified catalog covers {origin} → {destination} right now.
             Continue and the trip will still generate — transfers stay traveler-arranged.
           </p>
@@ -159,9 +159,9 @@ export default function TransportStep() {
             const group = options.filter((o) => modeOf(o.type) === mode);
             return (
               <section key={mode} aria-label={`${mode} options`}>
-                <h3 className="text-sm font-extrabold text-tourflow-dark">{mode}</h3>
+                <h3 className="text-sm font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">{mode}</h3>
                 {group.length === 0 ? (
-                  <p className="mt-1 rounded-xl bg-tourflow-surfaceMuted px-3 py-2 text-xs font-semibold text-tourflow-textMuted">
+                  <p className="mt-1 rounded-xl bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark px-3 py-2 text-xs font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                     No verified {mode.toLowerCase()} options for this route.
                   </p>
                 ) : (
@@ -181,13 +181,13 @@ export default function TransportStep() {
                             className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition-colors disabled:opacity-60 ${
                               selected
                                 ? 'border-tourflow-primary bg-tourflow-primarySoft/40'
-                                : 'border-tourflow-cardBorder bg-white'
+                                : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark'
                             }`}
                           >
                             <span
                               aria-hidden="true"
                               className={`mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
-                                selected ? 'border-tourflow-primary' : 'border-tourflow-cardBorder'
+                                selected ? 'border-tourflow-primary' : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark'
                               }`}
                             >
                               {selected ? (
@@ -195,15 +195,15 @@ export default function TransportStep() {
                               ) : null}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-bold text-tourflow-dark">
+                              <span className="block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                                 {option.name}
                               </span>
-                              <span className="mt-0.5 block truncate text-xs text-tourflow-textMuted">
+                              <span className="mt-0.5 block truncate text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                                 {option.route_from} → {option.route_to}
                                 {duration ? ` · ${duration}` : ''}
                               </span>
-                              <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-tourflow-textMuted">
-                                <strong className="text-tourflow-dark">{priceLabel(option)}</strong>
+                              <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
+                                <strong className="text-tourflow-dark dark:text-tourflow-darkDark">{priceLabel(option)}</strong>
                                 <span>{option.capacity} seats</span>
                                 {option.provider_name ? <span>· {option.provider_name}</span> : null}
                                 {!fits ? (
@@ -217,7 +217,7 @@ export default function TransportStep() {
                                   {option.features.slice(0, 4).map((feature) => (
                                     <span
                                       key={feature}
-                                      className="rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-[11px] font-semibold"
+                                      className="rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark px-2 py-0.5 text-[11px] font-semibold"
                                     >
                                       {feature}
                                     </span>
@@ -238,7 +238,7 @@ export default function TransportStep() {
       )}
 
       {draft.transportLabel ? (
-        <p className="rounded-xl bg-tourflow-sageLight px-3 py-2 text-xs font-semibold text-tourflow-sage" role="status">
+        <p className="rounded-xl bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-3 py-2 text-xs font-semibold text-tourflow-sage" role="status">
           ✓ Selected: {draft.transportLabel} — it will be your day-1 transfer.
         </p>
       ) : null}
@@ -256,7 +256,7 @@ export default function TransportStep() {
           select(null);
           navigate('/loading');
         }}
-        className="w-full rounded-2xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark"
+        className="w-full rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark"
       >
         Skip transportation
       </button>

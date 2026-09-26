@@ -45,7 +45,7 @@ export default function StartupSplash({ onDone }: StartupSplashProps) {
     <div
       role="status"
       aria-label="Loading WanderAI"
-      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-white px-6 pt-safe pb-safe transition-opacity duration-[350ms] ease-out ${
+      className={`fixed inset-0 z-[100] flex items-center justify-center overflow-hidden bg-white px-6 pt-safe pb-safe transition-opacity duration-[350ms] ease-out dark:bg-tourflow-bgDark ${
         leaving ? 'pointer-events-none opacity-0' : 'opacity-100'
       }`}
     >
@@ -89,7 +89,7 @@ export default function StartupSplash({ onDone }: StartupSplashProps) {
             <span aria-hidden="true" className="text-xs leading-none text-[#EB7812]">
               ✦
             </span>
-            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-tourflow-textMuted">
+            <span className="text-xs font-semibold uppercase tracking-[0.28em] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               Traveler
             </span>
           </div>

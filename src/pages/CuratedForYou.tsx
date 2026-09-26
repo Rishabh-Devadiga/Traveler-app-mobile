@@ -48,20 +48,20 @@ export default function CuratedForYou() {
     <div className="flex flex-col gap-4">
       <section className="space-y-1">
         <h2 className="text-xl font-extrabold tracking-tight">{category.title}</h2>
-        <p className="text-xs text-tourflow-textMuted">{category.subtitle}</p>
-        <p className="text-[11px] font-semibold text-tourflow-textMuted">
+        <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{category.subtitle}</p>
+        <p className="text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           {visibleDestinations.length} destination{visibleDestinations.length === 1 ? '' : 's'}
           {categoryId === 'all' ? ' curated for you' : ` in ${category.label}`}
         </p>
       </section>
 
       {visibleDestinations.length === 0 ? (
-        <section className="flex flex-col items-center gap-3 rounded-2xl border border-tourflow-cardBorder bg-white p-8 text-center shadow-card">
+        <section className="flex flex-col items-center gap-3 rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-8 text-center shadow-card">
           <span aria-hidden="true" className="text-4xl">
             🧭
           </span>
           <h3 className="text-base font-extrabold">No {category.label} destinations yet.</h3>
-          <p className="max-w-xs text-xs text-tourflow-textMuted">
+          <p className="max-w-xs text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Check back soon — new handpicked journeys are on the way.
           </p>
           <button

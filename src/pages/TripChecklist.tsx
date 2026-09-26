@@ -10,13 +10,13 @@ import { curatedDestinations } from '../mocks/traveler';
 import { isRecognizedOriginLabel, matchCatalogPlace } from '../utils/destinationCatalog';
 
 const inputClass =
-  'w-full rounded-xl border border-tourflow-cardBorder bg-white px-3 py-2.5 text-[16px] font-semibold text-tourflow-dark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary';
+  'w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-3 py-2.5 text-[16px] font-semibold text-tourflow-dark dark:text-tourflow-darkDark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary';
 
 function FieldHint({ detected }: { detected: boolean }) {
   return (
     <span
       className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-bold ${
-        detected ? 'bg-tourflow-sageLight text-tourflow-sage' : 'bg-tourflow-surfaceMuted text-tourflow-textMuted'
+        detected ? 'bg-tourflow-sageLight dark:bg-tourflow-sageLightDark text-tourflow-sage' : 'bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark text-tourflow-textMuted dark:text-tourflow-textMutedDark'
       }`}
     >
       {detected ? 'Detected' : 'Not specified'}
@@ -26,10 +26,10 @@ function FieldHint({ detected }: { detected: boolean }) {
 
 function RowShell({ icon, label, hint, children }: { icon: React.ReactNode; label: string; hint: React.ReactNode; children: React.ReactNode }) {
   return (
-    <article className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-soft">
+    <article className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-soft">
       <div className="flex items-center justify-between gap-2">
-        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
-          <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-tourflow-surfaceMuted text-tourflow-primary">{icon}</span>
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
+          <span aria-hidden="true" className="flex h-8 w-8 items-center justify-center rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark text-tourflow-primary">{icon}</span>
           {label}
         </p>
         {hint}
@@ -182,7 +182,7 @@ export default function TripChecklist() {
         </p>
         <h2 className="mt-1 text-[22px] font-extrabold tracking-tight">Review your trip</h2>
         <div
-          className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-tourflow-surfaceMuted"
+          className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark"
           role="progressbar"
           aria-valuenow={capturedCount}
           aria-valuemin={0}
@@ -196,7 +196,7 @@ export default function TripChecklist() {
         </div>
       </div>
 
-      <blockquote className="rounded-2xl bg-tourflow-dark p-4 text-[13px] italic leading-relaxed text-white">
+      <blockquote className="rounded-2xl bg-tourflow-dark dark:bg-tourflow-darkDark p-4 text-[13px] italic leading-relaxed text-white">
         “{draft.prompt}”
       </blockquote>
 
@@ -250,7 +250,7 @@ export default function TripChecklist() {
 
         <RowShell icon={<UsersIcon size={18} />} label="Travelers" hint={<FieldHint detected={draft.travelers !== undefined} />}>
           <div className="flex items-center gap-2">
-            <button type="button" aria-label="Fewer travelers" onClick={() => setCount(String((draft.travelers ?? 0) - 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
+            <button type="button" aria-label="Fewer travelers" onClick={() => setCount(String((draft.travelers ?? 0) - 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark text-tourflow-dark dark:text-tourflow-darkDark hover:border-tourflow-primary">
               <MinusIcon size={18} />
             </button>
             <label htmlFor="checklist-travelers" className="sr-only">Number of travelers</label>
@@ -265,17 +265,17 @@ export default function TripChecklist() {
               onChange={(e) => setCount(e.target.value)}
               className={`${inputClass} text-center`}
             />
-            <button type="button" aria-label="More travelers" onClick={() => setCount(String((draft.travelers ?? 0) + 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder text-tourflow-dark hover:border-tourflow-primary">
+            <button type="button" aria-label="More travelers" onClick={() => setCount(String((draft.travelers ?? 0) + 1))} className="flex h-11 w-11 items-center justify-center rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark text-tourflow-dark dark:text-tourflow-darkDark hover:border-tourflow-primary">
               <PlusIcon size={18} />
             </button>
           </div>
-          <p className="mt-1 text-[13px] text-tourflow-textMuted">{draft.travelerLabel ?? 'Count not detected'}</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{draft.travelerLabel ?? 'Count not detected'}</p>
         </RowShell>
 
         <RowShell icon={<CalendarIcon size={18} />} label="Dates & Duration" hint={<FieldHint detected={draft.durationDays !== undefined} />}>
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <label htmlFor="checklist-start-date" className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
+              <label htmlFor="checklist-start-date" className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                 Start
               </label>
               <input
@@ -283,11 +283,11 @@ export default function TripChecklist() {
                 type="date"
                 value={draft.startDate ?? ''}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="mt-1 min-h-[44px] w-full rounded-xl border border-tourflow-cardBorder bg-tourflow-bg px-2 py-2 text-[14px] font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary"
+                className="mt-1 min-h-[44px] w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-bg dark:bg-tourflow-bgDark px-2 py-2 text-[14px] font-semibold text-tourflow-dark dark:text-tourflow-darkDark outline-none focus:border-tourflow-primary"
               />
             </div>
             <div>
-              <label htmlFor="checklist-end-date" className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
+              <label htmlFor="checklist-end-date" className="text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                 End
               </label>
               <input
@@ -296,7 +296,7 @@ export default function TripChecklist() {
                 value={draft.endDate ?? ''}
                 min={draft.startDate ?? undefined}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="mt-1 min-h-[44px] w-full rounded-xl border border-tourflow-cardBorder bg-tourflow-bg px-2 py-2 text-[14px] font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary"
+                className="mt-1 min-h-[44px] w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-bg dark:bg-tourflow-bgDark px-2 py-2 text-[14px] font-semibold text-tourflow-dark dark:text-tourflow-darkDark outline-none focus:border-tourflow-primary"
               />
             </div>
           </div>
@@ -305,10 +305,10 @@ export default function TripChecklist() {
               {dateError}
             </p>
           ) : null}
-          <div className="mt-2 text-[13px] text-tourflow-textMuted" aria-live="polite">
+          <div className="mt-2 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark" aria-live="polite">
             {draft.startDate && draft.endDate && durationDaysFromRange(draft.startDate, draft.endDate) !== undefined ? (
               <>
-                <p className="text-[14px] font-bold text-tourflow-dark">
+                <p className="text-[14px] font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                   {tripDateRangeLabel(draft.startDate, draft.endDate)}
                 </p>
                 <p>{draft.durationDays ? daysNightsLabel(draft.durationDays) : ''}</p>
@@ -366,16 +366,16 @@ export default function TripChecklist() {
           ) : null}
           <div className="mt-2 flex flex-wrap items-center gap-2">
             {[30000, 60000, 100000].map((amt) => (
-              <button key={amt} type="button" onClick={() => setBudget(String(amt))} className={`min-h-[36px] rounded-full border px-3.5 py-1.5 text-[13px] font-bold ${draft.budgetAmount === amt ? 'border-tourflow-primary bg-tourflow-primary text-white' : 'border-tourflow-cardBorder bg-white text-tourflow-dark'}`}>
+              <button key={amt} type="button" onClick={() => setBudget(String(amt))} className={`min-h-[36px] rounded-full border px-3.5 py-1.5 text-[13px] font-bold ${draft.budgetAmount === amt ? 'border-tourflow-primary bg-tourflow-primary text-white' : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'}`}>
                 {amt === 30000 ? '30k' : amt === 60000 ? '60k' : '1L'}
               </button>
             ))}
-            <span className="text-[13px] text-tourflow-textMuted">
+            <span className="text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               {draft.budgetLabel ? `${draft.budgetLabel} Total` : 'Budget not detected'}
             </span>
           </div>
         </RowShell>
-        <RowShell icon={<WalletIcon size={18} />} label="Other Preferences" hint={<span className="shrink-0 rounded-full bg-tourflow-surfaceMuted px-2 py-0.5 text-xs font-bold text-tourflow-textMuted">Optional</span>}>
+        <RowShell icon={<WalletIcon size={18} />} label="Other Preferences" hint={<span className="shrink-0 rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark px-2 py-0.5 text-xs font-bold text-tourflow-textMuted dark:text-tourflow-textMutedDark">Optional</span>}>
           <label htmlFor="checklist-preferences" className="sr-only">Other preferences</label>
           <textarea
             id="checklist-preferences"
@@ -387,12 +387,12 @@ export default function TripChecklist() {
                 specialRequests: e.target.value.trim() ? e.target.value : undefined,
               })
             }
-            className="w-full resize-none rounded-xl border border-tourflow-cardBorder bg-white p-3 text-[16px] font-medium text-tourflow-dark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary"
+            className="w-full resize-none rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-3 text-[16px] font-medium text-tourflow-dark dark:text-tourflow-darkDark outline-none placeholder:font-normal placeholder:text-tourflow-textMuted/60 focus:border-tourflow-primary"
           />
         </RowShell>
       </div>
 
-      <p className="rounded-xl bg-tourflow-sageLight px-3 py-2 text-[13px] font-semibold text-tourflow-sage">
+      <p className="rounded-xl bg-tourflow-sageLight dark:bg-tourflow-sageLightDark px-3 py-2 text-[13px] font-semibold text-tourflow-sage">
         Values come from your prompt — edit anything before generating. Transfers are researched
         automatically for your route and included in the itinerary.
       </p>

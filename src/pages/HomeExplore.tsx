@@ -217,11 +217,11 @@ export default function HomeExplore() {
         />
         <FilterPills items={filterCategories} activeId={activeFilter} onSelect={setActiveFilter} />
         {visibleDestinations.length === 0 ? (
-          <div className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 text-center shadow-card">
-            <p className="text-[15px] font-bold text-tourflow-dark">
+          <div className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 text-center shadow-card">
+            <p className="text-[15px] font-bold text-tourflow-dark dark:text-tourflow-darkDark">
               No {activeCategory.label} destinations yet
             </p>
-            <p className="mt-1 text-[13px] text-tourflow-textMuted">
+            <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               Check back soon — new handpicked journeys are on the way.
             </p>
           </div>

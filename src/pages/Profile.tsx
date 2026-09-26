@@ -211,7 +211,7 @@ export default function Profile() {
           <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-2" />
           <span className="h-2 w-2 rounded-full bg-tourflow-primary typing-dot-3" />
         </div>
-        <p className="text-xs text-tourflow-textMuted">Loading your profile…</p>
+        <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Loading your profile…</p>
       </div>
     );
   }
@@ -219,9 +219,9 @@ export default function Profile() {
   if (loadError && !profile) {
     return (
       <div className="flex flex-col gap-4" aria-label="Profile load error">
-        <div role="alert" className="rounded-2xl border border-red-200 bg-white p-4 shadow-card">
+        <div role="alert" className="rounded-2xl border border-red-200 bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-sm font-bold text-red-700">Couldn’t load your profile</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">{loadError}</p>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{loadError}</p>
           <button
             type="button"
             onClick={() => setLoadKey((k) => k + 1)}
@@ -515,7 +515,7 @@ export default function Profile() {
 
   return (
     <div className="flex flex-col gap-5">
-      <section className="flex items-center gap-4 rounded-3xl border border-tourflow-cardBorder bg-white p-5 shadow-card">
+      <section className="flex items-center gap-4 rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-5 shadow-card">
         <button
           type="button"
           onClick={() => {
@@ -543,7 +543,7 @@ export default function Profile() {
             <div
               role="img"
               aria-label={`${fullName} profile avatar`}
-              className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-tourflow-primary bg-tourflow-primarySoft text-2xl font-extrabold text-tourflow-primary"
+              className="flex h-[72px] w-[72px] items-center justify-center rounded-full border-2 border-tourflow-primary bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark text-2xl font-extrabold text-tourflow-primary"
             >
               {initial}
             </div>
@@ -557,8 +557,8 @@ export default function Profile() {
         </button>
         <div className="min-w-0 flex-1">
           <h2 className="truncate text-[18px] font-extrabold">{fullName}</h2>
-          <p className="truncate text-[13px] text-tourflow-textMuted">{email}</p>
-          <p className="mt-1 inline-block rounded-full bg-tourflow-primarySoft px-2 py-0.5 text-[11px] font-bold text-tourflow-primary">
+          <p className="truncate text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{email}</p>
+          <p className="mt-1 inline-block rounded-full bg-tourflow-primarySoft dark:bg-tourflow-primarySoftDark px-2 py-0.5 text-[11px] font-bold text-tourflow-primary">
             {trips.length === 1 ? '1 trip' : `${trips.length} trips`}
           </p>
         </div>
@@ -569,22 +569,22 @@ export default function Profile() {
       {tripItems.length > 0 ? (
         <ProfileMenuCard title={`My Trips · ${trips.length}`} items={tripItems} onSelect={(id) => void handleOpenTrip(id)} />
       ) : (
-        <section aria-label="My Trips" className="rounded-2xl border border-tourflow-cardBorder bg-white shadow-soft">
-          <h3 className="border-b border-tourflow-cardBorder px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
+        <section aria-label="My Trips" className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark shadow-soft">
+          <h3 className="border-b border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-4 py-2.5 text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             My Trips · 0
           </h3>
-          <p className="px-4 py-3 text-xs text-tourflow-textMuted">No trips yet — plan a journey to create your first one.</p>
+          <p className="px-4 py-3 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">No trips yet — plan a journey to create your first one.</p>
         </section>
       )}
       {openingTrip ? (
-        <p role="status" className="text-center text-xs font-semibold text-tourflow-textMuted">Opening your trip…</p>
+        <p role="status" className="text-center text-xs font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">Opening your trip…</p>
       ) : null}
       <ProfileMenuCard title="Support & About" items={supportItems} onSelect={openPrefEditor} />
 
       <button
         type="button"
         onClick={logout}
-        className="w-full rounded-2xl border border-red-200 bg-white px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"
+        className="w-full rounded-2xl border border-red-200 bg-white dark:bg-tourflow-surfaceDark px-4 py-3 text-sm font-bold text-red-600 hover:bg-red-50"
       >
         Log out
       </button>
@@ -592,8 +592,8 @@ export default function Profile() {
       {/* Text-field edit bottom sheet (name/phone/bio/preferences) */}
       {editingField && meta ? (
         <Sheet label={meta.title} onClose={closeEditor}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">{meta.title}</h3>
-          <label htmlFor="profile-field-input" className="mt-3 block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">{meta.title}</h3>
+          <label htmlFor="profile-field-input" className="mt-3 block text-xs font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {meta.inputLabel}
           </label>
           {meta.multiline ? (
@@ -606,7 +606,7 @@ export default function Profile() {
                 setDraft(event.target.value);
                 if (fieldError) setFieldError(null);
               }}
-              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary disabled:opacity-60"
+              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-2.5 text-sm font-semibold text-tourflow-dark dark:text-tourflow-darkDark outline-none focus:border-tourflow-primary disabled:opacity-60"
             />
           ) : (
             <input
@@ -622,7 +622,7 @@ export default function Profile() {
               onKeyDown={(event) => {
                 if (event.key === 'Enter') void handleFieldSave();
               }}
-              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder px-3 py-2.5 text-sm font-semibold text-tourflow-dark outline-none focus:border-tourflow-primary disabled:opacity-60"
+              className="mt-1.5 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-3 py-2.5 text-sm font-semibold text-tourflow-dark dark:text-tourflow-darkDark outline-none focus:border-tourflow-primary disabled:opacity-60"
             />
           )}
           {fieldError ? (
@@ -635,7 +635,7 @@ export default function Profile() {
               type="button"
               onClick={closeEditor}
               disabled={saving}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+              className="flex-1 rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
             >
               Cancel
             </button>
@@ -654,8 +654,8 @@ export default function Profile() {
       {/* Language sheet */}
       {menuSheet === 'lang' && profile ? (
         <Sheet label="Language" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Language</h3>
-          <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Language</h3>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark">
             {SUPPORTED_LANGUAGES.map((option, index) => {
               const selected = profile.language === option.id;
               return (
@@ -664,11 +664,11 @@ export default function Profile() {
                   type="button"
                   disabled={saving}
                   onClick={() => void handleLanguageSelect(option.id)}
-                  className={`flex w-full items-center justify-between gap-3 bg-white px-4 py-3 text-left hover:bg-tourflow-bg disabled:opacity-60 ${
-                    index > 0 ? 'border-t border-tourflow-cardBorder' : ''
+                  className={`flex w-full items-center justify-between gap-3 bg-white dark:bg-tourflow-surfaceDark px-4 py-3 text-left hover:bg-tourflow-bg dark:bg-tourflow-bgDark disabled:opacity-60 ${
+                    index > 0 ? 'border-t border-tourflow-cardBorder dark:border-tourflow-cardBorderDark' : ''
                   }`}
                 >
-                  <span className="text-sm font-bold text-tourflow-dark">{option.label}</span>
+                  <span className="text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{option.label}</span>
                   {selected ? (
                     <span aria-label="Selected" className="text-sm font-extrabold text-tourflow-primary">
                       ✓
@@ -687,7 +687,7 @@ export default function Profile() {
             type="button"
             onClick={closeMenuSheet}
             disabled={saving}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Done
           </button>
@@ -697,8 +697,8 @@ export default function Profile() {
       {/* Currency sheet */}
       {menuSheet === 'currency' && profile ? (
         <Sheet label="Currency" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Currency</h3>
-          <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Currency</h3>
+          <div className="mt-3 overflow-hidden rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark">
             {SUPPORTED_CURRENCIES.map((option, index) => {
               const selected = profile.preferred_currency === option.code;
               return (
@@ -707,13 +707,13 @@ export default function Profile() {
                   type="button"
                   disabled={saving}
                   onClick={() => void handleCurrencySelect(option.code)}
-                  className={`flex w-full items-center justify-between gap-3 bg-white px-4 py-3 text-left hover:bg-tourflow-bg disabled:opacity-60 ${
-                    index > 0 ? 'border-t border-tourflow-cardBorder' : ''
+                  className={`flex w-full items-center justify-between gap-3 bg-white dark:bg-tourflow-surfaceDark px-4 py-3 text-left hover:bg-tourflow-bg dark:bg-tourflow-bgDark disabled:opacity-60 ${
+                    index > 0 ? 'border-t border-tourflow-cardBorder dark:border-tourflow-cardBorderDark' : ''
                   }`}
                 >
                   <span>
-                    <span className="block text-sm font-bold text-tourflow-dark">{option.name}</span>
-                    <span className="block text-xs text-tourflow-textMuted">
+                    <span className="block text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{option.name}</span>
+                    <span className="block text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                       {option.code} {option.symbol}
                     </span>
                   </span>
@@ -735,7 +735,7 @@ export default function Profile() {
             type="button"
             onClick={closeMenuSheet}
             disabled={saving}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Done
           </button>
@@ -745,10 +745,10 @@ export default function Profile() {
       {/* Help & Support sheet */}
       {menuSheet === 'help' ? (
         <Sheet label="Help and support" onClose={closeMenuSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Help &amp; Support</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">Need help with your trip? Contact our support team.</p>
-          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted">Support</p>
-          <div className="mt-1 overflow-hidden rounded-2xl border border-tourflow-cardBorder">
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Help &amp; Support</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Need help with your trip? Contact our support team.</p>
+          <p className="mt-4 text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">Support</p>
+          <div className="mt-1 overflow-hidden rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark">
             {(
               [
                 { title: 'Concierge Support', phone: support.primary },
@@ -757,13 +757,13 @@ export default function Profile() {
             ).map((row, index) => (
               <div
                 key={row.title}
-                className={`flex items-center justify-between gap-3 bg-white px-4 py-3 ${
-                  index > 0 ? 'border-t border-tourflow-cardBorder' : ''
+                className={`flex items-center justify-between gap-3 bg-white dark:bg-tourflow-surfaceDark px-4 py-3 ${
+                  index > 0 ? 'border-t border-tourflow-cardBorder dark:border-tourflow-cardBorderDark' : ''
                 }`}
               >
                 <span>
-                  <span className="block text-sm font-bold text-tourflow-dark">{row.title}</span>
-                  <span className="block text-xs text-tourflow-textMuted">{row.phone ?? 'Not configured'}</span>
+                  <span className="block text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{row.title}</span>
+                  <span className="block text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">{row.phone ?? 'Not configured'}</span>
                 </span>
                 {row.phone ? (
                   <a
@@ -773,7 +773,7 @@ export default function Profile() {
                     Call
                   </a>
                 ) : (
-                  <span className="rounded-full bg-tourflow-surfaceMuted px-4 py-1.5 text-xs font-bold text-tourflow-textMuted">
+                  <span className="rounded-full bg-tourflow-surfaceMuted dark:bg-tourflow-surfaceMutedDark px-4 py-1.5 text-xs font-bold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                     Call
                   </span>
                 )}
@@ -783,7 +783,7 @@ export default function Profile() {
           <button
             type="button"
             onClick={closeMenuSheet}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark"
           >
             Done
           </button>
@@ -793,18 +793,18 @@ export default function Profile() {
       {/* About sheet */}
       {menuSheet === 'about' ? (
           <Sheet label="About WanderAI" onClose={closeMenuSheet}>
-            <h3 className="text-base font-extrabold text-tourflow-dark">WanderAI</h3>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+            <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">WanderAI</h3>
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {travelerUser.appVersion} ({travelerUser.build})
           </p>
-          <p className="mt-3 text-xs leading-relaxed text-tourflow-textMuted">
+          <p className="mt-3 text-xs leading-relaxed text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             WanderAI is your AI travel companion for hyper-personalized escapes across India — plan journeys, track
             checklists, and explore with a live AI guide.
           </p>
           <button
             type="button"
             onClick={closeMenuSheet}
-            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark"
+            className="mt-4 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark"
           >
             Done
           </button>
@@ -839,7 +839,7 @@ export default function Profile() {
             type="button"
             disabled={photoBusy}
             onClick={() => cameraRef.current?.click()}
-            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark hover:bg-tourflow-bg disabled:opacity-60"
+            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark hover:bg-tourflow-bg dark:bg-tourflow-bgDark disabled:opacity-60"
           >
             📷 Take Photo
           </button>
@@ -847,7 +847,7 @@ export default function Profile() {
             type="button"
             disabled={photoBusy}
             onClick={() => galleryRef.current?.click()}
-            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark hover:bg-tourflow-bg disabled:opacity-60"
+            className="w-full rounded-xl px-4 py-3 text-left text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark hover:bg-tourflow-bg dark:bg-tourflow-bgDark disabled:opacity-60"
           >
             🖼️ Choose from Gallery
           </button>
@@ -870,7 +870,7 @@ export default function Profile() {
             type="button"
             onClick={closePhotoSheet}
             disabled={photoBusy}
-            className="mt-1 w-full rounded-xl border border-tourflow-cardBorder bg-white px-4 py-3 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+            className="mt-1 w-full rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-3 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
           >
             Cancel
           </button>
@@ -880,7 +880,7 @@ export default function Profile() {
       {/* Avatar preview + upload sheet */}
       {photoSheet === 'preview' ? (
         <Sheet label="Preview new profile photo" onClose={closePhotoSheet}>
-          <h3 className="text-base font-extrabold text-tourflow-dark">Preview</h3>
+          <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Preview</h3>
           {previewUrl ? (
             <img
               src={previewUrl}
@@ -898,7 +898,7 @@ export default function Profile() {
               type="button"
               onClick={closePhotoSheet}
               disabled={photoBusy}
-              className="flex-1 rounded-xl border border-tourflow-cardBorder bg-white px-4 py-2.5 text-sm font-bold text-tourflow-dark disabled:opacity-60"
+              className="flex-1 rounded-xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 py-2.5 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark disabled:opacity-60"
             >
               Cancel
             </button>
@@ -915,7 +915,7 @@ export default function Profile() {
       ) : null}
 
       {toast ? (
-        <p role="status" className="fixed bottom-24 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-tourflow-dark px-4 py-2.5 text-center text-xs font-semibold text-white shadow-float">
+        <p role="status" className="fixed bottom-24 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-4 py-2.5 text-center text-xs font-semibold text-white shadow-float">
           {toast}
         </p>
       ) : null}

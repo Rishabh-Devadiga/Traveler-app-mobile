@@ -48,8 +48,8 @@ export default function OnboardingCarousel({ slides, activeIndex, onSelect }: On
             onClick={() => onSelect(index)}
             className={`h-2 w-2 rounded-full transition-all duration-300 ${
               index === activeIndex
-                ? 'scale-110 bg-white ring-2 ring-white/40'
-                : 'bg-white/40 hover:bg-white/70'
+                ? 'scale-110 bg-white dark:bg-tourflow-surfaceDark ring-2 ring-white/40'
+                : 'bg-white/40 dark:bg-tourflow-surfaceDark/40 hover:bg-white/70 dark:hover:bg-tourflow-surfaceDark/70'
             }`}
           />
         ))}

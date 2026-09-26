@@ -370,10 +370,10 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
   const iframeCenter = data?.center ?? null;
   if (failCount >= 3 && iframeCenter) {
     return (
-      <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+      <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold">Trip Map</h3>
-          <p className="text-[11px] font-semibold text-tourflow-textMuted">Fallback view</p>
+          <p className="text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">Fallback view</p>
         </div>
         <iframe
           title="trip map"
@@ -390,7 +390,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
             setReloadKey((k) => k + 1);
             setMapTick((t) => t + 1);
           }}
-          className="w-full rounded-full border border-tourflow-cardBorder bg-white px-3 py-2 text-xs font-bold text-tourflow-dark"
+          className="w-full rounded-full border border-tourflow-cardBorder bg-white px-3 py-2 text-xs font-bold text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark"
         >
           Try interactive map again
         </button>
@@ -399,13 +399,13 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
   }
 
   return (
-    <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+    <section aria-label="Trip map" className="flex flex-col gap-2 rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-bold">
           Trip Map{!loading && data ? ` · Day ${selectedDay} · ${plottedCount} pin${plottedCount === 1 ? '' : 's'}` : ''}
         </h3>
         {data && data.unmappedCount > 0 ? (
-          <p className="text-[11px] font-semibold text-tourflow-textMuted">
+          <p className="text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             {data.unmappedCount} custom stop{data.unmappedCount === 1 ? '' : 's'} {data.unmappedCount === 1 ? 'has' : 'have'} no location
           </p>
         ) : null}
@@ -426,7 +426,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
         </div>
       ) : null}
       {fallbackNotice ? (
-        <p className="text-[11px] text-tourflow-textMuted">
+        <p className="text-[11px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           Live map unavailable for this trip — showing pins from your itinerary stops.
         </p>
       ) : null}
@@ -438,7 +438,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
           {data && data.unmapped.length > 0 ? (
             <ul className="mt-2 space-y-1">
               {data.unmapped.map((u, i) => (
-                <li key={`${u.day}-${u.title}-${i}`} className="text-xs text-tourflow-textMuted">
+                <li key={`${u.day}-${u.title}-${i}`} className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                   {u.title} — no map pin
                 </li>
               ))}
@@ -457,7 +457,7 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
             className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
               n === selectedDay
                 ? 'bg-tourflow-primary text-white'
-                : 'border border-tourflow-cardBorder bg-white text-tourflow-dark'
+                : 'border border-tourflow-cardBorder bg-white text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'
             }`}
           >
             Day {n}
@@ -467,11 +467,11 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
       <div
         ref={divRef}
         style={{ height: 320 }}
-        className="z-0 w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder"
+        className="z-0 w-full overflow-hidden rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark"
       />
-      {loading ? <p className="text-xs text-tourflow-textMuted">Loading map…</p> : null}
+      {loading ? <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Loading map…</p> : null}
       {tilesFailing ? (
-        <p role="status" className="text-[11px] font-semibold text-tourflow-textMuted">
+        <p role="status" className="text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           Map tiles aren’t loading — check your connection (pins still plot underneath).
         </p>
       ) : null}
@@ -482,16 +482,16 @@ export default function TripMap({ tripId, dayCount, activeDay, fallbackDays }: T
           ['Transport', '#142018'],
           ['Leisure', '#B45309'],
         ].map(([label, color]) => (
-          <span key={label} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-tourflow-textMuted">
+          <span key={label} className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: color }} />
             {label}
           </span>
         ))}
       </div>
       {unmappedForDay.length > 0 ? (
-        <ul className="space-y-1 border-t border-tourflow-cardBorder pt-2">
+        <ul className="space-y-1 border-t border-tourflow-cardBorder pt-2 dark:border-tourflow-cardBorderDark">
           {unmappedForDay.map((u, i) => (
-            <li key={`${u.title}-${i}`} className="text-xs text-tourflow-textMuted">
+            <li key={`${u.title}-${i}`} className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
               {u.title} — no map pin
             </li>
           ))}

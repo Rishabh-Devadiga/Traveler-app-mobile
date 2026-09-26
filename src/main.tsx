@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
 import App from './App';
 import { TripDraftProvider } from './state/TripDraftContext';
+import { ThemeProvider } from './state/ThemeContext';
 import './index.css';
 
 // Capacitor serves the bundle from file:// (or capacitor://localhost) with no
@@ -16,11 +17,13 @@ const Router = isNativeRuntime ? HashRouter : BrowserRouter;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Router>
-      <TripDraftProvider>
-        <App />
-      </TripDraftProvider>
-    </Router>
+    <ThemeProvider>
+      <Router>
+        <TripDraftProvider>
+          <App />
+        </TripDraftProvider>
+      </Router>
+    </ThemeProvider>
   </React.StrictMode>,
 );
 

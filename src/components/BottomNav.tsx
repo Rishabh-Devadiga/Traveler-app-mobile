@@ -22,7 +22,7 @@ export default function BottomNav() {
   return (
     <nav
       aria-label="Primary"
-      className="fixed inset-x-0 bottom-0 z-40 border-t border-tourflow-cardBorder bg-white/95 pb-safe backdrop-blur-md"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-tourflow-cardBorder bg-white/95 pb-safe backdrop-blur-md dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark/95"
     >
       <div className="mx-auto grid max-w-md grid-cols-5 px-2">
         {tabs.map(({ to, label, Icon }) => (
@@ -42,7 +42,7 @@ export default function BottomNav() {
                   ? pathname === '/checklist' || pathname === '/loading' || pathname === '/plan'
                   : isActive;
               return `flex min-h-[56px] flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-2 text-xs font-semibold transition-colors ${
-                active ? 'text-tourflow-primary' : 'text-tourflow-textMuted hover:text-tourflow-dark'
+                active ? 'text-tourflow-primary' : 'text-tourflow-textMuted hover:text-tourflow-dark dark:text-tourflow-textMutedDark dark:hover:text-tourflow-darkDark'
               }`;
             }}
           >

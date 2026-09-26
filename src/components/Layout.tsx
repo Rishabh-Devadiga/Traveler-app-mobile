@@ -96,7 +96,7 @@ export default function Layout() {
   };
 
   return (
-    <div className="min-h-screen bg-tourflow-bg text-tourflow-dark">
+    <div className="min-h-screen bg-tourflow-bg text-tourflow-dark dark:bg-tourflow-bgDark dark:text-tourflow-darkDark">
       <Header
         title={title}
         subtitle={subtitle}

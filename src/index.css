@@ -6,6 +6,10 @@
   color-scheme: light;
 }
 
+.dark {
+  color-scheme: dark;
+}
+
 html,
 body {
   width: 100%;
@@ -13,6 +17,12 @@ body {
   padding: 0;
   background-color: #f4f7f4;
   color: #142018;
+}
+
+.dark html,
+.dark body {
+  background-color: #0e1512;
+  color: #f0f5f2;
 }
 
 body {

@@ -102,9 +102,9 @@ export default function Trips() {
     return (
       <div className="flex flex-col gap-4">
         <h2 className="text-xl font-extrabold tracking-tight">Trips</h2>
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-sm font-bold">Trip history needs the WanderAI backend</p>
-          <p className="mt-1 text-xs text-tourflow-textMuted">
+          <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Set VITE_TOURFLOW_API_URL to load your generated trips.
           </p>
         </section>
@@ -194,18 +194,18 @@ export default function Trips() {
     <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-[22px] font-extrabold tracking-tight">Your trips</h2>
-        <p className="mt-1 text-[13px] text-tourflow-textMuted">
+        <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
           Your generated journeys{trips.length > 0 ? ` · ${trips.length}` : ''}, newest first.
         </p>
       </div>
 
-      <label className="flex min-h-[48px] items-center gap-2 rounded-full border border-tourflow-cardBorder bg-white px-4 shadow-soft">
+      <label className="flex min-h-[48px] items-center gap-2 rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark px-4 shadow-soft">
         <span className="sr-only">Search trips</span>
-        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search trips" className="w-full bg-transparent text-[16px] outline-none placeholder:text-tourflow-textMuted" />
+        <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search trips" className="w-full bg-transparent text-[16px] outline-none placeholder:text-tourflow-textMuted dark:text-tourflow-textMutedDark" />
       </label>
       <div className="flex gap-2" role="tablist" aria-label="Trip status filter">
         {(['all', 'planning', 'confirmed'] as const).map((s) => (
-          <button key={s} type="button" role="tab" aria-selected={statusFilter === s} onClick={() => setStatusFilter(s)} className={`min-h-[36px] rounded-full border px-3.5 py-1.5 text-[13px] font-bold ${statusFilter === s ? 'border-tourflow-primary bg-tourflow-primary text-white' : 'border-tourflow-cardBorder bg-white text-tourflow-dark'}`}>
+          <button key={s} type="button" role="tab" aria-selected={statusFilter === s} onClick={() => setStatusFilter(s)} className={`min-h-[36px] rounded-full border px-3.5 py-1.5 text-[13px] font-bold ${statusFilter === s ? 'border-tourflow-primary bg-tourflow-primary text-white' : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'}`}>
             {s === 'all' ? 'All' : s === 'planning' ? 'Planning' : 'Confirmed'}
           </button>
         ))}
@@ -218,16 +218,16 @@ export default function Trips() {
       ) : null}
 
       {!configured ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-4 shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card">
           <p className="text-[15px] font-bold">Backend not configured</p>
-          <p className="mt-1 text-[13px] text-tourflow-textMuted">
+          <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Sign-in needs the WanderAI server. Set VITE_TOURFLOW_API_URL to load your trips.
           </p>
         </section>
       ) : !authed ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-6 text-center shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-6 text-center shadow-card">
           <h3 className="text-[17px] font-extrabold">Your trips live here</h3>
-          <p className="mt-1 text-[13px] text-tourflow-textMuted">Sign in to see journeys you generate.</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">Sign in to see journeys you generate.</p>
           <button
             type="button"
             onClick={() => navigate('/login', { state: { from: '/trips' } })}
@@ -239,13 +239,13 @@ export default function Trips() {
       ) : loading ? (
         <div className="flex flex-col gap-2" aria-label="Loading your trips">
           {[0, 1].map((i) => (
-            <div key={i} className="skeleton-shimmer h-[120px] rounded-3xl border border-tourflow-cardBorder" aria-hidden="true" />
+            <div key={i} className="skeleton-shimmer h-[120px] rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark" aria-hidden="true" />
           ))}
         </div>
       ) : error ? (
-        <section className="rounded-2xl border border-red-200 bg-white p-4 shadow-card" role="alert">
+        <section className="rounded-2xl border border-red-200 bg-white dark:bg-tourflow-surfaceDark p-4 shadow-card" role="alert">
           <p className="text-[15px] font-bold text-red-700">Could not load trips</p>
-          <p className="mt-1 text-[13px] text-tourflow-textMuted">{error}</p>
+          <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{error}</p>
           <button
             type="button"
             onClick={() => setRetryKey((key) => key + 1)}
@@ -255,9 +255,9 @@ export default function Trips() {
           </button>
         </section>
       ) : trips.length === 0 ? (
-        <section className="flex flex-col items-center gap-2 rounded-3xl border border-tourflow-cardBorder bg-white p-8 text-center shadow-card">
+        <section className="flex flex-col items-center gap-2 rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-8 text-center shadow-card">
           <h3 className="text-[17px] font-extrabold">No trips yet</h3>
-          <p className="max-w-xs text-[13px] text-tourflow-textMuted">
+          <p className="max-w-xs text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
             Tell us where you want to wander, and we&apos;ll build your first itinerary.
           </p>
           <button
@@ -269,10 +269,10 @@ export default function Trips() {
           </button>
         </section>
       ) : visibleTrips.length === 0 && (query.trim() || statusFilter !== 'all') ? (
-        <section className="rounded-2xl border border-tourflow-cardBorder bg-white p-6 text-center shadow-card">
+        <section className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark p-6 text-center shadow-card">
           <h3 className="text-[15px] font-extrabold">No matching trips</h3>
-          <p className="mt-1 text-[13px] text-tourflow-textMuted">Try a different search or filter.</p>
-          <button type="button" onClick={() => { setQuery(''); setStatusFilter('all'); }} className="mt-3 min-h-[44px] rounded-full border border-tourflow-cardBorder px-6 py-2 text-[14px] font-bold">
+          <p className="mt-1 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">Try a different search or filter.</p>
+          <button type="button" onClick={() => { setQuery(''); setStatusFilter('all'); }} className="mt-3 min-h-[44px] rounded-full border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark px-6 py-2 text-[14px] font-bold">
             Clear filters
           </button>
         </section>
@@ -297,7 +297,7 @@ export default function Trips() {
                   type="button"
                   disabled={busy}
                   onClick={() => openTrip(trip.id)}
-                  className="block w-full overflow-hidden rounded-3xl border border-tourflow-cardBorder bg-white text-left shadow-card transition-transform active:scale-[0.99] disabled:opacity-70"
+                  className="block w-full overflow-hidden rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-left shadow-card transition-transform active:scale-[0.99] disabled:opacity-70"
                 >
                   <div className="relative">
                     <SafeImage
@@ -314,13 +314,13 @@ export default function Trips() {
                   <div className="p-4">
                     <h3 className="clamp-2 text-[16px] font-extrabold">{name}</h3>
                     {safeText(destination).trim() ? (
-                      <p className="mt-0.5 truncate text-[13px] text-tourflow-textMuted">
+                      <p className="mt-0.5 truncate text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                         {safeText(destination).trim()}
                       </p>
                     ) : null}
                     {dates ? <p className="mt-1 text-[13px] font-semibold">{dates}</p> : null}
                     {money ? (
-                      <p className="mt-0.5 text-[13px] text-tourflow-textMuted">{money}</p>
+                      <p className="mt-0.5 text-[13px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{money}</p>
                     ) : null}
                     <p className="mt-2 text-[13px] font-bold text-tourflow-primary">
                       {opening ? 'Opening…' : generated || 'View itinerary →'}

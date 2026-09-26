@@ -26,12 +26,12 @@ function relativeTime(iso: string): string {
 function typeGlyph(type: string): { glyph: string; bubble: string } {
   const kind = type.toLowerCase();
   if (kind.includes('success') || kind.includes('trip') || kind.includes('book') || kind.includes('confirm')) {
-    return { glyph: '✓', bubble: 'bg-tourflow-sageLight text-tourflow-sage' };
+    return { glyph: '✓', bubble: 'bg-tourflow-sageLight text-tourflow-sage dark:bg-tourflow-sageLightDark' };
   }
   if (kind.includes('warn') || kind.includes('alert') || kind.includes('disrupt') || kind.includes('cancel')) {
     return { glyph: '!', bubble: 'bg-amber-50 text-amber-600' };
   }
-  return { glyph: '✦', bubble: 'bg-tourflow-primarySoft text-tourflow-primary' };
+  return { glyph: '✦', bubble: 'bg-tourflow-primarySoft text-tourflow-primary dark:bg-tourflow-primarySoftDark' };
 }
 
 interface NotificationsSheetProps {
@@ -155,14 +155,14 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
         role="dialog"
         aria-modal="true"
         aria-label="Notifications"
-        className="absolute left-1/2 top-[calc(4rem+env(safe-area-inset-top,0px)+0.5rem)] max-h-[75vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 overflow-y-auto rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-float"
+        className="absolute left-1/2 top-[calc(4rem+env(safe-area-inset-top,0px)+0.5rem)] max-h-[75vh] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 overflow-y-auto rounded-3xl border border-tourflow-cardBorder bg-white p-4 shadow-float dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-baseline gap-2">
-            <h3 className="text-base font-extrabold text-tourflow-dark">Notifications</h3>
+            <h3 className="text-base font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">Notifications</h3>
             {unread > 0 && !loading && !error ? (
-              <span className="rounded-full bg-tourflow-primarySoft px-2 py-0.5 text-[11px] font-bold text-tourflow-primary">
+              <span className="rounded-full bg-tourflow-primarySoft px-2 py-0.5 text-[11px] font-bold text-tourflow-primary dark:bg-tourflow-primarySoftDark">
                 {unread} new
               </span>
             ) : null}
@@ -171,7 +171,7 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
             type="button"
             onClick={onClose}
             aria-label="Close notifications"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-tourflow-textMuted transition-colors hover:bg-tourflow-surfaceMuted hover:text-tourflow-dark"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-tourflow-textMuted transition-colors hover:bg-tourflow-surfaceMuted hover:text-tourflow-dark dark:text-tourflow-textMutedDark dark:hover:bg-tourflow-surfaceMutedDark dark:hover:text-tourflow-darkDark"
           >
             ✕
           </button>
@@ -194,13 +194,13 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
         ) : null}
 
         {!configured ? (
-          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-4 text-xs font-semibold text-tourflow-textMuted">
+          <p className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-4 text-xs font-semibold text-tourflow-textMuted dark:bg-tourflow-surfaceMutedDark dark:text-tourflow-textMutedDark">
             Notifications need the WanderAI backend. Set VITE_TOURFLOW_API_URL to load them.
           </p>
         ) : !authed ? (
-          <div className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-5 text-center">
-            <p className="text-sm font-bold text-tourflow-dark">Stay in the loop</p>
-            <p className="mt-1 text-xs text-tourflow-textMuted">Sign in to see your trip updates.</p>
+          <div className="mt-3 rounded-2xl bg-tourflow-surfaceMuted p-5 text-center dark:bg-tourflow-surfaceMutedDark">
+            <p className="text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">Stay in the loop</p>
+            <p className="mt-1 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">Sign in to see your trip updates.</p>
             <button
               type="button"
               onClick={() => navigate('/login')}
@@ -229,8 +229,8 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center gap-1 px-4 py-8 text-center">
             <span aria-hidden="true" className="text-3xl">🔔</span>
-            <p className="mt-2 text-sm font-extrabold text-tourflow-dark">You&apos;re all caught up</p>
-            <p className="text-xs text-tourflow-textMuted">New travel updates and trip activity will appear here.</p>
+            <p className="mt-2 text-sm font-extrabold text-tourflow-dark dark:text-tourflow-darkDark">You&apos;re all caught up</p>
+            <p className="text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">New travel updates and trip activity will appear here.</p>
           </div>
         ) : (
           <ul className="mt-3 flex flex-col gap-2">
@@ -244,8 +244,8 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
                     onClick={() => handleOpen(item)}
                     className={`flex w-full items-start gap-3 rounded-2xl border p-3 text-left transition-colors disabled:opacity-70 ${
                       item.is_read
-                        ? 'border-tourflow-cardBorder bg-white'
-                        : 'border-tourflow-primary/30 bg-tourflow-primarySoft/50'
+                        ? 'border-tourflow-cardBorder bg-white dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark'
+                        : 'border-tourflow-primary/30 bg-tourflow-primarySoft/50 dark:bg-tourflow-primarySoftDark/50'
                     }`}
                   >
                     <span
@@ -255,13 +255,13 @@ export default function NotificationsSheet({ onClose, onUnreadChange, onOpenTrip
                       {icon.glyph}
                     </span>
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-bold text-tourflow-dark">{item.title}</span>
+                      <span className="block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">{item.title}</span>
                       {item.message ? (
-                        <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-tourflow-textMuted">
+                        <span className="mt-0.5 line-clamp-2 block text-xs leading-relaxed text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                           {item.message}
                         </span>
                       ) : null}
-                      <span className="mt-1 block text-[11px] text-tourflow-textMuted">
+                      <span className="mt-1 block text-[11px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                         {[relativeTime(item.created_at), item.trip_id ? (openingId === item.id ? 'Opening…' : 'View trip →') : null]
                           .filter(Boolean)
                           .join(' · ')}
