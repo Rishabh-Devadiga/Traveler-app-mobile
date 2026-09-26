@@ -106,75 +106,117 @@ body {
 }
 
 .splash-wordmark-wrap {
-  filter: drop-shadow(0 10px 22px rgba(235, 120, 18, 0.16));
+  filter: drop-shadow(0 10px 22px rgba(235, 120, 18, 0.14));
 }
 
 .splash-wordmark {
   overflow: visible;
 }
 
-.splash-letter {
+/* Mobile-fit + sparkle badge: badge pops in first (before typing). */
+.splash-star-badge {
   opacity: 0;
-  transform: translateY(14px);
-  transform-box: fill-box;
-  transform-origin: center bottom;
-  filter: blur(6px);
-  animation: splashLetterIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform: translateY(8px) scale(0.96);
+  animation: splashBadgeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
 }
 
+.splash-star {
+  display: inline-block;
+  animation: splashStarTwinkle 1.6s ease-in-out 0.55s infinite;
+  transform-origin: center;
+}
+
+@keyframes splashBadgeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes splashStarTwinkle {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.25) rotate(12deg);
+    opacity: 0.85;
+  }
+}
+
+/* True typewriter: the whole wordmark is revealed left → right
+   behind a mask, in discrete per-letter steps (W first). */
+.splash-type-mask {
+  clip-path: inset(-12% 100% -12% 0);
+  animation: splashTypeReveal 1.7s steps(8, end) 0.25s forwards;
+  will-change: clip-path;
+}
+
+.splash-letter {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  animation: none;
+}
+
+/* Caret from your still: tall thin orange bar, extends above/below
+   the caps, rides exactly on the reveal edge, then fades. */
 .splash-scan-full {
   position: absolute;
-  top: -8%;
-  bottom: -8%;
+  top: -14%;
+  bottom: -18%;
   left: 0;
   width: 3px;
   border-radius: 9999px;
-  background: linear-gradient(180deg, #ffb27a 0%, #eb7812 55%, #c25e0a 100%);
+  background: #eb7812;
   box-shadow:
-    0 0 0 1px rgba(235, 120, 18, 0.25),
-    0 0 18px rgba(235, 120, 18, 0.65),
-    6px 0 22px rgba(235, 120, 18, 0.35);
-  animation: splashScanFull 1.5s cubic-bezier(0.65, 0, 0.35, 1) 0.35s both;
+    0 0 0 1px rgba(235, 120, 18, 0.3),
+    0 0 16px rgba(235, 120, 18, 0.7);
+  animation:
+    splashCaretType 1.7s steps(8, end) 0.25s both,
+    splashCaretOut 0.35s ease-out 2.05s forwards;
   pointer-events: none;
 }
 
 .splash-baseline {
   transform: scaleX(0);
-  animation: splashBaseline 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+  animation: splashBaseline 1.7s steps(8, end) 0.25s forwards;
 }
 
 .splash-caption {
   opacity: 0;
   transform: translateY(6px);
-  animation: splashCaption 0.6s ease-out 1.5s forwards;
+  animation: splashCaption 0.5s ease-out 2s forwards;
 }
 
-@keyframes splashLetterIn {
+/* Typewriter reveal: mask opens left → right in 8 letter steps. */
+@keyframes splashTypeReveal {
   from {
-    opacity: 0;
-    transform: translateY(14px);
-    filter: blur(6px);
+    clip-path: inset(-12% 100% -12% 0);
   }
   to {
-    opacity: 1;
-    transform: translateY(0);
-    filter: blur(0);
+    clip-path: inset(-12% -2% -12% 0);
   }
 }
 
-@keyframes splashScanFull {
+/* Caret rides the reveal edge in the same 8 steps, then fades out. */
+@keyframes splashCaretType {
   0% {
-    left: 1%;
+    left: 0%;
     opacity: 0;
   }
-  8% {
-    opacity: 1;
-  }
-  84% {
+  6% {
     opacity: 1;
   }
   100% {
-    left: 99%;
+    left: 100%;
+    opacity: 1;
+  }
+}
+
+@keyframes splashCaretOut {
+  to {
     opacity: 0;
   }
 }
@@ -195,6 +237,17 @@ body {
   }
 }
 
+@media (max-width: 480px) {
+  .splash-wordmark-wrap {
+    filter: drop-shadow(0 6px 14px rgba(235, 120, 18, 0.14));
+  }
+  .splash-scan-full {
+    top: -10%;
+    bottom: -14%;
+    width: 2px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-pulse-dot,
   .typing-dot-1,
@@ -208,6 +261,9 @@ body {
   }
   .splash-wordmark,
   .splash-letter,
+  .splash-type-mask,
+  .splash-star-badge,
+  .splash-star,
   .splash-scan-full,
   .splash-baseline,
   .splash-caption {
