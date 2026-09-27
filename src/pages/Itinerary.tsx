@@ -733,8 +733,7 @@ export default function Itinerary() {
 
   return (
     <div className="flex flex-col gap-5 pb-24">
-      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark text-white shadow-card">
-        <div className="absolute inset-0 bg-tourflow-dark" aria-hidden="true" />
+      <section className="relative overflow-hidden rounded-3xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-[#0D1117] text-tourflow-dark dark:text-white shadow-card">
         {heroImage ? (
           <SafeImage
             src={heroImage}
@@ -743,7 +742,7 @@ export default function Itinerary() {
           />
         ) : null}
         <div
-          className="absolute inset-0 h-[220px] bg-gradient-to-t from-black/90 via-black/55 to-black/25"
+          className="absolute inset-0 h-[220px] bg-gradient-to-t from-black/70 via-black/30 to-transparent dark:from-black/90 dark:via-black/55 dark:to-black/25"
           aria-hidden="true"
         />
         <button type="button" onClick={() => navigate(-1)} aria-label="Go back" className="absolute left-3 top-3 z-10 flex h-11 w-11 items-center justify-center rounded-full bg-black/50 text-white backdrop-blur-md hover:bg-black/70">
@@ -754,28 +753,33 @@ export default function Itinerary() {
             <PdfIcon size={20} />
           </button>
         ) : null}
-        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark p-5">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">
-            Your trip · {draft.itinerarySource === 'api' ? 'Live' : 'Preview'}
+        <div className="relative mt-[140px] flex flex-col justify-end bg-white dark:bg-white/5 p-5 dark:backdrop-blur-md">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-tourflow-textMuted dark:text-white/70">
+            Your trip ·{' '}
+            <span className="text-tourflow-primary">
+              {draft.itinerarySource === 'api' ? 'Live' : 'Preview'}
+            </span>
           </p>
           <h2 className="clamp-2 mt-1 text-[22px] font-extrabold leading-tight tracking-tight">
             {destinationLabel}
           </h2>
           {originLabel ? (
-            <p className="mt-1.5 text-[14px] font-semibold text-white/90">
+            <p className="mt-1.5 text-[14px] font-semibold text-tourflow-dark dark:text-white/90">
               {originLabel} → {destinationLabel}
             </p>
           ) : null}
-          <p className="mt-1 text-[13px] leading-relaxed text-white/80">
+          <p className="mt-1 text-[13px] leading-relaxed text-tourflow-textMuted dark:text-white/80">
             {travelersLabel} · {dayCount} {dayCount === 1 ? 'Day' : 'Days'}
             {dateRange ? ` · ${dateRange}` : ''} · {totalStops}{' '}
             {totalStops === 1 ? 'Stop' : 'Stops'}
           </p>
-          <p className="mt-2.5 text-[18px] font-extrabold leading-none text-white">
-            {tripTotal !== undefined
-              ? formatINR(tripTotal)
-              : (draft.budgetLabel ?? (tripBudget !== undefined ? formatINR(tripBudget) : 'Budget to be confirmed'))}{' '}
-            <span className="align-middle text-[13px] font-semibold text-white/70">
+          <p className="mt-2.5 text-[18px] font-extrabold leading-none">
+            <span className="bg-gradient-to-r from-[#F05A28] to-[#FF8A50] bg-clip-text text-transparent">
+              {tripTotal !== undefined
+                ? formatINR(tripTotal)
+                : (draft.budgetLabel ?? (tripBudget !== undefined ? formatINR(tripBudget) : 'Budget to be confirmed'))}
+            </span>{' '}
+            <span className="align-middle text-[13px] font-semibold text-tourflow-textMuted dark:text-white/70">
               total
               {tripBudget !== undefined && tripTotal !== undefined && tripBudget !== tripTotal
                 ? ` · Budget ${formatINR(tripBudget)}`
@@ -783,7 +787,7 @@ export default function Itinerary() {
             </span>
           </p>
           {costBreakdown ? (
-            <p className="mt-1.5 text-[13px] leading-relaxed text-white/70">
+            <p className="mt-1.5 text-[13px] leading-relaxed text-tourflow-textMuted dark:text-white/70">
               Transport {formatINR(costBreakdown.transport)} · Stays{' '}
               {formatINR(costBreakdown.accommodation)} · Activities{' '}
               {formatINR(costBreakdown.activities)}
@@ -798,10 +802,14 @@ export default function Itinerary() {
             ].map((m) => (
               <div
                 key={m.id}
-                className="rounded-2xl bg-white/15 p-2.5 text-center shadow-soft backdrop-blur-md"
+                className="rounded-2xl border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-tourflow-surfaceMuted/50 dark:bg-white/10 p-2.5 text-center shadow-soft backdrop-blur-md"
               >
-                <p className="truncate text-sm font-extrabold text-white">{m.value}</p>
-                <p className="mt-0.5 text-[11px] font-medium text-white/75">{m.label}</p>
+                <p className={`truncate text-sm font-extrabold ${m.id === 'perday' ? 'text-tourflow-primary' : ''}`}>
+                  {m.value}
+                </p>
+                <p className="mt-0.5 text-[11px] font-medium text-tourflow-textMuted dark:text-white/75">
+                  {m.label}
+                </p>
               </div>
             ))}
           </div>
