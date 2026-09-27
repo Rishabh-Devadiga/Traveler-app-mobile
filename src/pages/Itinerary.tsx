@@ -110,7 +110,7 @@ function BookingLink({ url }: { url?: string | null }) {
       href={url}
       target="_blank"
       rel="noopener noreferrer"
-      className="mt-1.5 inline-block rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1.5 text-[11px] font-bold text-white"
+      className="mt-1.5 inline-block rounded-full bg-tourflow-dark px-3 py-1.5 text-[11px] font-bold text-white"
     >
       Book / View booking ↗
     </a>
@@ -733,8 +733,8 @@ export default function Itinerary() {
 
   return (
     <div className="flex flex-col gap-5 pb-24">
-      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark dark:bg-tourflow-darkDark text-white shadow-card">
-        <div className="absolute inset-0 bg-tourflow-dark dark:bg-tourflow-darkDark" aria-hidden="true" />
+      <section className="relative overflow-hidden rounded-3xl bg-tourflow-dark text-white shadow-card">
+        <div className="absolute inset-0 bg-tourflow-dark" aria-hidden="true" />
         {heroImage ? (
           <SafeImage
             src={heroImage}
@@ -754,7 +754,7 @@ export default function Itinerary() {
             <PdfIcon size={20} />
           </button>
         ) : null}
-        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark dark:bg-tourflow-darkDark p-5">
+        <div className="relative mt-[140px] flex flex-col justify-end bg-tourflow-dark p-5">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/70">
             Your trip · {draft.itinerarySource === 'api' ? 'Live' : 'Preview'}
           </p>
@@ -865,7 +865,7 @@ export default function Itinerary() {
           <button
             type="button"
             onClick={openDatesSheet}
-            className="mt-2 rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1.5 text-xs font-bold text-white"
+            className="mt-2 rounded-full bg-tourflow-dark px-3 py-1.5 text-xs font-bold text-white"
           >
             Adjust Dates
           </button>
@@ -954,7 +954,7 @@ export default function Itinerary() {
             onClick={() => setShowMap((v) => !v)}
             aria-pressed={showMap}
             className={`min-h-[36px] shrink-0 rounded-full px-4 py-1.5 text-[13px] font-bold transition-colors ${
-              showMap ? 'bg-tourflow-dark dark:bg-tourflow-darkDark text-white' : 'border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'
+              showMap ? 'bg-tourflow-dark text-white' : 'border border-tourflow-cardBorder dark:border-tourflow-cardBorderDark bg-white dark:bg-tourflow-surfaceDark text-tourflow-dark dark:text-tourflow-darkDark'
             }`}
           >
             {showMap ? 'Hide map' : 'Map'}
@@ -1241,7 +1241,7 @@ export default function Itinerary() {
               type="button"
               onClick={() => void handleRegenerate()}
               disabled={pendingKey !== null}
-              className="w-full rounded-xl bg-tourflow-dark dark:bg-tourflow-darkDark px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
+              className="w-full rounded-xl bg-tourflow-dark px-4 py-2.5 text-sm font-bold text-white disabled:opacity-60"
             >
               {pendingKey === 'regenerate' ? 'Regenerating…' : 'Save & Generate Again'}
             </button>

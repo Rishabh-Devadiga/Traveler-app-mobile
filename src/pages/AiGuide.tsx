@@ -478,7 +478,7 @@ export default function AiGuide() {
                   <button
                     type="button"
                     onClick={() => setPickerOpen(true)}
-                    className="rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-1 text-[11px] font-bold text-white"
+                    className="rounded-full bg-tourflow-dark px-3 py-1 text-[11px] font-bold text-white"
                   >
                     Select trip
                   </button>

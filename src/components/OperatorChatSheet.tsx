@@ -135,7 +135,7 @@ export default function OperatorChatSheet({ tripId, destinationLabel, onClose, o
           <div ref={scrollRef} className="flex max-h-[42vh] flex-col gap-2 overflow-y-auto" aria-live="polite">
             {messages.map((m) => (
               <div key={`${m.id}-${m.text}`} className={`flex ${m.mine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] shadow-soft ${m.mine ? 'rounded-br-md bg-tourflow-dark text-white dark:bg-tourflow-darkDark' : 'rounded-bl-md border border-tourflow-cardBorder bg-white text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'}`}>
+                <div className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] shadow-soft ${m.mine ? 'rounded-br-md bg-tourflow-dark text-white' : 'rounded-bl-md border border-tourflow-cardBorder bg-white text-tourflow-dark dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'}`}>
                   {!m.mine ? (
                     <p className="text-[11px] font-bold uppercase tracking-wide text-tourflow-textMuted dark:text-tourflow-textMutedDark">
                       {m.sender === 'system' ? 'System' : operatorName ?? 'Operator'}

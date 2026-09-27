@@ -152,7 +152,7 @@ export function DestinationCard({ destination, onPlan, className }: { destinatio
         }}
       />
       {destination.tag ? (
-        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white dark:bg-tourflow-darkDark/85">
+        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white">
           {destination.tag}
         </span>
       ) : null}

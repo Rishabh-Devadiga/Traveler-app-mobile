@@ -436,7 +436,7 @@ export default function AiLoading() {
             <button
               type="button"
               onClick={() => navigate('/checklist')}
-              className="min-h-[44px] flex-1 rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-3 py-2 text-[14px] font-bold text-white"
+              className="min-h-[44px] flex-1 rounded-full bg-tourflow-dark px-3 py-2 text-[14px] font-bold text-white"
             >
               Adjust Dates
             </button>
@@ -526,7 +526,7 @@ export default function AiLoading() {
           type="button"
           onClick={handleViewItinerary}
           disabled={useBackend && completedSteps < planningSteps.length}
-          className="min-h-[44px] rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-5 py-2 text-[14px] font-bold text-white disabled:opacity-50"
+          className="min-h-[44px] rounded-full bg-tourflow-dark px-5 py-2 text-[14px] font-bold text-white disabled:opacity-50"
         >
           View Itinerary
         </button>

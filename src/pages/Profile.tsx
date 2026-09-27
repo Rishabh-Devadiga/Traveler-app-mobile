@@ -915,7 +915,7 @@ export default function Profile() {
       ) : null}
 
       {toast ? (
-        <p role="status" className="fixed bottom-24 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-tourflow-dark dark:bg-tourflow-darkDark px-4 py-2.5 text-center text-xs font-semibold text-white shadow-float">
+        <p role="status" className="fixed bottom-24 left-1/2 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 rounded-full bg-tourflow-dark px-4 py-2.5 text-center text-xs font-semibold text-white shadow-float">
           {toast}
         </p>
       ) : null}

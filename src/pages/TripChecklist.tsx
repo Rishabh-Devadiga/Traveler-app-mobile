@@ -196,7 +196,7 @@ export default function TripChecklist() {
         </div>
       </div>
 
-      <blockquote className="rounded-2xl bg-tourflow-dark dark:bg-tourflow-darkDark p-4 text-[13px] italic leading-relaxed text-white">
+      <blockquote className="rounded-2xl bg-tourflow-dark p-4 text-[13px] italic leading-relaxed text-white">
         “{draft.prompt}”
       </blockquote>
 

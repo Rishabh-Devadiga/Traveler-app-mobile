@@ -99,7 +99,7 @@ export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer
           {stop.description ? <p className="clamp-2 mt-1 text-[14px] text-tourflow-textMuted dark:text-tourflow-textMutedDark">{stop.description}</p> : null}
           <div className="mt-2 flex flex-wrap items-center gap-1.5">
             {stop.badge ? (
-              <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-xs font-bold text-white dark:bg-tourflow-darkDark">{stop.badge}</span>
+              <span className="rounded-full bg-tourflow-dark px-2 py-0.5 text-xs font-bold text-white">{stop.badge}</span>
             ) : null}
             {stop.tags.map((tag) => (
               <span
@@ -126,7 +126,7 @@ export function StayCard({ stay }: { stay: StayOption }) {
     <article className="overflow-hidden rounded-2xl border border-tourflow-cardBorder bg-white shadow-card dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark">
       <div className="relative">
         <SafeImage src={stay.heroImage} alt={`${stay.name} photo`} className="h-32 w-full object-cover" />
-        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white dark:bg-tourflow-darkDark/85">
+        <span className="absolute left-2 top-2 rounded-full bg-tourflow-dark/85 px-2 py-0.5 text-[11px] font-bold text-white">
           {stay.badge.replace(/_/g, ' ')} · ★ {stay.rating}
         </span>
       </div>
@@ -193,7 +193,7 @@ export function ChatBubble({ message }: { message: ChatMessage }) {
         className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[14px] leading-relaxed shadow-soft ${
           isAi
             ? 'rounded-bl-md border border-tourflow-sageBorder bg-white text-tourflow-dark dark:border-tourflow-sageBorderDark dark:bg-tourflow-surfaceDark dark:text-tourflow-darkDark'
-            : 'rounded-br-md bg-tourflow-dark text-white dark:bg-tourflow-darkDark'
+            : 'rounded-br-md bg-tourflow-dark text-white'
         }`}
       >
         {message.text}
