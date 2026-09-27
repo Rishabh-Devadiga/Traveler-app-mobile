@@ -45,6 +45,7 @@ import { formatINR } from '../utils/format';
 import { diffNights, parseISODate, tripDateRangeLabel } from '../utils/dates';
 import { formatDistanceKm, haversineKm } from '../utils/distance';
 import { buildTripPdfInput, exportTripToPDF } from '../utils/pdfExport';
+import { transportImageFor } from '../utils/transportImage';
 
 type Sheet =
   | { kind: 'dates' }
@@ -1057,15 +1058,23 @@ export default function Itinerary() {
               ) : null}
               <ul className="mt-2 space-y-2">
                 {transportStops.map((s) => (
-                  <li key={s.id} className="rounded-xl bg-tourflow-surfaceMuted/60 p-2.5">
-                    <p className="text-xs font-bold text-tourflow-dark dark:text-tourflow-darkDark">
-                      <span className="font-semibold">{s.dayLabel} · </span>
-                      {s.transportDetails?.mode ? `${transportModeLabel(s.transportDetails.mode)} · ` : ''}
-                      {s.title}
-                      {s.costLabel ? ` — ${s.costLabel}` : ''}
-                    </p>
-                    {s.transportDetails ? <TransportDetailBlock details={s.transportDetails} /> : null}
-                    <BookingLink url={s.bookingUrl} />
+                  <li key={s.id} className="flex gap-2.5 rounded-xl bg-tourflow-surfaceMuted/60 p-2.5">
+                    <img
+                      src={transportImageFor(s.transportDetails?.mode)}
+                      alt=""
+                      loading="lazy"
+                      className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-tourflow-dark dark:text-tourflow-darkDark">
+                        <span className="font-semibold">{s.dayLabel} · </span>
+                        {s.transportDetails?.mode ? `${transportModeLabel(s.transportDetails.mode)} · ` : ''}
+                        {s.title}
+                        {s.costLabel ? ` — ${s.costLabel}` : ''}
+                      </p>
+                      {s.transportDetails ? <TransportDetailBlock details={s.transportDetails} /> : null}
+                      <BookingLink url={s.bookingUrl} />
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -1366,7 +1375,13 @@ export default function Itinerary() {
                       selected ? 'border-tourflow-primary bg-tourflow-primarySoft/40' : 'border-tourflow-cardBorder dark:border-tourflow-cardBorderDark'
                     }`}
                   >
-                    <p className="text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
+                    <img
+                      src={transportImageFor(option.type)}
+                      alt=""
+                      loading="lazy"
+                      className="h-28 w-full rounded-xl object-cover"
+                    />
+                    <p className="mt-2 text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                       {transportModeLabel(option.type)} · {option.name}
                     </p>
                     <p className="mt-0.5 text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">

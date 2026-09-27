@@ -5,6 +5,7 @@ import { getTransportOptions, type TransportOption } from '../api/trips';
 import { ApiError, isApiConfigured } from '../api/client';
 import { clearTravelerToken } from '../api/auth';
 import { formatINR } from '../utils/format';
+import { transportImageFor } from '../utils/transportImage';
 
 type TransportMode = 'Flight' | 'Train' | 'Road';
 
@@ -195,7 +196,13 @@ export default function TransportStep() {
                               ) : null}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
+                              <img
+                                src={transportImageFor(option.type)}
+                                alt=""
+                                loading="lazy"
+                                className="h-28 w-full rounded-xl object-cover"
+                              />
+                              <span className="mt-2 block truncate text-sm font-bold text-tourflow-dark dark:text-tourflow-darkDark">
                                 {option.name}
                               </span>
                               <span className="mt-0.5 block truncate text-xs text-tourflow-textMuted dark:text-tourflow-textMutedDark">

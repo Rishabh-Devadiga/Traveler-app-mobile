@@ -10,6 +10,7 @@ import type {
   StayOption,
 } from '../types';
 import { formatINR } from '../utils/format';
+import { transportImageFor } from '../utils/transportImage';
 
 /** Image with a clean inline fallback — never a broken-image icon, never a fake photo. */
 export function SafeImage({
@@ -61,6 +62,10 @@ export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer
   // Leisure placeholders (free days the backend guarantees per 1..duration)
   // render as relaxed free-time cards, never as empty days.
   const isLeisure = typeLabel === 'Leisure';
+  // Transport stops always use the fixed local artwork for their mode —
+  // never a dynamic/remote backend URL that can fail to load.
+  const isTransport = typeLabel === 'Transport';
+  const imageSrc = isTransport ? transportImageFor(stop.transportDetails?.mode) : stop.imageUrl;
   return (
     <li className="relative pl-10">
       <span
@@ -72,8 +77,8 @@ export function TimelineStopCard({ stop, footer }: { stop: ItineraryStop; footer
           isLeisure ? 'border-tourflow-sageBorder bg-tourflow-sageLight/50 dark:border-tourflow-sageBorderDark dark:bg-tourflow-sageLightDark/50' : 'border-tourflow-cardBorder bg-white dark:border-tourflow-cardBorderDark dark:bg-tourflow-surfaceDark'
         }`}
       >
-        {stop.imageUrl ? (
-          <SafeImage src={stop.imageUrl} alt={stop.imageAlt ?? stop.title} className="h-36 w-full object-cover" />
+        {imageSrc ? (
+          <SafeImage src={imageSrc} alt={stop.imageAlt ?? stop.title} className="h-36 w-full object-cover" />
         ) : (
           <div
             role="img"
